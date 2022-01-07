@@ -1,0 +1,70 @@
+.navbar-burger .icon {
+  background-color: #000;
+  position: absolute;
+  left: calc(50% - 5px);
+  top: 15px;
+}
+.navbar-item {
+  padding-bottom: 0;
+  .logo{
+    width: 30px;
+    height: 27px;
+  }
+  span{
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+}
+
+.network-name {
+  position: absolute;
+  right: 50px;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 7px 0;
+}
+
+.navbar.is-black .navbar-brand>a.navbar-item:hover{
+  background-color: transparent;
+}
+
+.navbar.is-black .navbar-end .navbar-link:hover{
+  background-color: #4891ED;
+}
+
+.navbar.is-black .navbar-brand>a.navbar-item:focus{
+  background-color: transparent;
+}
+
+#privacy-notice {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+#navMenu-networks .navbar-dropdown {
+  z-index: 100;
+}
+
+.network-icon {
+  padding-right: 10px;
+  width: 28px;
+}
+
+.network-icon.current-network {
+  padding-top: 2px;
+}
+
+.language-icon {
+  padding-right: 10px;
+  padding-top: 2px;
+}
+
+.navbar.is-black .navbar-item.has-dropdown:hover .navbar-link{
+  background-color: #4891ED;
+}

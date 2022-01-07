@@ -1,0 +1,141 @@
+.last-blocks {
+    padding-left: 0;
+  }
+
+  .last-transfers {
+    padding-right: 0;
+  }
+
+@media screen and (max-width: 1088px) {
+
+  .last-blocks {
+    padding-right: 0;
+  }
+
+  .last-transfers {
+    padding-left: 0;
+  }
+
+}
+
+.dashboard-card{
+  background: transparent;
+  box-shadow: none;
+  .card-header {
+    box-shadow: none;
+  }
+}
+
+.dashboard-card .card-table {
+  max-height: 561px;
+  overflow-y: scroll;
+  .button.is-primary{
+    transition: all ease-in-out .3s!important;
+    &:hover{
+      background-color: #4891ED !important;
+    }
+  }
+  tr{
+
+  }
+  tr th{
+    color: #555555;
+    font-weight: 400;
+    border: none;
+    background-color: #f9f9f9!important;
+  }
+}
+.card-header{
+  .icon{
+    i {
+      color: #4891ED;
+      transition: all ease-in-out .3s;
+    }
+  }
+}
+
+.info-tiles a {
+  color: #8F99A3;
+}
+.info-tiles .title-content{
+  position: relative;
+  text-align: left;
+  i{
+    margin-left: 20px;
+    line-height: 1.5;
+  }
+}
+.info-tiles .tile{
+  height: fit-content;
+}
+.info-tiles .title{
+  color: #4891ED;
+}
+.search-button{
+  width: 255px;
+  background: #4891ed;
+  border: none;
+  color: #fff;
+  box-sizing: border-box;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.container-search{
+  padding: 6px;
+  background: #fff;
+  border-radius: 4px;
+  input{
+    box-shadow: none;
+    background: transparent !important;
+    border: none;
+    &:focus{
+      box-shadow: none;
+    }
+  }
+}
+.card-table{
+  padding: 10px;
+  background: #fff;
+  &::-webkit-scrollbar{
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track{
+    background: transparent;
+    border-radius: 2px;
+  }
+  &::-webkit-scrollbar-thumb{
+    background: rgba(194, 194, 194, .8);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-corner{
+    background: transparent;
+  }
+}
+
+.table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+  background-color: #fff;
+}
+.card-header-title{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  line-height: 1;
+  padding-bottom: 26px;
+}
+.card-header-line{
+  width: 4px;
+  height: 100%;
+  border-radius: 1px;
+  margin-right: 14px;
+  line-height: 1;
+  background-color: rgba(194, 194, 194, .8);
+}
+
+.content table td{
+  border: 1px solid #f9f9f9;
+  border-width: 0 0 1px;
+  padding: .5em .75em;
+  vertical-align: top;
+}
