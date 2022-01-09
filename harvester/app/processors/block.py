@@ -513,6 +513,7 @@ class AccountInfoBlockProcessor(BlockProcessor):
                 self.harvester.create_balance_snapshot(
                     block_id=self.block.id,
                     block_hash=self.block.hash,
+                    block_datetime=self.block.datetime,
                     account_id=search_index[0]
                 )
 

@@ -1150,9 +1150,16 @@ class PolkascanHarvesterService(BaseService):
 
                 self.create_balance_snapshot(block_id=block_id, account_id=account_id, block_hash=block_hash)
 
-    def create_balance_snapshot(self, block_id, account_id, block_hash=None):
+    def create_balance_snapshot(self, block_id, account_id, block_hash=None, block_datetime=None):
         if not block_hash:
             block_hash = self.substrate.get_block_hash(block_id)
+
+        if not block_datetime:
+            # block = Block.query(self.db_session).filter_by(id=block_id).first()
+            extrinsic = Extrinsic.query(self.db_session).filter_by(block_id=block_id, module_id='Timestamp', call_id='set').first()
+            print('create_balance_snapshot', extrinsic.params)
+        else:
+            print('block datetime', block_datetime)
 
         # Get balance for account
         try:

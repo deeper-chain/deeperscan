@@ -97,6 +97,7 @@ class AccountInfoSnapshot(BaseModel):
     __tablename__ = 'data_account_info_snapshot'
 
     block_id = sa.Column(sa.Integer(), primary_key=True, index=True)
+    block_datetime = sa.Column(sa.DateTime(), nullable=True)
     account_id = sa.Column(sa.String(64), primary_key=True, index=True)
 
     balance_total = sa.Column(sa.Numeric(precision=65, scale=0), nullable=True, index=True)
