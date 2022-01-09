@@ -28,7 +28,7 @@ from falcon.media.validators.jsonschema import validate
 from scalecodec.base import RuntimeConfiguration
 from sqlalchemy import text, func
 
-from app import settings
+import app.settings
 from app.models.data import Block, BlockTotal
 from app.models.harvester import Setting, Status
 from app.resources.base import BaseResource
@@ -38,28 +38,13 @@ from substrateinterface import SubstrateInterface
 from app.tasks import accumulate_block_recursive, start_harvester, rebuild_search_index, rebuild_account_info_snapshot, clean_up_SEQUENCER_TASK_ID
 from app.settings import SUBSTRATE_RPC_URL, TYPE_REGISTRY, TYPE_REGISTRY_FILE
 
-class PolkascanCheckGapsHarvesterResource(BaseResource):
-    def on_get(self, req, resp):
-        print(req.get_param('check_gaps'))
-        if req.get_param('check_gaps') == 'true':
-            settings.check_gaps = True
-        elif req.get_param('check_gaps') == 'false':
-            settings.check_gaps = False
-
-        resp.status = falcon.HTTP_201
-        resp.media = {
-            'status': 'success',
-            'data': {
-                'check_gaps': settings.check_gaps
-            }
-        }
 
 class PolkascanStartHarvesterResource(BaseResource):
 
     #@validate(load_schema('start_harvester'))
     def on_post(self, req, resp):
 
-        task = start_harvester.delay()
+        task = start_harvester.delay(check_gaps=True)
 
         resp.status = falcon.HTTP_201
 
@@ -147,7 +132,7 @@ class PolkascanHarvesterStatusResource(BaseResource):
         substrate = SubstrateInterface(
             url=SUBSTRATE_RPC_URL,
             runtime_config=RuntimeConfiguration(),
-            type_registry_preset=settings.TYPE_REGISTRY
+            type_registry_preset=app.settings.TYPE_REGISTRY
         )
         chain_head_block_id = substrate.get_block_number(substrate.get_chain_head())
         chain_finalized_block_id = substrate.get_block_number(substrate.get_chain_finalised_head())
@@ -173,7 +158,7 @@ class PolkascanProcessBlockResource(BaseResource):
             substrate = SubstrateInterface(
                 url=SUBSTRATE_RPC_URL,
                 runtime_config=RuntimeConfiguration(),
-                type_registry_preset=settings.TYPE_REGISTRY
+                type_registry_preset=app.settings.TYPE_REGISTRY
             )
             block_hash = substrate.get_block_hash(req.media.get('block_id'))
         elif req.media.get('block_hash'):
@@ -369,7 +354,7 @@ class StartIntegrityResource(BaseResource):
 class RebuildSearchIndexResource(BaseResource):
 
     def on_post(self, req, resp):
-        if settings.CELERY_RUNNING:
+        if app.settings.CELERY_RUNNING:
             task = rebuild_search_index.delay()
             data = {
                 'task_id': task.id
@@ -388,7 +373,7 @@ class RebuildSearchIndexResource(BaseResource):
 class RebuildAccountInfoResource(BaseResource):
 
     def on_post(self, req, resp):
-        if settings.CELERY_RUNNING:
+        if app.settings.CELERY_RUNNING:
             task = rebuild_account_info_snapshot.delay()
             data = {
                 'task_id': task.id

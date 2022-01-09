@@ -190,8 +190,6 @@ VERSIONED_SETTINGS = {
     ]
 }
 
-check_gaps = True
-
 def get_versioned_setting(setting, runtime_id):
     for versioning_item in VERSIONED_SETTINGS.get(TYPE_REGISTRY, []):
         if versioning_item['runtime_range'][0] <= int(runtime_id) and \

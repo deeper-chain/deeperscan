@@ -29,7 +29,7 @@ from app.middleware.context import ContextMiddleware
 from app.middleware.sessionmanager import SQLAlchemySessionManager
 
 from app.resources.harvester import PolkascanStartHarvesterResource, PolkascanStopHarvesterResource, \
-    PolkascanHarvesterStatusResource, PolkascanProcessBlockResource, PolkascanCheckGapsHarvesterResource, \
+    PolkascanHarvesterStatusResource, PolkascanProcessBlockResource, \
     PolkaScanCheckHarvesterTaskResource, SequenceBlockResource, StartSequenceBlockResource, StartIntegrityResource, \
     RebuildSearchIndexResource, ProcessGenesisBlockResource, PolkascanHarvesterQueueResource, RebuildAccountInfoResource
 from app.resources.tools import ExtractMetadataResource, ExtractExtrinsicsResource, \
@@ -45,7 +45,6 @@ app = falcon.API(middleware=[ContextMiddleware(), SQLAlchemySessionManager(sessi
 # Application routes
 app.add_route('/healthcheck', HealthCheckResource())
 
-app.add_route('/check_gaps', PolkascanCheckGapsHarvesterResource())
 app.add_route('/start', PolkascanStartHarvesterResource())
 app.add_route('/stop', PolkascanStopHarvesterResource())
 app.add_route('/status', PolkascanHarvesterStatusResource())

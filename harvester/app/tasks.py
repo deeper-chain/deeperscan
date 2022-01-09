@@ -24,7 +24,7 @@ from time import sleep
 import celery
 from celery.result import AsyncResult
 
-from app import settings
+import app.settings
 from scalecodec.base import ScaleDecoder, ScaleBytes, RuntimeConfiguration
 
 from sqlalchemy import create_engine, text, distinct
@@ -44,9 +44,9 @@ from app.settings import DB_CONNECTION, DEBUG, SUBSTRATE_RPC_URL, TYPE_REGISTRY,
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 
-app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
+capp = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
-app.conf.beat_schedule = {
+capp.conf.beat_schedule = {
     'check-head-10-seconds': {
         'task': 'app.tasks.start_harvester',
         'schedule': 10.0,
@@ -54,7 +54,7 @@ app.conf.beat_schedule = {
     },
 }
 
-app.conf.timezone = 'UTC'
+capp.conf.timezone = 'UTC'
 
 class BaseTask(celery.Task):
 
@@ -75,7 +75,7 @@ class BaseTask(celery.Task):
             self.engine.engine.dispose()
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None, end=None):
 
     harvester = PolkascanHarvesterService(
@@ -97,7 +97,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
     #         # Speed up accumulating by creating several entry points
     #         substrate = SubstrateInterface(
     #             url=SUBSTRATE_RPC_URL,
-    #             type_registry_preset=settings.TYPE_REGISTRY,
+    #             type_registry_preset=app.settings.TYPE_REGISTRY,
     #             runtime_config=RuntimeConfiguration()
     #         )
     #         block_nr = substrate.get_block_number(block_hash)
@@ -152,7 +152,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
     }
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def start_sequencer(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
 
@@ -190,7 +190,7 @@ def start_sequencer(self):
         return {'result': 'Sequencer already running'}
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def rebuilding_search_index(self, search_index_id=None, truncate=False):
     if truncate:
         # Clear search index table
@@ -207,17 +207,16 @@ def rebuilding_search_index(self, search_index_id=None, truncate=False):
     return {'result': 'index rebuilt'}
 
 
-@app.task(base=BaseTask, bind=True)
-def start_harvester(self):
+@capp.task(base=BaseTask, bind=True)
+def start_harvester(self, check_gaps=False):
     substrate = SubstrateInterface(
         url=SUBSTRATE_RPC_URL,
-        type_registry_preset=settings.TYPE_REGISTRY,
+        type_registry_preset=app.settings.TYPE_REGISTRY,
         runtime_config=RuntimeConfiguration()
     )
 
     block_sets = []
-    print('check gaps', settings.check_gaps)
-    if settings.check_gaps:
+    if check_gaps:
         # Check for gaps between already harvested blocks and try to fill them first
         remaining_sets_result = Block.get_missing_block_ids(self.session)
 
@@ -268,14 +267,14 @@ def start_harvester(self):
     }
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def start_generate_analytics(self):
     self.session.execute('CALL generate_analytics_data()')
     self.session.commit()
     return {'status': 'OK'}
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def rebuild_search_index(self):
     harvester = PolkascanHarvesterService(
         db_session=self.session,
@@ -287,7 +286,7 @@ def rebuild_search_index(self):
     return {'result': 'search index rebuilt'}
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def rebuild_account_info_snapshot(self):
     harvester = PolkascanHarvesterService(
         db_session=self.session,
@@ -300,12 +299,12 @@ def rebuild_account_info_snapshot(self):
     self.session.execute('truncate table {}'.format(AccountInfoSnapshot.__tablename__))
 
     for account_id, block_id in self.session.query(SearchIndex.account_id, SearchIndex.block_id).filter(
-            SearchIndex.block_id >= settings.BALANCE_SYSTEM_ACCOUNT_MIN_BLOCK
+            SearchIndex.block_id >= app.settings.BALANCE_SYSTEM_ACCOUNT_MIN_BLOCK
     ).order_by('block_id').group_by(SearchIndex.account_id, SearchIndex.block_id).yield_per(1000):
 
-        if block_id > last_full_snapshot_block_nr + settings.BALANCE_FULL_SNAPSHOT_INTERVAL:
+        if block_id > last_full_snapshot_block_nr + app.settings.BALANCE_FULL_SNAPSHOT_INTERVAL:
 
-            last_full_snapshot_block_nr = block_id - block_id % settings.BALANCE_FULL_SNAPSHOT_INTERVAL
+            last_full_snapshot_block_nr = block_id - block_id % app.settings.BALANCE_FULL_SNAPSHOT_INTERVAL
             harvester.create_full_balance_snaphot(last_full_snapshot_block_nr)
             self.session.commit()
         else:
@@ -346,7 +345,7 @@ def rebuild_account_info_snapshot(self):
     return {'result': 'account info snapshots rebuilt'}
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def balance_snapshot(self, account_id=None, block_start=1, block_end=None, block_ids=None):
     if account_id:
         accounts = [account_id]
@@ -368,7 +367,7 @@ def balance_snapshot(self, account_id=None, block_start=1, block_end=None, block
             substrate = SubstrateInterface(
                 url=SUBSTRATE_RPC_URL,
                 runtime_config=RuntimeConfiguration(),
-                type_registry_preset=settings.TYPE_REGISTRY
+                type_registry_preset=app.settings.TYPE_REGISTRY
             )
             block_end = substrate.get_block_number(substrate.get_chain_finalised_head())
             if DEEPER_DEBUG:
@@ -391,7 +390,7 @@ def balance_snapshot(self, account_id=None, block_start=1, block_end=None, block
     }
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def update_balances_in_block(self, block_id):
     harvester = PolkascanHarvesterService(
         db_session=self.session,
@@ -408,7 +407,7 @@ def update_balances_in_block(self, block_id):
     return 'Snapshot created for block {}'.format(block_id)
 
 
-@app.task(base=BaseTask, bind=True)
+@capp.task(base=BaseTask, bind=True)
 def clean_up_SEQUENCER_TASK_ID(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
 
