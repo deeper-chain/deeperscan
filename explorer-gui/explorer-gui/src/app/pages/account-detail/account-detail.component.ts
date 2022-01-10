@@ -192,7 +192,22 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
             threshold: null
           }
         },
-        series: []
+        series: [],
+        tooltip: {
+          shared: true,
+          useHTML: true,
+          // headerFormat: '<small>{point.key}</small><table>',
+          // pointFormat: '<tr><td style="color: {series.color}">{series.name}: </td>' +
+          //   '<td style="text-align: right"><b>{point.y} DPR</b> {series.data} {point.index} {series.options.data}</td></tr>',
+          // footerFormat: '</table>',
+          // valueDecimals: 2,
+          pointFormatter: function() {
+            return '<span style="color: ' + this.series.color + '">' + this.series.name + '</span> ' +
+                   this.y + ' DPR<br/>'+ 
+                   '<span style="color: ' + this.series.color + '">Datetime</span> ' +
+                   this.series.options.data[this.index][2]
+          }
+        }
       };
 
       this.account$ = this.activatedRoute.paramMap.pipe(

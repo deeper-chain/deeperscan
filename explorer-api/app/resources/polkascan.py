@@ -756,7 +756,7 @@ class AccountDetailResource(JSONAPIDetailResource):
                 'name': "Total balance",
                 'type': 'line',
                 'data': [
-                    [item.block_id, float((item.balance_total or 0) / 10**settings.SUBSTRATE_TOKEN_DECIMALS)]
+                    [item.block_id, float((item.balance_total or 0) / 10**settings.SUBSTRATE_TOKEN_DECIMALS), item.block_datetime.strftime("%Y/%m/%d %H:%M:%S")]
                     for item in reversed(account_info_snapshot)
                 ],
             }
