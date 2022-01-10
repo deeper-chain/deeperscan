@@ -21,6 +21,9 @@ import json
 import logging
 
 import math
+import datetime
+import dateutil.parser
+import pytz
 
 from app import settings
 
@@ -890,8 +893,9 @@ class PolkascanHarvesterService(BaseService):
 
         start_block_id = max(integrity_head.value - 1, 0)
         end_block_id = finalized_block_number
-        chunk_size = 1000
+        chunk_size = 100
         parent_block = None
+        integrity_head_hash = substrate.get_block_hash(integrity_head.value)
 
         if start_block_id < end_block_id:
             # Continue integrity check
@@ -906,14 +910,16 @@ class PolkascanHarvesterService(BaseService):
                         if block.id != parent_block.id + 1:
 
                             # Save integrity head if block hash of parent matches with hash in node
-                            if parent_block.hash == substrate.get_block_hash(integrity_head.value):
+                            if parent_block.hash == integrity_head_hash:
                                 integrity_head.save(self.db_session)
                                 self.db_session.commit()
 
                             if settings.DEEPER_DEBUG:
                                 print('DEEPER--->>>  integrity_checks substrate.close 2')
                             substrate.close()
-                            raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
+                            # raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
+                            print('Block #{} is missing.. stopping check and continue'.format(parent_block.id + 1))
+                            return
                         elif block.parent_hash != parent_block.hash:
 
                             self.process_reorg_block(parent_block)
@@ -947,22 +953,22 @@ class PolkascanHarvesterService(BaseService):
                         break
 
             if parent_block:
-                try:
-                    if parent_block.hash == substrate.get_block_hash(int(integrity_head.value)):
-                        integrity_head.save(self.db_session)
-                        self.db_session.commit()
-                except BrokenPipeError:
-                    print('DEEPER--->>> integrity_checks substrate closed')
-                    substrate = SubstrateInterface(
-                        url=settings.SUBSTRATE_RPC_URL,
-                        runtime_config=RuntimeConfiguration(),
-                        type_registry_preset=settings.TYPE_REGISTRY
-                    )
+                # try:
+                if parent_block.hash == integrity_head_hash:
+                    integrity_head.save(self.db_session)
+                    self.db_session.commit()
+                # except BrokenPipeError:
+                #     print('DEEPER--->>> integrity_checks substrate closed')
+                #     substrate = SubstrateInterface(
+                #         url=settings.SUBSTRATE_RPC_URL,
+                #         runtime_config=RuntimeConfiguration(),
+                #         type_registry_preset=settings.TYPE_REGISTRY
+                #     )
+                #     self.substrate.connect_websocket()
 
-                    if parent_block.hash == substrate.get_block_hash(int(integrity_head.value)):
-                        integrity_head.save(self.db_session)
-                        self.db_session.commit()
-
+                #     if parent_block.hash == substrate.get_block_hash(int(integrity_head.value)):
+                #         integrity_head.save(self.db_session)
+                #         self.db_session.commit()
 
             if settings.DEEPER_DEBUG:
                 print('DEEPER--->>> integrity_checks substrate.close 4')
@@ -1158,8 +1164,14 @@ class PolkascanHarvesterService(BaseService):
             # block = Block.query(self.db_session).filter_by(id=block_id).first()
             extrinsic = Extrinsic.query(self.db_session).filter_by(block_id=block_id, module_id='Timestamp', call_id='set').first()
             print('create_balance_snapshot', extrinsic.params)
-        else:
-            print('block datetime', block_datetime)
+            for param in self.extrinsic.params:
+                if param.get('name') == 'now':
+                    try:
+                        block_datetime = datetime.datetime.fromtimestamp((extrinsic.param.get('value')/1000))
+                    except:
+                        block_datetime = dateutil.parser.parse(extrinsic.param.get('value')).replace(tzinfo=pytz.UTC)
+
+        print('block datetime', block_datetime)
 
         # Get balance for account
         try:
@@ -1176,6 +1188,7 @@ class PolkascanHarvesterService(BaseService):
             if account_info_data:
                 account_info_obj = AccountInfoSnapshot(
                     block_id=block_id,
+                    block_datetime=block_datetime,
                     account_id=account_id,
                     account_info=account_info_data,
                     balance_free=account_info_data["data"]["free"],
@@ -1186,6 +1199,7 @@ class PolkascanHarvesterService(BaseService):
             else:
                 account_info_obj = AccountInfoSnapshot(
                     block_id=block_id,
+                    block_datetime=block_datetime,
                     account_id=account_id,
                     account_info=None,
                     balance_free=None,
