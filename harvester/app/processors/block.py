@@ -262,6 +262,23 @@ class AccountBlockProcessor(BlockProcessor):
                     block_hash=self.block.hash
                 ).get('result')
 
+            except BrokenPipeError:
+                self.substrate.connect_websocket()
+                account_info_data = self.substrate.get_runtime_state(
+                    module='System',
+                    storage_function='Account',
+                    params=['0x{}'.format(account.id)],
+                    block_hash=self.block.hash
+                ).get('result')
+
+            try:
+                account_info_data = self.substrate.get_runtime_state(
+                    module='System',
+                    storage_function='Account',
+                    params=['0x{}'.format(account.id)],
+                    block_hash=self.block.hash
+                ).get('result')
+
                 if account_info_data:
                     account.balance_free = account_info_data["data"]["free"]
                     account.balance_reserved = account_info_data["data"]["reserved"]
