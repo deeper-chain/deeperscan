@@ -115,6 +115,64 @@ class Block(BaseModel):
                                             """)
                                )
 
+class BlockMissing(BaseModel):
+    __tablename__ = 'data_block_missing'
+
+    id = sa.Column(sa.Integer(), primary_key=True, autoincrement=True)
+    start = sa.Column(sa.Integer(), nullable=False, index=True)
+    end = sa.Column(sa.Integer(), nullable=False, index=True)
+
+    @classmethod
+    def get_missing_block_ids(cls, session):
+        return session.execute(text('SELECT start, end FROM data_block_missing ORDER BY start ASC'))
+
+    @classmethod
+    def fill_missing_range(cls, session, start, end):
+        assert start <= end
+        r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start >= :start AND end <= :end'), \
+            {'start':start, 'end':end}).first()
+        if r:
+            session.execute(text('DELETE FROM data_block_missing WHERE start >= :start AND end <= :end'), \
+                {'start':start, 'end':end})
+            session.commit()
+
+        r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start <= :start AND end >= :end'), \
+            {'start':start, 'end':end}).first()
+        if r:
+            rstart = r[0]
+            rend = r[1]
+            if rstart < start:
+                session.execute(text('INSERT INTO data_block_missing (start, end) VALUES (:start, :end)'), \
+                    {'start':rstart, 'end':start-1})
+            if rend > end:
+                session.execute(text('INSERT INTO data_block_missing (start, end) VALUES (:start, :end)'), \
+                    {'start':end+1, 'end':rend})
+            session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
+                {'start':rstart, 'end':rend})
+            session.commit()
+
+        r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start > :start AND start <= :end AND end > :end'), \
+            {'start':start, 'end':end}).first()
+        if r:
+            rstart = r[0]
+            rend = r[1]
+            session.execute(text('INSERT INTO data_block_missing (start, end) VALUES (:start, :end)'), \
+                    {'start':end, 'end':rend})
+            session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
+                {'start':rstart, 'end':rend})
+            session.commit()
+
+        r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start <= :start AND end > :start AND end < :end'), \
+            {'start':start, 'end':end}).first()
+        if r:
+            rstart = r[0]
+            rend = r[1]
+            session.execute(text('INSERT INTO data_block_missing (start, end) VALUES (:start, :end)'), \
+                    {'start':rstart, 'end':start})
+            session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
+                {'start':rstart, 'end':rend})
+            session.commit()
+
 
 class BlockTotal(BaseModel):
     __tablename__ = 'data_block_total'
