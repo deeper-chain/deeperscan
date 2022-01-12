@@ -583,6 +583,17 @@ class SubstrateInterface:
                     # websocket connection is externally created, re-raise exception
                     raise
 
+            except BrokenPipeError:
+                if self.url:
+                    # Try to reconnect websocket and retry rpc_request
+                    self.debug_message("BrokenPipeError; Trying to reconnecting...")
+                    self.connect_websocket()
+
+                    return self.rpc_request(method=method, params=params, result_handler=result_handler)
+                else:
+                    # websocket connection is externally created, re-raise exception
+                    raise
+
         else:
 
             if result_handler:

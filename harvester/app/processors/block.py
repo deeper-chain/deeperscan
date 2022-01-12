@@ -204,21 +204,12 @@ class AccountBlockProcessor(BlockProcessor):
                     print("DEEPER--->>> AccountBlockProcessor sequencing_hook NoResultFound account.id=0x{} address={} hash={}".format(account.id, account.address, self.block.hash))
 
                 # Retrieve and set initial balance
-                try:
-                    account_info_data = self.substrate.get_runtime_state(
-                        module='System',
-                        storage_function='Account',
-                        params=['0x{}'.format(account.id)],
-                        block_hash=self.block.hash
-                    ).get('result')
-                except BrokenPipeError:
-                    self.substrate.connect_websocket()
-                    account_info_data = self.substrate.get_runtime_state(
-                        module='System',
-                        storage_function='Account',
-                        params=['0x{}'.format(account.id)],
-                        block_hash=self.block.hash
-                    ).get('result')
+                account_info_data = self.substrate.get_runtime_state(
+                    module='System',
+                    storage_function='Account',
+                    params=['0x{}'.format(account.id)],
+                    block_hash=self.block.hash
+                ).get('result')
 
                 try:
                     if account_info_data:
@@ -254,22 +245,12 @@ class AccountBlockProcessor(BlockProcessor):
                 updated_at_block=self.block.id
             )
 
-            try:
-                account_info_data = self.substrate.get_runtime_state(
-                    module='System',
-                    storage_function='Account',
-                    params=['0x{}'.format(account.id)],
-                    block_hash=self.block.hash
-                ).get('result')
-
-            except BrokenPipeError:
-                self.substrate.connect_websocket()
-                account_info_data = self.substrate.get_runtime_state(
-                    module='System',
-                    storage_function='Account',
-                    params=['0x{}'.format(account.id)],
-                    block_hash=self.block.hash
-                ).get('result')
+            account_info_data = self.substrate.get_runtime_state(
+                module='System',
+                storage_function='Account',
+                params=['0x{}'.format(account.id)],
+                block_hash=self.block.hash
+            ).get('result')
 
             try:
                 account_info_data = self.substrate.get_runtime_state(
