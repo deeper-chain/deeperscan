@@ -2682,7 +2682,9 @@ class LogDigest(Enum):
 
     def process(self):
         self.index = int(self.get_next_bytes(1).hex())
+        if  self.index >= len(self.value_list):
+            return
         self.index_value = self.value_list[self.index]
-        self.log_type = self.process_type(self.value_list[self.index])
+        self.log_type = self.process_type(self.index_value)
 
-        return {'type': self.value_list[self.index], 'value': self.log_type.value}
+        return {'type': self.index_value, 'value': self.log_type.value}

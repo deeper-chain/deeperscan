@@ -1171,8 +1171,6 @@ class PolkascanHarvesterService(BaseService):
                     except:
                         block_datetime = dateutil.parser.parse(extrinsic.param.get('value')).replace(tzinfo=pytz.UTC)
 
-        print('block datetime', block_datetime)
-
         # Get balance for account
         try:
             account_info_data = self.substrate.get_runtime_state(
