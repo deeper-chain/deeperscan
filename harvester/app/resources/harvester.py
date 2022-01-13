@@ -29,7 +29,7 @@ from scalecodec.base import RuntimeConfiguration
 from sqlalchemy import text, func
 
 import app.settings
-from app.models.data import Block, BlockTotal
+from app.models.data import Block, BlockTotal, BlockMissing
 from app.models.harvester import Setting, Status
 from app.resources.base import BaseResource
 from app.schemas import load_schema
@@ -38,6 +38,34 @@ from substrateinterface import SubstrateInterface
 from app.tasks import accumulate_block_recursive, start_harvester, rebuild_search_index, rebuild_account_info_snapshot, clean_up_SEQUENCER_TASK_ID
 from app.settings import SUBSTRATE_RPC_URL, TYPE_REGISTRY, TYPE_REGISTRY_FILE
 
+
+class PolkascanBlockHarvesterResource(BaseResource):
+    #@validate(load_schema('start_harvester'))
+    def on_get(self, req, resp):
+        substrate = SubstrateInterface(
+            url=SUBSTRATE_RPC_URL,
+            type_registry_preset=app.settings.TYPE_REGISTRY,
+            runtime_config=RuntimeConfiguration()
+        )
+
+        block_from = int(req.get_param('start'))
+        block_to = int(req.get_param('end'))
+
+        # Get start and end block hash
+        end_block_hash = substrate.get_block_hash(block_from)
+        start_block_hash = substrate.get_block_hash(block_to)
+
+        # Start processing task
+        task = accumulate_block_recursive.delay(start_block_hash, end_block_hash, block_from, block_to)
+
+        resp.status = falcon.HTTP_201
+
+        resp.media = {
+            'status': 'success',
+            'data': {
+                'task_id': task.id
+            }
+        }
 
 class PolkascanStartHarvesterResource(BaseResource):
 
@@ -95,7 +123,7 @@ class PolkascanHarvesterQueueResource(BaseResource):
             }
         else:
 
-            remaining_sets_result = Block.get_missing_block_ids(self.session)
+            remaining_sets_result = BlockMissing.get_missing_block_ids(self.session)
 
             resp.status = falcon.HTTP_200
 

@@ -219,8 +219,9 @@ def start_harvester(self, check_gaps=False):
     block_sets = []
     if check_gaps:
         # Check for gaps between already harvested blocks and try to fill them first
-        remaining_sets_result = Block.get_missing_block_ids(self.session)
+        remaining_sets_result = BlockMissing.get_missing_block_ids(self.session)
 
+        c = 0
         for block_set in remaining_sets_result:
             block_from = int(block_set['block_from'])
             block_to = int(block_set['block_to'])
@@ -238,6 +239,9 @@ def start_harvester(self, check_gaps=False):
                 'start_block_hash': start_block_hash,
                 'end_block_hash': end_block_hash
             })
+            c += 1
+            if c == 10:
+                break
 
     # Start sequencer
     sequencer_task = start_sequencer.delay()
