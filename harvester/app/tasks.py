@@ -32,7 +32,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql import func
 
-from app.models.data import Extrinsic, Block, BlockTotal, Account, AccountInfoSnapshot, SearchIndex
+from app.models.data import BlockMissing, Extrinsic, Block, BlockTotal, Account, AccountInfoSnapshot, SearchIndex
 from app.models.harvester import Status
 from app.processors.converters import PolkascanHarvesterService, HarvesterCouldNotAddBlock, BlockAlreadyAdded, \
     BlockIntegrityError
@@ -117,12 +117,13 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
             if not block or block.id > 0:
                 # Process block
                 block = harvester.add_block(block_hash)
-
-                print('+ Added {} {}'.format(block_hash, block.id))
+                self.session.commit()
 
                 add_count += 1
+                print('+ Added {} {}'.format(block_hash, block.id))
 
-                self.session.commit()
+                BlockMissing.add_missing_range(self.session, block.id)
+                BlockMissing.fill_missing_range(self.session, block.id, block.id)
 
                 # Break loop if targeted end block hash is reached
                 if block_hash == end_block_hash or block.id == 0:

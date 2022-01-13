@@ -124,19 +124,35 @@ class BlockMissing(BaseModel):
 
     @classmethod
     def get_missing_block_ids(cls, session):
-        return session.execute(text('SELECT start, end FROM data_block_missing ORDER BY start ASC'))
+        return session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing ORDER BY start ASC'))
+
+    @classmethod
+    def add_missing_range(cls, session, block_id):
+        r = session.execute(text('SELECT start, end FROM data_block_missing ORDER BY end DESC LIMIT 1')).first()
+        if r:
+            rstart = r[0]
+            rend = r[1]
+            if rend < block_id + 1000:
+                session.execute(text('UPDATE data_block_missing SET end = :block WHERE start = :start AND end = :end'), \
+                    {'start':rstart, 'end':rend, 'block':block_id+1000})
+                session.commit()
+
+        else:
+            session.execute(text('INSERT INTO data_block_missing (start, end) VALUES (0, :end)'), \
+                {'end':block_id+1000})
+            session.commit()
 
     @classmethod
     def fill_missing_range(cls, session, start, end):
         assert start <= end
-        r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start >= :start AND end <= :end'), \
+        r = session.execute(text('SELECT start, end FROM data_block_missing WHERE start >= :start AND end <= :end'), \
             {'start':start, 'end':end}).first()
         if r:
             session.execute(text('DELETE FROM data_block_missing WHERE start >= :start AND end <= :end'), \
                 {'start':start, 'end':end})
             session.commit()
 
-        r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start <= :start AND end >= :end'), \
+        r = session.execute(text('SELECT start, end FROM data_block_missing WHERE start <= :start AND end >= :end'), \
             {'start':start, 'end':end}).first()
         if r:
             rstart = r[0]
