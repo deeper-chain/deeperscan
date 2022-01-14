@@ -127,20 +127,51 @@ class BlockMissing(BaseModel):
         return session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing ORDER BY start ASC'))
 
     @classmethod
-    def add_missing_range(cls, session, block_id):
+    def extend_missing_range(cls, session, new_end):
         r = session.execute(text('SELECT start, end FROM data_block_missing ORDER BY end DESC LIMIT 1')).first()
         if r:
             rstart = r[0]
             rend = r[1]
-            if rend < block_id + 1000:
+            if rend < new_end + 1000:
                 session.execute(text('UPDATE data_block_missing SET end = :block WHERE start = :start AND end = :end'), \
-                    {'start':rstart, 'end':rend, 'block':block_id+1000})
+                    {'start':rstart, 'end':rend, 'block':new_end + 1000})
                 session.commit()
 
         else:
             session.execute(text('INSERT INTO data_block_missing (start, end) VALUES (0, :end)'), \
-                {'end':block_id+1000})
+                {'end':new_end + 1000})
             session.commit()
+
+    @classmethod
+    def add_missing_range(cls, session, start, end):
+        assert start <= end
+        new_start = start
+        new_end = end
+        r = session.execute(text('SELECT start, end FROM data_block_missing WHERE start <= :start AND end >= :start'), \
+            {'start':start}).first()
+        if r:
+            rstart = r[0]
+            rend = r[1]
+            new_start = rstart
+
+            session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
+                {'start':rstart, 'end':rend})
+            session.commit()
+        
+        r = session.execute(text('SELECT start, end FROM data_block_missing WHERE start <= :end AND end >= :end'), \
+            {'end':end}).first()
+        if r:
+            rstart = r[0]
+            rend = r[1]
+            new_end = rend
+
+            session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
+                {'start':rstart, 'end':rend})
+            session.commit()
+
+        session.execute(text('INSERT INTO data_block_missing (start, end) VALUES (:start, :end)'), \
+            {'start':new_start, 'end':new_end})
+        session.commit()
 
     @classmethod
     def fill_missing_range(cls, session, start, end):

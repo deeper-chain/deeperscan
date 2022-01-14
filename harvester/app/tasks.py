@@ -122,7 +122,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
                 add_count += 1
                 print('+ Added {} {}'.format(block_hash, block.id))
 
-                BlockMissing.add_missing_range(self.session, block.id)
+                BlockMissing.extend_missing_range(self.session, block.id)
                 BlockMissing.fill_missing_range(self.session, block.id, block.id)
 
                 # Break loop if targeted end block hash is reached
