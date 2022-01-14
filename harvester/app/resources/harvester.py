@@ -382,11 +382,11 @@ class StartIntegrityResource(BaseResource):
 class RebuildSearchIndexResource(BaseResource):
 
     def on_post(self, req, resp):
-        try:
-            start = int(req.get_param('start'))
-            end = int(req.get_param('end'))
-        except:
-            start, end = None, None
+        # try:
+        start = int(req.get_param('start'))
+        end = int(req.get_param('end'))
+        # except:
+        #     start, end = None, None
 
         if app.settings.CELERY_RUNNING:
             task = rebuild_search_index.delay(start, end)

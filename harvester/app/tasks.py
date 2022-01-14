@@ -280,7 +280,7 @@ def start_generate_analytics(self):
 
 
 @capp.task(base=BaseTask, bind=True)
-def rebuild_search_index(self, start=None, end=None):
+def rebuild_search_index(self, start, end):
     harvester = PolkascanHarvesterService(
         db_session=self.session,
         type_registry=TYPE_REGISTRY,
