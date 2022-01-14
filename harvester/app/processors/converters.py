@@ -44,7 +44,7 @@ from substrateinterface.utils.hasher import xxh128
 from app.models.data import Extrinsic, Block, Event, Runtime, RuntimeModule, RuntimeCall, RuntimeCallParam, \
     RuntimeEvent, RuntimeEventAttribute, RuntimeType, RuntimeStorage, BlockTotal, RuntimeConstant, AccountAudit, \
     AccountIndexAudit, ReorgBlock, ReorgExtrinsic, ReorgEvent, ReorgLog, RuntimeErrorMessage, Account, \
-    AccountInfoSnapshot, SearchIndex
+    AccountInfoSnapshot, SearchIndex, BlockMissing
 
 
 if settings.DEBUG:
@@ -1062,7 +1062,10 @@ class PolkascanHarvesterService(BaseService):
                 model.save(self.db_session)
 
             for event in Event.query(self.db_session).filter_by(block_id=block.id):
-                model = ReorgEvent(block_hash=block.hash, **event.asdict())
+                event_dict = event.asdict()
+                if 'block_datetime' in event_dict:
+                    del event_dict['block_datetime']
+                model = ReorgEvent(block_hash=block.hash, **event_dict)
                 model.save(self.db_session)
 
             for log in Log.query(self.db_session).filter_by(block_id=block.id):
