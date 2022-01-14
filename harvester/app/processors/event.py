@@ -30,7 +30,7 @@ from app.settings import ACCOUNT_AUDIT_TYPE_NEW, ACCOUNT_AUDIT_TYPE_REAPED, ACCO
     ACCOUNT_INDEX_AUDIT_TYPE_REAPED, LEGACY_SESSION_VALIDATOR_LOOKUP, SEARCH_INDEX_SLASHED_ACCOUNT, \
     SEARCH_INDEX_BALANCETRANSFER, SEARCH_INDEX_HEARTBEATRECEIVED, SUBSTRATE_METADATA_VERSION, \
     IDENTITY_TYPE_SET, IDENTITY_TYPE_CLEARED, IDENTITY_TYPE_KILLED, \
-    IDENTITY_JUDGEMENT_TYPE_GIVEN
+    IDENTITY_JUDGEMENT_TYPE_GIVEN, SEARCH_INDEX_STAKING_DELEGATORREWARD, SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT
 
 from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
 from substrateinterface import SubstrateInterface
@@ -959,6 +959,47 @@ class SlashEventProcessor(EventProcessor):
         search_index.save(db_session)
 
 
+class DelegatorRewardEventProcessor(EventProcessor):
+    module_id = 'Staking'
+    event_id = 'DelegatorReward'
+
+    def process_search_index(self, db_session):
+        try:
+            search_index = self.add_search_index(
+                index_type_id=SEARCH_INDEX_STAKING_DELEGATORREWARD,
+                account_id=self.event.attributes[0].replace('0x', ''),
+                sorting_value=self.event.attributes[1]
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=SEARCH_INDEX_STAKING_DELEGATORREWARD,
+                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                sorting_value=self.event.attributes[1]['value']
+            )
+
+        search_index.save(db_session)
+
+class ClaimPaymentEventProcessor(EventProcessor):
+    module_id = 'micropayment'
+    event_id = 'ClaimPayment'
+
+    def process_search_index(self, db_session):
+        try:
+            search_index = self.add_search_index(
+                index_type_id=SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
+                account_id=self.event.attributes[0].replace('0x', ''),
+                sorting_value=self.event.attributes[1]
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
+                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                sorting_value=self.event.attributes[1]['value']
+            )
+
+        search_index.save(db_session)
+
+
 class BalancesTransferProcessor(EventProcessor):
     module_id = 'Balances'
     event_id = 'Transfer'
@@ -967,14 +1008,14 @@ class BalancesTransferProcessor(EventProcessor):
         try:
             search_index = self.add_search_index(
                 index_type_id=SEARCH_INDEX_BALANCETRANSFER,
-                account_id=self.event.attributes[0]['value'].replace('0x', ''),
-                sorting_value=self.event.attributes[2]['value']
+                account_id=self.event.attributes[0].replace('0x', ''),
+                sorting_value=self.event.attributes[2]
             )
         except:
             search_index = self.add_search_index(
                 index_type_id=SEARCH_INDEX_BALANCETRANSFER,
-                account_id=self.event.attributes[0].replace('0x', ''),
-                sorting_value=self.event.attributes[2]
+                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                sorting_value=self.event.attributes[2]['value']
             )
 
         search_index.save(db_session)
@@ -982,14 +1023,14 @@ class BalancesTransferProcessor(EventProcessor):
         try:
             search_index = self.add_search_index(
                 index_type_id=SEARCH_INDEX_BALANCETRANSFER,
-                account_id=self.event.attributes[1]['value'].replace('0x', ''),
-                sorting_value=self.event.attributes[2]['value']
+                account_id=self.event.attributes[1].replace('0x', ''),
+                sorting_value=self.event.attributes[2]
             )
         except:
             search_index = self.add_search_index(
                 index_type_id=SEARCH_INDEX_BALANCETRANSFER,
-                account_id=self.event.attributes[1].replace('0x', ''),
-                sorting_value=self.event.attributes[2]
+                account_id=self.event.attributes[1]['value'].replace('0x', ''),
+                sorting_value=self.event.attributes[2]['value']
             )
 
         search_index.save(db_session)
