@@ -948,7 +948,7 @@ class PolkascanHarvesterService(BaseService):
                             integrity_head.value = block.id
 
                     parent_block = block
-
+                    BlockMissing.fill_missing_range(self.db_session, block.id, block.id)
                     if block.id == end_block_id:
                         break
 
@@ -1041,7 +1041,7 @@ class PolkascanHarvesterService(BaseService):
 
             sequenced_block = self.sequence_block(block, parent_block_data, sequencer_parent_block_data)
             self.db_session.commit()
-
+            BlockMissing.fill_missing_range(self.db_session, block.id, block.id)
             parent_block = block
             sequencer_parent_block = sequenced_block
 
@@ -1129,7 +1129,10 @@ class PolkascanHarvesterService(BaseService):
             try:
                 hasher = storage_method['type']['Map']['hasher']
             except:
-                hasher = storage_method['type'].value['Map']['hasher']
+                if 'hasher' in storage_method['type'].value['Map']:
+                    hasher = storage_method['type'].value['Map']['hasher']
+                else:
+                    hasher = storage_method['type'].value['Map']['hashers'][0]
 
             if hasher == "Blake2_128Concat":
 
