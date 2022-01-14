@@ -1129,7 +1129,10 @@ class PolkascanHarvesterService(BaseService):
             try:
                 hasher = storage_method['type']['Map']['hasher']
             except:
-                hasher = storage_method['type'].value['Map']['hasher']
+                if 'hasher' in storage_method['type'].value['Map']:
+                    hasher = storage_method['type'].value['Map']['hasher']
+                else:
+                    hasher = storage_method['type'].value['Map']['hashers'][0]
 
             if hasher == "Blake2_128Concat":
 
