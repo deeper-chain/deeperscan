@@ -191,21 +191,21 @@ def start_sequencer(self):
         return {'result': 'Sequencer already running'}
 
 
-@capp.task(base=BaseTask, bind=True)
-def rebuilding_search_index(self, search_index_id=None, truncate=False):
-    if truncate:
-        # Clear search index table
-        self.session.execute('delete from analytics_search_index where index_type_id={}'.format(search_index_id))
-        self.session.commit()
+# @capp.task(base=BaseTask, bind=True)
+# def rebuilding_search_index(self, search_index_id=None, truncate=False):
+#     if truncate:
+#         # Clear search index table
+#         self.session.execute('delete from analytics_search_index where index_type_id={}'.format(search_index_id))
+#         self.session.commit()
 
-    harvester = PolkascanHarvesterService(
-        db_session=self.session,
-        type_registry=TYPE_REGISTRY,
-        type_registry_file=TYPE_REGISTRY_FILE
-    )
-    harvester.rebuild_search_index()
+#     harvester = PolkascanHarvesterService(
+#         db_session=self.session,
+#         type_registry=TYPE_REGISTRY,
+#         type_registry_file=TYPE_REGISTRY_FILE
+#     )
+#     harvester.rebuild_search_index()
 
-    return {'result': 'index rebuilt'}
+#     return {'result': 'index rebuilt'}
 
 
 @capp.task(base=BaseTask, bind=True)
@@ -280,13 +280,13 @@ def start_generate_analytics(self):
 
 
 @capp.task(base=BaseTask, bind=True)
-def rebuild_search_index(self):
+def rebuild_search_index(self, start=None, end=None):
     harvester = PolkascanHarvesterService(
         db_session=self.session,
         type_registry=TYPE_REGISTRY,
         type_registry_file=TYPE_REGISTRY_FILE
     )
-    harvester.rebuild_search_index()
+    harvester.rebuild_search_index(start, end)
 
     return {'result': 'search index rebuilt'}
 

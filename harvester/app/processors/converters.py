@@ -1072,11 +1072,17 @@ class PolkascanHarvesterService(BaseService):
                 model = ReorgLog(block_hash=block.hash, **log.asdict())
                 model.save(self.db_session)
 
-    def rebuild_search_index(self):
-        self.db_session.execute('truncate table {}'.format(SearchIndex.__tablename__))
+    def rebuild_search_index(self, start=None, end=None):
+        if start and end:
+            assert start <= end
+            blocks = Block.query(self.db_session).order_by('id').yield_per(1000)
+            blocks = blocks.filter(Block.id >= start, Block.id <= end)
+            self.db_session.execute('DELETE FROM {} WHERE block_id >= {} AND block_id <= {}'.format(SearchIndex.__tablename__, start, end))
+        else:
+            self.db_session.execute('truncate table {}'.format(SearchIndex.__tablename__))
+            blocks = Block.query(self.db_session).order_by('id').yield_per(1000)
 
-        for block in Block.query(self.db_session).order_by('id').yield_per(1000):
-
+        for block in blocks:
             extrinsic_lookup = {}
             block._accounts_new = []
             block._accounts_reaped = []
