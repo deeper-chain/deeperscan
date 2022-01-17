@@ -33,6 +33,9 @@ from app.models.data import Block, Extrinsic, Event, RuntimeCall, RuntimeEvent, 
     RuntimeCallParam, RuntimeEventAttribute, RuntimeType, RuntimeStorage, Account, Session, Contract, \
     BlockTotal, SessionValidator, Log, AccountIndex, RuntimeConstant, SessionNominator, \
     RuntimeErrorMessage, SearchIndex, AccountInfoSnapshot
+from app.settings import SEARCH_INDEX_BALANCETRANSFER, \
+    SEARCH_INDEX_STAKING_DELEGATORREWARD, SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT
+
 from app.resources.base import JSONAPIResource, JSONAPIListResource, JSONAPIDetailResource, BaseResource
 from app.utils.ss58 import ss58_decode, ss58_encode
 from scalecodec.base import RuntimeConfiguration
@@ -1474,6 +1477,136 @@ class TransactionResource(BaseResource):
                 data.append(row_dict)
             resp.media = {'data': data}
 
+event_map = {
+    'staking_delegatorreward': SEARCH_INDEX_STAKING_DELEGATORREWARD,
+    'micropayment_claimpayment': SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
+    'balance_transfer': SEARCH_INDEX_BALANCETRANSFER
+}
+
+class TransactionResource2(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr', None)
+        from_addr = req.get_param('from', None)
+        to_addr = req.get_param('to', None)
+        sum = str(req.get_param('sum')).lower() == 'true'
+
+        # if sum:
+        #     sql = 'SELECT SUM(amount) AS sum FROM transaction WHERE'
+        # else:
+        # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
+        sql = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
+        params = {}
+        if addr:
+            assert ' ' not in addr
+            range_condition = ' (account_id = :from OR account_id = :to)'
+            if addr.startswith('0x'):
+                params['from'] = addr.replace('0x', '')
+                params['to'] = addr.replace('0x', '')
+            else:
+                params['from'] = ss58_decode(addr)
+                params['to'] = ss58_decode(addr)
+
+        elif from_addr:
+            assert ' ' not in from_addr
+            range_condition = ' account_id = :from'
+            if from_addr.startswith('0x'):
+                params['from'] = from_addr.replace('0x', '')
+            else:
+                params['from'] = ss58_decode(from_addr)
+
+        elif to_addr:
+            assert ' ' not in to_addr
+            range_condition = ' account_id = :to'
+            if to_addr.startswith('0x'):
+                params['to'] = to_addr.replace('0x', '')
+            else:
+                params['to'] = ss58_decode(to_addr)
+        else:
+            pass # wrong param, at least addr or from or to
+        sql += range_condition
+
+        module_id = req.get_param('module_id', None)
+        event_id = req.get_param('event_id', None)
+        if module_id and event_id:
+            assert ' ' not in module_id
+            assert ' ' not in event_id
+
+            index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
+            type_condition = ' AND index_type_id = :index_type_id'
+            sql += type_condition
+            params['index_type_id'] = index_type_id
+
+        # start_time = req.get_param('start_time', None)
+        # if start_time:
+        #     assert type(int(start_time)) is int
+        #     start_time_condition = ' AND timestamp>=:start_time'
+        #     sql += start_time_condition
+        #     params['start_time'] = start_time
+
+        # end_time = req.get_param('end_time', None)
+        # if end_time:
+        #     assert type(int(end_time)) is int
+        #     end_time_condition = ' AND timestamp<:end_time'
+        #     sql += end_time_condition
+        #     params['end_time'] = end_time
+
+        # print(sql, params)
+        data = []
+        result = self.session.execute(sql, params)
+
+        conditions = []
+        for row in result:
+            # print("result:", row)
+            row = list(row)
+            block_id = row[0]
+            event_idx = row[1]
+            # account_id = row[2]
+            if block_id and event_idx:
+                conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
+
+        if conditions:
+            sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE ' + 'OR'.join(conditions)
+            print(sql)
+            result = self.session.execute(sql, params)
+
+            for row in result:
+                row = list(row)
+                module_id = row[2]
+                event_id = row[3]
+                index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
+                print('index_type_id', index_type_id, module_id, event_id)
+                if index_type_id == SEARCH_INDEX_STAKING_DELEGATORREWARD:
+                    _from = row[4]
+                    _to = row[4]
+                    amount = row[4]
+                elif index_type_id == SEARCH_INDEX_BALANCETRANSFER:
+                    _from = row[4]
+                    _to = row[4]
+                    amount = row[4]
+                elif index_type_id == SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
+                    _from = row[4]
+                    _to = row[4]
+                    amount = row[4]
+                else:
+                    continue
+
+                row_dict = {
+                    'block_id': row[0],
+                    'event_idx': row[1],
+                    'module_id': module_id,
+                    'event_id': event_id,
+                    '_from': _from,
+                    '_to': _to,
+                    'amount': amount,
+                    'timestamp': row[5].timestamp()
+                }
+
+                data.append(row_dict)
+
+        if sum:
+            resp.media = {'count': 0}
+        else:
+            resp.media = {'data': data}
 
 '''
 const processArg = require('./processArg');

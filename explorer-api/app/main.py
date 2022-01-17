@@ -95,4 +95,5 @@ app.add_route('/session/validator/{item_id}', polkascan.SessionValidatorDetailRe
 app.add_route('/contract/contract', polkascan.ContractListResource())
 app.add_route('/contract/contract/{item_id}', polkascan.ContractDetailResource())
 app.add_route('/deeper/transaction', polkascan.TransactionResource())
+app.add_route('/deeper/transaction2', polkascan.TransactionResource2())
 app.add_route('/deeper/balance', polkascan.BalanceResource())
