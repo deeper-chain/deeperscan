@@ -943,7 +943,9 @@ class PolkascanHarvesterService(BaseService):
                             if settings.DEEPER_DEBUG:
                                 print('DEEPER--->>> integrity_checks substrate.close 3')
                             substrate.close()
-                            raise BlockIntegrityError('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
+                            # raise BlockIntegrityError('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
+                            print('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
+                            return
                         else:
                             integrity_head.value = block.id
 
@@ -1176,7 +1178,7 @@ class PolkascanHarvesterService(BaseService):
             # block = Block.query(self.db_session).filter_by(id=block_id).first()
             extrinsic = Extrinsic.query(self.db_session).filter_by(block_id=block_id, module_id='Timestamp', call_id='set').first()
             print('create_balance_snapshot', extrinsic.params)
-            for param in self.extrinsic.params:
+            for param in extrinsic.params:
                 if param.get('name') == 'now':
                     try:
                         block_datetime = datetime.datetime.fromtimestamp((extrinsic.param.get('value')/1000))
