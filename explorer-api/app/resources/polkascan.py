@@ -20,6 +20,7 @@
 from hashlib import blake2b
 
 import binascii
+import json
 
 import falcon
 import pytz
@@ -1480,7 +1481,7 @@ class TransactionResource(BaseResource):
 event_map = {
     'staking_delegatorreward': SEARCH_INDEX_STAKING_DELEGATORREWARD,
     'micropayment_claimpayment': SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
-    'balance_transfer': SEARCH_INDEX_BALANCETRANSFER
+    'balances_transfer': SEARCH_INDEX_BALANCETRANSFER
 }
 
 class TransactionResource2(BaseResource):
@@ -1488,11 +1489,8 @@ class TransactionResource2(BaseResource):
         addr = req.get_param('addr', None)
         from_addr = req.get_param('from', None)
         to_addr = req.get_param('to', None)
-        sum = str(req.get_param('sum')).lower() == 'true'
+        sum_option = str(req.get_param('sum')).lower() == 'true'
 
-        # if sum:
-        #     sql = 'SELECT SUM(amount) AS sum FROM transaction WHERE'
-        # else:
         # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
         sql = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
         params = {}
@@ -1552,6 +1550,7 @@ class TransactionResource2(BaseResource):
 
         # print(sql, params)
         data = []
+        sum_amount = 0
         result = self.session.execute(sql, params)
 
         conditions = []
@@ -1560,7 +1559,6 @@ class TransactionResource2(BaseResource):
             row = list(row)
             block_id = row[0]
             event_idx = row[1]
-            # account_id = row[2]
             if block_id and event_idx:
                 conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
 
@@ -1574,19 +1572,40 @@ class TransactionResource2(BaseResource):
                 module_id = row[2]
                 event_id = row[3]
                 index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-                print('index_type_id', index_type_id, module_id, event_id)
+                # print('index_type_id', index_type_id, module_id, event_id)
                 if index_type_id == SEARCH_INDEX_STAKING_DELEGATORREWARD:
-                    _from = row[4]
-                    _to = row[4]
-                    amount = row[4]
+                    json_data = json.loads(row[4])
+                    _from = None
+                    try:
+                        _to = json_data[0]
+                        amount = json_data[1]
+                    except:
+                        _to = json_data[0]['value']
+                        amount = json_data[1]['value']
+
                 elif index_type_id == SEARCH_INDEX_BALANCETRANSFER:
-                    _from = row[4]
-                    _to = row[4]
-                    amount = row[4]
+                    json_data = json.loads(row[4])
+                    _from = None
+                    try:
+                        _from = json_data[0]
+                        _to = json_data[1]
+                        amount = json_data[2]
+                    except:
+                        _from = json_data[0]['value']
+                        _to = json_data[1]['value']
+                        amount = json_data[2]['value']
+
                 elif index_type_id == SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
-                    _from = row[4]
-                    _to = row[4]
-                    amount = row[4]
+                    json_data = json.loads(row[4])
+                    _from = None
+                    try:
+                        _from = json_data[0]
+                        _to = json_data[1]
+                        amount = json_data[2]
+                    except:
+                        _from = json_data[0]['value']
+                        _to = json_data[1]['value']
+                        amount = json_data[2]['value']
                 else:
                     continue
 
@@ -1597,14 +1616,15 @@ class TransactionResource2(BaseResource):
                     'event_id': event_id,
                     '_from': _from,
                     '_to': _to,
-                    'amount': amount,
+                    'amount': str(amount),
                     'timestamp': row[5].timestamp()
                 }
 
                 data.append(row_dict)
+                sum_amount += amount
 
-        if sum:
-            resp.media = {'count': 0}
+        if sum_option:
+            resp.media = {'count': sum_amount}
         else:
             resp.media = {'data': data}
 
