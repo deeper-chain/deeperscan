@@ -35,9 +35,6 @@ from app.models.data import Block, Extrinsic, Event, RuntimeCall, RuntimeEvent, 
     RuntimeCallParam, RuntimeEventAttribute, RuntimeType, RuntimeStorage, Account, Session, Contract, \
     BlockTotal, SessionValidator, Log, AccountIndex, RuntimeConstant, SessionNominator, \
     RuntimeErrorMessage, SearchIndex, AccountInfoSnapshot
-from app.settings import SEARCH_INDEX_BALANCETRANSFER, \
-    SEARCH_INDEX_STAKING_DELEGATORREWARD, SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT
-
 from app.resources.base import JSONAPIResource, JSONAPIListResource, JSONAPIDetailResource, BaseResource
 from app.utils.ss58 import ss58_decode, ss58_encode
 from scalecodec.base import RuntimeConfiguration
@@ -1480,9 +1477,9 @@ class TransactionResource(BaseResource):
             resp.media = {'data': data}
 
 event_map = {
-    'staking_delegatorreward': SEARCH_INDEX_STAKING_DELEGATORREWARD,
-    'micropayment_claimpayment': SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
-    'balances_transfer': SEARCH_INDEX_BALANCETRANSFER
+    'staking_delegatorreward': settings.SEARCH_INDEX_STAKING_REWARD,
+    'micropayment_claimpayment': settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
+    'balances_transfer': settings.SEARCH_INDEX_BALANCETRANSFER
 }
 
 class TransactionResource2(BaseResource):
@@ -1574,39 +1571,37 @@ class TransactionResource2(BaseResource):
                 event_id = row[3]
                 index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
                 # print('index_type_id', index_type_id, module_id, event_id)
-                if index_type_id == SEARCH_INDEX_STAKING_DELEGATORREWARD:
+                if index_type_id == settings.SEARCH_INDEX_STAKING_REWARD:
                     json_data = json.loads(row[4])
                     _from = None
                     try:
-                        _to = json_data[0]
-                        amount = json_data[1]
-                    except:
                         _to = json_data[0]['value']
                         amount = json_data[1]['value']
-
-                elif index_type_id == SEARCH_INDEX_BALANCETRANSFER:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    try:
-                        _from = json_data[0]
-                        _to = json_data[1]
-                        amount = json_data[2]
                     except:
+                        _to = json_data[0]
+                        amount = json_data[1]
+
+                elif index_type_id == settings.SEARCH_INDEX_BALANCETRANSFER:
+                    json_data = json.loads(row[4])
+                    try:
                         _from = json_data[0]['value']
                         _to = json_data[1]['value']
                         amount = json_data[2]['value']
-
-                elif index_type_id == SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    try:
+                    except:
                         _from = json_data[0]
                         _to = json_data[1]
                         amount = json_data[2]
-                    except:
+
+                elif index_type_id == settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
+                    json_data = json.loads(row[4])
+                    try:
                         _from = json_data[0]['value']
                         _to = json_data[1]['value']
                         amount = json_data[2]['value']
+                    except:
+                        _from = json_data[0]
+                        _to = json_data[1]
+                        amount = json_data[2]
                 else:
                     continue
 
