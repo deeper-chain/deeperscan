@@ -1181,9 +1181,9 @@ class PolkascanHarvesterService(BaseService):
             for param in extrinsic.params:
                 if param.get('name') == 'now':
                     try:
-                        block_datetime = datetime.datetime.fromtimestamp((extrinsic.param.get('value')/1000))
+                        block_datetime = datetime.datetime.fromtimestamp(param.get('value')/1000)
                     except:
-                        block_datetime = dateutil.parser.parse(extrinsic.param.get('value')).replace(tzinfo=pytz.UTC)
+                        block_datetime = dateutil.parser.parse(param.get('value')).replace(tzinfo=pytz.UTC)
 
         # Get balance for account
         try:
