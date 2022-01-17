@@ -18,6 +18,7 @@
 #
 #  polkascan.py
 from hashlib import blake2b
+from datetime import datetime
 
 import binascii
 import json
@@ -1534,21 +1535,6 @@ class TransactionResource2(BaseResource):
             sql += type_condition
             params['index_type_id'] = index_type_id
 
-        # start_time = req.get_param('start_time', None)
-        # if start_time:
-        #     assert type(int(start_time)) is int
-        #     start_time_condition = ' AND timestamp>=:start_time'
-        #     sql += start_time_condition
-        #     params['start_time'] = start_time
-
-        # end_time = req.get_param('end_time', None)
-        # if end_time:
-        #     assert type(int(end_time)) is int
-        #     end_time_condition = ' AND timestamp<:end_time'
-        #     sql += end_time_condition
-        #     params['end_time'] = end_time
-
-        # print(sql, params)
         data = []
         sum_amount = 0
         result = self.session.execute(sql, params)
@@ -1563,7 +1549,22 @@ class TransactionResource2(BaseResource):
                 conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
 
         if conditions:
-            sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE ' + 'OR'.join(conditions)
+            sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
+
+            start_time = req.get_param('start_time', None)
+            if start_time:
+                assert type(int(start_time)) is int
+                start_time_condition = ' AND block_datetime >= :start_time'
+                sql += start_time_condition
+                params['start_time'] = datetime.fromtimestamp(int(start_time))
+
+            end_time = req.get_param('end_time', None)
+            if end_time:
+                assert type(int(end_time)) is int
+                end_time_condition = ' AND block_datetime < :end_time'
+                sql += end_time_condition
+                params['end_time'] = datetime.fromtimestamp(int(end_time))
+
             print(sql)
             result = self.session.execute(sql, params)
 
