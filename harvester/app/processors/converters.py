@@ -605,7 +605,10 @@ class PolkascanHarvesterService(BaseService):
 
                         block.count_events_module += 1
 
-                    model.save(self.db_session)
+                    try:
+                        model.save(self.db_session)
+                    except IntegrityError:
+                        self.db_session.rollback()
 
                 events.append(model)
 
@@ -697,7 +700,10 @@ class PolkascanHarvesterService(BaseService):
                     error=int(not extrinsic_success),
                     codec_error=False
                 )
-                model.save(self.db_session)
+                try:
+                    model.save(self.db_session)
+                except IntegrityError:
+                    self.db_session.rollback()
 
             extrinsics.append(model)
 
