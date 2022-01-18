@@ -181,7 +181,7 @@ class BlockMissing(BaseModel):
         if r:
             session.execute(text('DELETE FROM data_block_missing WHERE start >= :start AND end <= :end'), \
                 {'start':start, 'end':end})
-            session.commit()
+            # session.commit()
 
         r = session.execute(text('SELECT start, end FROM data_block_missing WHERE start <= :start AND end >= :end'), \
             {'start':start, 'end':end}).first()
@@ -196,7 +196,7 @@ class BlockMissing(BaseModel):
                     {'start':end+1, 'end':rend})
             session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
                 {'start':rstart, 'end':rend})
-            session.commit()
+            # session.commit()
 
         r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start > :start AND start <= :end AND end > :end'), \
             {'start':start, 'end':end}).first()
@@ -207,7 +207,7 @@ class BlockMissing(BaseModel):
                     {'start':end, 'end':rend})
             session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
                 {'start':rstart, 'end':rend})
-            session.commit()
+            # session.commit()
 
         r = session.execute(text('SELECT start as block_from, end as block_to FROM data_block_missing WHERE start <= :start AND end > :start AND end < :end'), \
             {'start':start, 'end':end}).first()
@@ -218,7 +218,11 @@ class BlockMissing(BaseModel):
                     {'start':rstart, 'end':start})
             session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
                 {'start':rstart, 'end':rend})
+            # session.commit()
+        try:
             session.commit()
+        except:
+            session.rollback()
 
 
 class BlockTotal(BaseModel):
