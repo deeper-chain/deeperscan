@@ -1742,3 +1742,63 @@ class BalanceResource(BaseResource):
             }
             data.append(row_dict)
         resp.media = {'data': data}
+
+'''
+CREATE VIEW "balance" AS
+select
+  "account"."address" AS "address",
+  "snapshot"."balance_total" AS "balance_total",
+  "snapshot"."balance_free" AS "balance_free",
+  "snapshot"."balance_reserved" AS "balance_reserved",
+  unix_timestamp("block"."datetime") AS "timestamp"
+from
+  (
+    (
+      "data_account_info_snapshot" "snapshot"
+      join "data_account" "account" on(("snapshot"."account_id" = "account"."id"))
+    )
+    join "data_block" "block" on(("snapshot"."block_id" = "block"."id"))
+  )
+'''
+class BalanceResource2(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr')
+
+        sql = 'SELECT balance_free, block_datetime FROM data_account_info_snapshot WHERE account_id = :addr'
+        params = {}
+        assert addr and ' ' not in addr
+        if addr.startswith('0x'):
+            params['addr'] = addr[2:]
+        else:
+            params['addr'] = ss58_decode(addr)
+
+        start_time = req.get_param('start_time', None)
+        if start_time:
+            assert type(int(start_time)) is int
+            start_time_condition = ' AND block_datetime >= :start_time'
+            sql += start_time_condition
+            params['start_time'] = datetime.fromtimestamp(int(start_time))
+
+        end_time = req.get_param('end_time', None)
+        if end_time:
+            assert type(int(end_time)) is int
+            end_time_condition = ' AND block_datetime < :end_time'
+            sql += end_time_condition
+            params['end_time'] = datetime.fromtimestamp(int(end_time))
+
+        sql += ' ORDER BY block_datetime ASC'
+        # print(sql, params)
+        data = []
+        result = self.session.execute(sql, params)
+
+        for row in result:
+            # print("result:", row)
+            row = list(row)
+            if row[0]:
+                row[0] = int(row[0])
+            row_dict = {
+                'balance_free': row[0],
+                'timestamp': row[1].timestamp()
+            }
+            data.append(row_dict)
+        resp.media = {'data': data}
