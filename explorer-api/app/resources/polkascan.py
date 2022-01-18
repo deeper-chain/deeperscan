@@ -488,10 +488,10 @@ class BalanceTransferListResource(JSONAPIListResource):
 
             search_index = SearchIndex.query(self.session).filter(
                 SearchIndex.index_type_id.in_([
-                    settings.SEARCH_INDEX_BALANCETRANSFER,
-                    settings.SEARCH_INDEX_CLAIMS_CLAIMED,
+                    # settings.SEARCH_INDEX_CLAIMS_CLAIMED,
+                    # settings.SEARCH_INDEX_STAKING_REWARD,
                     settings.SEARCH_INDEX_BALANCES_DEPOSIT,
-                    settings.SEARCH_INDEX_STAKING_REWARD
+                    settings.SEARCH_INDEX_BALANCETRANSFER
                 ]),
                 SearchIndex.account_id == account_id
             ).order_by(SearchIndex.sorting_value.desc())
