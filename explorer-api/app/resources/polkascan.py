@@ -1613,7 +1613,7 @@ class TransactionResource2(BaseResource):
                     '_from': _from,
                     '_to': _to,
                     'amount': str(amount),
-                    'timestamp': row[5].timestamp()
+                    'timestamp': int(row[5].timestamp())
                 }
 
                 data.append(row_dict)
@@ -1798,7 +1798,7 @@ class BalanceResource2(BaseResource):
                 row[0] = int(row[0])
             row_dict = {
                 'balance_free': row[0],
-                'timestamp': row[1].timestamp()
+                'timestamp': int(row[1].timestamp())
             }
             data.append(row_dict)
         resp.media = {'data': data}
