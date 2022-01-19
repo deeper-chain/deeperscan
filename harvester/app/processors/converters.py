@@ -725,7 +725,10 @@ class PolkascanHarvesterService(BaseService):
                     extrinsic_idx=model.extrinsic_idx,
                     account_id=model.address
                 )
-                search_index.save(self.db_session)
+                try:
+                    search_index.save(self.db_session)
+                except IntegrityError:
+                    self.db_session.rollback()
 
             else:
                 block.count_extrinsics_unsigned += 1
@@ -753,7 +756,10 @@ class PolkascanHarvesterService(BaseService):
                 event_processor.process_search_index(self.db_session)
 
             event.block_datetime = block.datetime
-            event.save(self.db_session)
+            try:
+                event.save(self.db_session)
+            except IntegrityError:
+                self.db_session.rollback()
 
         # Process block processors
         for processor_class in ProcessorRegistry().get_block_processors():
