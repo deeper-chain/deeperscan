@@ -1083,7 +1083,7 @@ class SomeOffline(EventProcessor):
             except:
                 search_index = self.add_search_index(
                     index_type_id=settings.SEARCH_INDEX_IMONLINE_SOMEOFFLINE,
-                    account_id=item['value'][0]['validator_id'].replace('0x', ''),
+                    account_id=item['value'][0]['validatorId'].replace('0x', ''),
                     sorting_value=None
                 )
 
