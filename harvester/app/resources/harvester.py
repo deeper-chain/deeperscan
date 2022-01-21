@@ -407,13 +407,15 @@ class RebuildSearchIndexResource(BaseResource):
 class RebuildAccountInfoResource(BaseResource):
 
     def on_post(self, req, resp):
+        index = int(req.get_param('index'))
+
         if app.settings.CELERY_RUNNING:
-            task = rebuild_account_info_snapshot.delay()
+            task = rebuild_account_info_snapshot.delay(index)
             data = {
                 'task_id': task.id
             }
         else:
-            data = rebuild_account_info_snapshot()
+            data = rebuild_account_info_snapshot(index)
 
         resp.status = falcon.HTTP_201
 

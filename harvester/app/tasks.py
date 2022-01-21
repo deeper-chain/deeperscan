@@ -292,29 +292,29 @@ def rebuild_search_index(self, start, end):
 
 
 @capp.task(base=BaseTask, bind=True)
-def rebuild_account_info_snapshot(self):
+def rebuild_account_info_snapshot(self, index):
     harvester = PolkascanHarvesterService(
         db_session=self.session,
         type_registry=TYPE_REGISTRY,
         type_registry_file=TYPE_REGISTRY_FILE
     )
-    
-    last_full_snapshot_block_nr = 0
 
-    self.session.execute('truncate table {}'.format(AccountInfoSnapshot.__tablename__))
+    # self.session.execute('truncate table {}'.format(AccountInfoSnapshot.__tablename__))
+    self.session.execute('DELETE FROM {} WHERE block_id > {} AND block_id <= {}'.format(AccountInfoSnapshot.__tablename__, \
+        index * 10000, (index+1) * 10000))
 
     for account_id, block_id in self.session.query(SearchIndex.account_id, SearchIndex.block_id).filter(
-            SearchIndex.block_id >= app.settings.BALANCE_SYSTEM_ACCOUNT_MIN_BLOCK
+            SearchIndex.block_id >= app.settings.BALANCE_SYSTEM_ACCOUNT_MIN_BLOCK,
+            SearchIndex.block_id > index * 10000,
+            SearchIndex.block_id <= (index+1) * 10000
     ).order_by('block_id').group_by(SearchIndex.account_id, SearchIndex.block_id).yield_per(1000):
 
-        if block_id > last_full_snapshot_block_nr + app.settings.BALANCE_FULL_SNAPSHOT_INTERVAL:
-
-            last_full_snapshot_block_nr = block_id - block_id % app.settings.BALANCE_FULL_SNAPSHOT_INTERVAL
-            harvester.create_full_balance_snaphot(last_full_snapshot_block_nr)
-            self.session.commit()
-        else:
+        if block_id % app.settings.BALANCE_FULL_SNAPSHOT_INTERVAL != 0:
             harvester.create_balance_snapshot(block_id, account_id)
             self.session.commit()
+
+    harvester.create_full_balance_snaphot((index+1) * 10000)
+    self.session.commit()
 
     # set balances according to most recent snapshot
     account_info = self.session.execute("""

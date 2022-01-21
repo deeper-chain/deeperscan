@@ -1179,8 +1179,8 @@ class PolkascanHarvesterService(BaseService):
                 accounts = [account[0] for account in self.db_session.query(distinct(Account.id))]
 
             for account_id in accounts:
-
                 self.create_balance_snapshot(block_id=block_id, account_id=account_id, block_hash=block_hash)
+                # self.db_session.commit()
 
     def create_balance_snapshot(self, block_id, account_id, block_hash=None, block_datetime=None):
         if not block_hash:
@@ -1189,7 +1189,7 @@ class PolkascanHarvesterService(BaseService):
         if not block_datetime:
             # block = Block.query(self.db_session).filter_by(id=block_id).first()
             extrinsic = Extrinsic.query(self.db_session).filter_by(block_id=block_id, module_id='Timestamp', call_id='set').first()
-            print('create_balance_snapshot', extrinsic.params)
+            # print('create_balance_snapshot', extrinsic.params)
             for param in extrinsic.params:
                 if param.get('name') == 'now':
                     try:
