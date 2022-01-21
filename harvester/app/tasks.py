@@ -157,10 +157,14 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
 def start_sequencer(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
 
-    print('start_sequencer')
+    # print('start_sequencer')
     if sequencer_task.value:
         task_result = AsyncResult(sequencer_task.value)
-        if not task_result or task_result.ready():
+        try:
+            task_ready = task_result.ready()
+        except TypeError:
+            task_ready = True
+        if not task_result or task_ready:
             sequencer_task.value = None
             sequencer_task.save(self.session)
 
