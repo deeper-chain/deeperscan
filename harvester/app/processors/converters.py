@@ -904,7 +904,7 @@ class PolkascanHarvesterService(BaseService):
             integrity_head.value = int(integrity_head.value)
 
         start_block_id = max(integrity_head.value - 1, 0)
-        end_block_id = finalized_block_number
+        end_block_id = min(finalized_block_number, start_block_id + 10000)
         chunk_size = 100
         parent_block = None
         integrity_head_hash = substrate.get_block_hash(integrity_head.value)
