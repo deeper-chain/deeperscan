@@ -1802,3 +1802,63 @@ class BalanceResource2(BaseResource):
             }
             data.append(row_dict)
         resp.media = {'data': data}
+
+
+class TaxReport(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr')
+        sql = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE account_id = :addr AND index_type_id = :index_type_id'
+        params = {
+            'index_type_id': settings.SEARCH_INDEX_STAKING_REWARD
+        }
+        if addr.startswith('0x'):
+            params['addr'] = addr[2:]
+        else:
+            params['addr'] = ss58_decode(addr)
+        account_ss58 = ss58_encode(params['addr'])
+        result = self.session.execute(sql, params)
+
+        conditions = []
+        for row in result:
+            # print("result:", row)
+            row = list(row)
+            block_id = row[0]
+            event_idx = row[1]
+            if block_id and event_idx:
+                conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
+
+        if conditions:
+            sql = 'SELECT block_id, event_idx, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
+
+            start_time = req.get_param('start_time', None)
+            if start_time:
+                assert type(int(start_time)) is int
+                start_time_condition = ' AND block_datetime >= :start_time'
+                sql += start_time_condition
+                params['start_time'] = datetime.fromtimestamp(int(start_time))
+
+            end_time = req.get_param('end_time', None)
+            if end_time:
+                assert type(int(end_time)) is int
+                end_time_condition = ' AND block_datetime < :end_time'
+                sql += end_time_condition
+                params['end_time'] = datetime.fromtimestamp(int(end_time))
+
+            result = self.session.execute(sql, params)
+
+            lines = ['Block-event, From, To, Amount(DPR), Datetime']
+            for row in result:
+                json_data = json.loads(row[2])
+                try:
+                    # _to = json_data[0]['value']
+                    amount = json_data[1]['value']
+                except:
+                    # _to = json_data[0]
+                    amount = json_data[1]
+                lines.append('%s-%s, Deeper Chain, %s, %s, %s' % (row[0], row[1], account_ss58, amount/(10**18), row[3]))
+
+        resp.body = '\n'.join(lines)
+        # resp.content_length = 5
+        resp.content_type = 'application/vnd.ms-excel'
+        # resp.content_type = falcon.MEDIA_TEXT
+        resp.downloadable_as = 'Tax Report for account %s.csv' % account_ss58
