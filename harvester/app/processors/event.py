@@ -1447,6 +1447,27 @@ class StakingWithdrawn(EventProcessor):
         search_index.save(db_session)
 
 
+class StakingDelegated(EventProcessor):
+    module_id = 'staking'
+    event_id = 'Delegated'
+
+    def process_search_index(self, db_session):
+        try:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_STAKING_DELEGATED,
+                account_id=self.event.attributes[0].replace('0x', ''),
+                sorting_value=None #self.event.attributes[1][0]
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_STAKING_DELEGATED,
+                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                sorting_value=None #self.event.attributes[1]['value'][0]
+            )
+
+        search_index.save(db_session)
+
+
 class ClaimsClaimed(EventProcessor):
     module_id = 'claims'
     event_id = 'Claimed'
@@ -1457,5 +1478,47 @@ class ClaimsClaimed(EventProcessor):
             account_id=self.event.attributes[0]['value'].replace('0x', ''),
             sorting_value=self.event.attributes[2]['value']
         )
+
+        search_index.save(db_session)
+
+
+class DeepernodeImOnline(EventProcessor):
+    module_id = 'deepernode'
+    event_id = 'ImOnline'
+
+    def process_search_index(self, db_session):
+        try:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_DEEPERNODE_IMONLINE,
+                account_id=self.event.attributes[0].replace('0x', ''),
+                sorting_value=self.event.attributes[1]
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_DEEPERNODE_IMONLINE,
+                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                sorting_value=self.event.attributes[1]['value']
+            )
+
+        search_index.save(db_session)
+
+
+class CreditCreditUpdateSuccess(EventProcessor):
+    module_id = 'credit'
+    event_id = 'CreditUpdateSuccess'
+
+    def process_search_index(self, db_session):
+        try:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_CREDIT_UPDATESUCCESS,
+                account_id=self.event.attributes[0].replace('0x', ''),
+                sorting_value=self.event.attributes[1]
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_CREDIT_UPDATESUCCESS,
+                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                sorting_value=self.event.attributes[1]['value']
+            )
 
         search_index.save(db_session)
