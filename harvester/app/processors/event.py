@@ -988,13 +988,13 @@ class ClaimPaymentEventProcessor(EventProcessor):
             search_index = self.add_search_index(
                 index_type_id=SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
                 account_id=self.event.attributes[0].replace('0x', ''),
-                sorting_value=self.event.attributes[1]
+                sorting_value=self.event.attributes[2]
             )
         except:
             search_index = self.add_search_index(
                 index_type_id=SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
                 account_id=self.event.attributes[0]['value'].replace('0x', ''),
-                sorting_value=self.event.attributes[1]['value']
+                sorting_value=self.event.attributes[2]['value']
             )
 
         search_index.save(db_session)
