@@ -1862,3 +1862,22 @@ class TaxReport(BaseResource):
         resp.content_type = 'application/vnd.ms-excel'
         # resp.content_type = falcon.MEDIA_TEXT
         resp.downloadable_as = 'Tax Report for account %s.csv' % account_ss58
+
+
+class StakingDelegateCount(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr')
+        sql = 'SELECT count(1) FROM data_account_search_index WHERE account_id = :addr AND index_type_id = :index_type_id'
+        params = {
+            'index_type_id': settings.SEARCH_INDEX_STAKING_REWARD
+        }
+        if addr.startswith('0x'):
+            params['addr'] = addr[2:]
+        else:
+            params['addr'] = ss58_decode(addr)
+
+        result = self.session.execute(sql, params)
+        for row in result:
+            break
+        resp.media = {'count': row[0]}
+
