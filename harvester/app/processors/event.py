@@ -1081,11 +1081,18 @@ class SomeOffline(EventProcessor):
                     sorting_value=None
                 )
             except:
-                search_index = self.add_search_index(
-                    index_type_id=settings.SEARCH_INDEX_IMONLINE_SOMEOFFLINE,
-                    account_id=item['value'][0]['validatorId'].replace('0x', ''),
-                    sorting_value=None
-                )
+                try:
+                    search_index = self.add_search_index(
+                        index_type_id=settings.SEARCH_INDEX_IMONLINE_SOMEOFFLINE,
+                        account_id=item['value'][0]['validatorId'].replace('0x', ''),
+                        sorting_value=None
+                    )
+                except:
+                    search_index = self.add_search_index(
+                        index_type_id=settings.SEARCH_INDEX_IMONLINE_SOMEOFFLINE,
+                        account_id=item['value'][0]['validator_id'].replace('0x', ''),
+                        sorting_value=None
+                    )
 
             search_index.save(db_session)
 
