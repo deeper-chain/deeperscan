@@ -1542,7 +1542,7 @@ class TransactionResource2(BaseResource):
             row = list(row)
             block_id = row[0]
             event_idx = row[1]
-            if block_id and event_idx:
+            if block_id is not None and event_idx is not None:
                 conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
 
         if conditions:
@@ -1824,7 +1824,7 @@ class TaxReport(BaseResource):
             row = list(row)
             block_id = row[0]
             event_idx = row[1]
-            if block_id and event_idx:
+            if block_id is not None and event_idx is not None:
                 conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
 
         if conditions:
