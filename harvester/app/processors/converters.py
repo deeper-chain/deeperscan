@@ -931,6 +931,7 @@ class PolkascanHarvesterService(BaseService):
                             substrate.close()
                             # raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
                             print('Block #{} is missing.. stopping check and continue'.format(parent_block.id + 1))
+                            BlockMissing.add_missing_range(self.db_session, parent_block.id + 1, block.id - 1)
                             return
                         elif block.parent_hash != parent_block.hash:
 
