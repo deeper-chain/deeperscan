@@ -424,4 +424,4 @@ class RebuildAccountInfoResource(BaseResource):
             'data': data
         }
 
-clean_up_SEQUENCER_TASK_ID.delay()
+# clean_up_SEQUENCER_TASK_ID.delay()

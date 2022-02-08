@@ -1562,7 +1562,7 @@ class TransactionResource2(BaseResource):
                 sql += end_time_condition
                 params['end_time'] = datetime.fromtimestamp(int(end_time))
 
-            print(sql)
+            # print(sql)
             result = self.session.execute(sql, params)
 
             for row in result:
@@ -1734,7 +1734,9 @@ class BalanceResource(BaseResource):
         for row in result:
             # print("result:", row)
             row = list(row)
-            if row[0]:
+            if row[0] is None:
+                row[0] = 0
+            else:
                 row[0] = int(row[0])
             row_dict = {
                 'balance_free': row[0],
@@ -1794,7 +1796,9 @@ class BalanceResource2(BaseResource):
         for row in result:
             # print("result:", row)
             row = list(row)
-            if row[0]:
+            if row[0] is None:
+                row[0] = 0
+            else:
                 row[0] = int(row[0])
             row_dict = {
                 'balance_free': row[0],
