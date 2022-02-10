@@ -3,7 +3,7 @@
   <div *ngSwitchCase="'LookupSource'"><a routerLink="{{ networkURLPrefix }}/account/{{ item.value }}" class="address-mobile-format"><app-identicon [accountId]="item.orig_value"></app-identicon> {{ item.value }}</a></div>
   <div *ngSwitchCase="'AuthorityId'"><a routerLink="{{ networkURLPrefix }}/account/{{ item.value }}" class="address-mobile-format"><app-identicon [accountId]="item.orig_value"></app-identicon> {{ item.value }}</a></div>
   <div *ngSwitchCase="'<Lookup as StaticLookup>::Source'"><a routerLink="{{ networkURLPrefix }}/account/{{ item.value }}" class="address-mobile-format"><app-identicon [accountId]="item.orig_value"></app-identicon> {{ item.value }}</a></div>
-  <div *ngSwitchCase="'AccountId'"><a routerLink="{{ networkURLPrefix }}/account/{{ item.value }}" class="address-mobile-format"><app-identicon [accountId]="item.orig_value"></app-identicon> {{ item.value }}</a></div>
+  <div *ngSwitchCase="'AccountId'">{{ item.value }}</div>
   <div *ngSwitchCase="'PropIndex'"><a routerLink="{{ networkURLPrefix }}/democracy/proposal/{{ item.value }}">Proposal #{{ item.value }}</a></div>
   <div *ngSwitchCase="'ReferendumIndex'"><a routerLink="{{ networkURLPrefix }}/democracy/referendum/{{ item.value }}">Referendum #{{ item.value }}</a></div>
   <div *ngSwitchCase="'Compact<ReferendumIndex>'"><a routerLink="{{ networkURLPrefix }}/democracy/referendum/{{ item.value }}">Referendum #{{ item.value }}</a></div>
@@ -24,10 +24,18 @@
     <i *ngIf="item.value" class="fa fa-check" style="color: forestgreen"></i>
     <i *ngIf="!item.value" class="fa fa-times" style="color: darkred"></i>
   </div>
-  <div *ngSwitchDefault><app-struct
-    [struct]="item.value"
-    [networkTokenDecimals]="networkTokenDecimals"
-    [networkTokenSymbol]="networkTokenSymbol"
-    [networkURLPrefix]="networkURLPrefix"
-  ></app-struct></div>
+  <div *ngSwitchDefault>
+    <app-struct *ngIf="item.value"
+      [struct]="item.value"
+      [networkTokenDecimals]="networkTokenDecimals"
+      [networkTokenSymbol]="networkTokenSymbol"
+      [networkURLPrefix]="networkURLPrefix"
+    ></app-struct>
+    <app-struct *ngIf="!item.value"
+      [struct]="item"
+      [networkTokenDecimals]="networkTokenDecimals"
+      [networkTokenSymbol]="networkTokenSymbol"
+      [networkURLPrefix]="networkURLPrefix"
+    ></app-struct>
+</div>
 </ng-container>
