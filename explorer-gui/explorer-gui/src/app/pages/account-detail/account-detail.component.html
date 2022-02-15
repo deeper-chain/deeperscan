@@ -240,6 +240,41 @@
                   </li>
                 </ul>
               </div>
+
+              <div class="card-header-icon">
+                <div class="filters" *ngIf="runtimeModules">
+                  <div class="field has-addons">
+                    <div class="control is-expanded has-icons-left">
+                      <div class="select is-fullwidth">
+                        <select name="country" [(ngModel)]="filterModule" (ngModelChange)="selectModule($event)">
+                          <option [ngValue]="null">{{ 'Event-list.All modules' | translate }}</option>
+                          <option *ngFor="let module of runtimeModules.data" [ngValue]="module?.attributes.module_id">{{module.attributes.name}}</option>
+                        </select>
+                      </div>
+                      <span class="icon is-small is-left">
+                        <i class="fas fa-cog"></i>
+                      </span>
+                    </div>
+                    <div class="control is-expanded has-icons-left">
+                      <div class="select is-fullwidth">
+                        <select name="country" [(ngModel)]="filterCall" [disabled]="!runtimeCalls" (ngModelChange)="selectCall($event)">
+                          <option [ngValue]="null">{{ 'transaction-list.All events' | translate }}</option>
+                          <ng-container *ngIf="runtimeCalls">
+                          <option *ngFor="let call of runtimeCalls.data" [ngValue]="call.attributes.call_id">{{ call.attributes.name }}</option>
+                          </ng-container>
+                        </select>
+                      </div>
+                      <span class="icon is-small is-left">
+                        <i class="fas fa-file-alt"></i>
+                      </span>
+                    </div>
+                    <div class="control">
+                      <button type="submit" class="button" (click)="applyFilters()">{{ 'Event-list.Filter' | translate }}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="card-table" id="transfers" *ngIf="currentTab == 'transfers'">
                   <div class="content">
                       <app-loading-box *ngIf="!balanceTransfers || balanceTransfers.is_loading"></app-loading-box>

@@ -38,6 +38,13 @@ import {EventService} from '../../services/event.service';
 import {BlockTotal} from '../../classes/block-total.class';
 import {BlockTotalService} from '../../services/block-total.service';
 import {Chart} from 'angular-highcharts';
+import {RuntimeModule} from '../../classes/runtime-module.class';
+// import {RuntimeEvent} from '../../classes/runtime-event.class';
+import {RuntimeCall} from '../../classes/runtime-call.class';
+import {RuntimeModuleService} from '../../services/runtime-module.service';
+// import {RuntimeEventService} from '../../services/runtime-event.service';
+import {RuntimeCallService} from '../../services/runtime-call.service';
+
 
 @Component({
   selector: 'app-account-detail',
@@ -66,6 +73,13 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   public techcommActivity: DocumentCollection<Extrinsic>;
   public authoredBlocks: DocumentCollection<BlockTotal>;
   public accountLifecycle: DocumentCollection<Event>;
+
+  public runtimeModules: DocumentCollection<RuntimeModule>;
+  // public runtimeEvents: DocumentCollection<RuntimeEvent>;
+  public runtimeCalls: DocumentCollection<RuntimeCall>;
+  public filterModule: RuntimeModule = null;
+  // public filterEvent: RuntimeEvent = null;
+  public filterCall: RuntimeCall = null;
 
   public balanceTransfersPage = 1;
   public extrinsicsPage = 1;
@@ -107,6 +121,9 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     private balanceTransferService: BalanceTransferService,
     private extrinsicService: ExtrinsicService,
     private eventService: EventService,
+    private runtimeModuleService: RuntimeModuleService,
+    // private runtimeEventService: RuntimeEventService,
+    private runtimeCallService: RuntimeCallService,
     private blockTotalService: BlockTotalService,
     private accountService: AccountService,
     private accountIndexService: AccountIndexService,
@@ -306,7 +323,51 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
           this.resourceNotFound = true;
         }
       });
+
+      const params = {
+        page: {number: 0, size: 100},
+        remotefilter: {latestRuntime: true},
+      };
+
+      this.runtimeModuleService.all(params).subscribe(runtimeModules => {
+        this.runtimeModules = runtimeModules;
+      });
+
     });
+  }
+
+  selectModule(module) {
+    console.log(module);
+    this.filterModule = module;
+    this.filterCall = null;
+
+    if (module !== null) {
+      const params = {
+        page: {number: 0, size: 100},
+        remotefilter: {latestRuntime: true, module_id: this.filterModule},
+      };
+
+      this.runtimeCallService.all(params).subscribe(runtimeCalls => {
+        this.runtimeCalls = runtimeCalls;
+      });
+    } else {
+      this.runtimeCalls = null;
+    }
+  }
+
+  selectCall(call) {
+    console.log(call);
+  }
+
+  applyFilters() {
+    console.log(this.runtimeCalls);
+    
+    // this.router.navigate([], { queryParams: {
+    //     module: this.filterModule,
+    //     event: this.filterEvent,
+    //     page: 1
+    //   }
+    // });
   }
 
   public renderChart() {
