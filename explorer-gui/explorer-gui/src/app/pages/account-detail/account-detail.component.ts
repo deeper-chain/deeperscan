@@ -39,10 +39,8 @@ import {BlockTotal} from '../../classes/block-total.class';
 import {BlockTotalService} from '../../services/block-total.service';
 import {Chart} from 'angular-highcharts';
 import {RuntimeModule} from '../../classes/runtime-module.class';
-// import {RuntimeEvent} from '../../classes/runtime-event.class';
 import {RuntimeCall} from '../../classes/runtime-call.class';
 import {RuntimeModuleService} from '../../services/runtime-module.service';
-// import {RuntimeEventService} from '../../services/runtime-event.service';
 import {RuntimeCallService} from '../../services/runtime-call.service';
 
 
@@ -75,10 +73,8 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   public accountLifecycle: DocumentCollection<Event>;
 
   public runtimeModules: DocumentCollection<RuntimeModule>;
-  // public runtimeEvents: DocumentCollection<RuntimeEvent>;
   public runtimeCalls: DocumentCollection<RuntimeCall>;
   public filterModule: RuntimeModule = null;
-  // public filterEvent: RuntimeEvent = null;
   public filterCall: RuntimeCall = null;
 
   public balanceTransfersPage = 1;
@@ -122,7 +118,6 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     private extrinsicService: ExtrinsicService,
     private eventService: EventService,
     private runtimeModuleService: RuntimeModuleService,
-    // private runtimeEventService: RuntimeEventService,
     private runtimeCallService: RuntimeCallService,
     private blockTotalService: BlockTotalService,
     private accountService: AccountService,
@@ -337,7 +332,6 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   }
 
   selectModule(module) {
-    console.log(module);
     this.filterModule = module;
     this.filterCall = null;
 
@@ -356,18 +350,12 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   }
 
   selectCall(call) {
-    console.log(call);
+    this.filterCall = call;
   }
 
   applyFilters() {
-    console.log(this.runtimeCalls);
-    
-    // this.router.navigate([], { queryParams: {
-    //     module: this.filterModule,
-    //     event: this.filterEvent,
-    //     page: 1
-    //   }
-    // });
+    this.extrinsicsPage = 1;
+    this.getTransactions(1);
   }
 
   public renderChart() {
@@ -381,12 +369,21 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   }
 
   public getTransactions(page: number) {
-    this.extrinsicService.all({
-      page: {number: page, size: 25},
-      remotefilter: {address: this.accountId},
-    }).subscribe(extrinsics => {
-      this.extrinsics = extrinsics;
-    });
+    if(this.filterModule && this.filterCall){
+      this.extrinsicService.all({
+        page: {number: page, size: 25},
+        remotefilter: {address: this.accountId, module_id: this.filterModule, call_id: this.filterCall},
+      }).subscribe(extrinsics => {
+        this.extrinsics = extrinsics;
+      });
+    }else{
+      this.extrinsicService.all({
+        page: {number: page, size: 25},
+        remotefilter: {address: this.accountId},
+      }).subscribe(extrinsics => {
+        this.extrinsics = extrinsics;
+      });
+    }
   }
 
   public getBalanceTransfers(page: number) {

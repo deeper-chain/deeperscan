@@ -241,8 +241,8 @@
                 </ul>
               </div>
 
-              <div class="card-header-icon">
-                <div class="filters" *ngIf="runtimeModules">
+              <div class="card-header-icon" *ngIf="currentTab == 'transactions'">
+                <div class="filters" *ngIf="runtimeModules" style="margin: 0 auto 0 0;">
                   <div class="field has-addons">
                     <div class="control is-expanded has-icons-left">
                       <div class="select is-fullwidth">
@@ -258,7 +258,7 @@
                     <div class="control is-expanded has-icons-left">
                       <div class="select is-fullwidth">
                         <select name="country" [(ngModel)]="filterCall" [disabled]="!runtimeCalls" (ngModelChange)="selectCall($event)">
-                          <option [ngValue]="null">{{ 'transaction-list.All events' | translate }}</option>
+                          <option [ngValue]="null">{{ 'transaction-list.All calls' | translate }}</option>
                           <ng-container *ngIf="runtimeCalls">
                           <option *ngFor="let call of runtimeCalls.data" [ngValue]="call.attributes.call_id">{{ call.attributes.name }}</option>
                           </ng-container>
