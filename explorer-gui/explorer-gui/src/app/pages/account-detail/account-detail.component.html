@@ -228,6 +228,11 @@
                       <span>{{ 'AccountDetail.Account lifecycle' | translate }}</span>
                     </a>
                   </li>
+                  <li [ngClass]="{'is-active': currentTab == 'credit-history'}">
+                    <a routerLink="." fragment="credit-history">
+                      <span>{{ 'AccountDetail.Credit history' | translate }}</span>
+                    </a>
+                  </li>
                   <li [ngClass]="{'is-active': currentTab == 'roles'}">
                     <a routerLink="." fragment="roles">
                       <span>{{ 'AccountDetail.Roles' | translate }}</span>
@@ -763,6 +768,27 @@
                   <footer class="card-footer" *ngIf="authoredBlocks?.data.length == 25">
                       <a class="card-footer-item" routerLink="." [queryParams]="{ authoredBlocksPage: authoredBlocksPage + 1}" [fragment]="currentTab">{{ 'AccountDetail.View next' | translate }}</a>
                   </footer>
+              </div>
+              <div class="card-table" id="credit-history" *ngIf="currentTab == 'credit-history'">
+                <div class="content">
+                  <app-loading-box *ngIf="!creditUpdates || creditUpdates.is_loading"></app-loading-box>
+                  <table class="table is-fullwidth is-striped" *ngIf="creditUpdates?.data">
+                      <thead>
+                        <th class="is-hidden-mobile">{{ 'AccountDetail.Block' | translate }} #</th>
+                        <th>{{ 'AccountDetail.Datetime' | translate }}</th>
+                        <th>{{ 'AccountDetail.Credit' | translate }}</th>
+                        <th>Event</th>
+                      </thead>
+                      <tbody>
+                          <tr *ngFor="let creditUpdate of creditUpdates.data">
+                            <td class="is-hidden-mobile"><a [routerLink]="[networkURLPrefix, 'block', creditUpdate.attributes.block_id]">{{ creditUpdate.attributes.block_id }}</a></td>
+                            <td>{{ creditUpdate.attributes.block_datetime }} </td>
+                            <td>{{ creditUpdate.attributes.attributes[1].value }} </td>
+                            <td width="5%"><a class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/event/{{ creditUpdate.id }}">Details</a></td>
+                          </tr>
+                      </tbody>
+                  </table>
+                </div>
               </div>
               <div class="card-table" id="roles" *ngIf="currentTab == 'roles'">
                   <div class="content">

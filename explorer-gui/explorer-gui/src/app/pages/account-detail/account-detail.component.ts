@@ -58,6 +58,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
 
   public slashes: DocumentCollection<Event>;
   public rewards: DocumentCollection<Event>;
+  public creditUpdates: DocumentCollection<Event>;
   public councilActivity: DocumentCollection<Event>;
   public memberActivity: DocumentCollection<Extrinsic>;
   public electionActivity: DocumentCollection<Event>;
@@ -135,7 +136,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     this.fragmentSubsription = this.activatedRoute.fragment.subscribe(value => {
       if ([
         'roles', 'transactions', 'slashes', 'transfers', 'rewards', 'council', 'election', 'member', 'techcomm', 'balance-history',
-        'bonding', 'imonline', 'identity', 'authoredblocks', 'lifecycle', 'treasury', 'proposals', 'referenda',
+        'bonding', 'imonline', 'identity', 'authoredblocks', 'lifecycle', 'treasury', 'proposals', 'referenda', 'credit-history',
         'sessions'
       ].includes(value)) {
         this.currentTab = value;
@@ -269,6 +270,8 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
             this.accountLifecyclePage = +queryParams.accountLifecyclePage || 1;
             this.getAccountLifecycle(this.accountLifecyclePage);
 
+            this.getCreditUpdateEvents();
+
             this.proposalActivityPage = +queryParams.proposalActivityPage || 1;
             this.getProposalActivity(this.proposalActivityPage);
 
@@ -401,6 +404,15 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
         this.rewards = events;
       });
   }
+
+  public getCreditUpdateEvents() {
+    this.eventService.all({
+      //  page: {number: page, size: 25},
+       remotefilter: {address: this.accountId, search_index: '43'},
+     }).subscribe(events => {
+       this.creditUpdates = events;
+     });
+ }
 
   public getSlashEvents(page: number) {
      this.eventService.all({
