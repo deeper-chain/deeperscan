@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Datetime": "तारीख",
+		"Credit": "श्रेय",
+		"Credit history": "श्रेय इतिहास",
 		"Account \"{account}\" not found": "खाता \"{account}\" नहीं मिला",
 		"Account created": "खाता बन गया",
 		"Account index": "खाता सूची",

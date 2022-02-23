@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Datetime": "Datum",
+		"Credit": "Credit",
+		"Credit history": "Credit geschiedenis",
 		"Account \"{account}\" not found": "",
 		"Account created": "",
 		"Account index": "Account index",

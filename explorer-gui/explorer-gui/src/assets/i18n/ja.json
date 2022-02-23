@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Datetime": "日にち",
+		"Credit": "クレジット",
+		"Credit history": "クレジット歴史",
 		"Account \"{account}\" not found": "アカウント\"{account}\"が見つかりません",
 		"Account created": "アカウント作成",
 		"Account index": "アカウントインデックス",

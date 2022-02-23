@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Datetime": "วันที่",
+		"Credit": "เครดิต",
+		"Credit history": "เครดิต ประวัติศาสตร์",
 		"Account \"{account}\" not found": "ไม่พบบัญชี \"{account}\"",
 		"Account created": "วันที่สร้างบัญชี",
 		"Account index": "ดัชนีบัญชี",

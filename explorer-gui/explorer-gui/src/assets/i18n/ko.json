@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Datetime": "날짜",
+		"Credit": "신용 거래",
+		"Credit history": "신용 거래역사",
 		"Account \"{account}\" not found": "\"{account}\" 계정을 찾을 수 ",
 		"Account created": "계정 생성 완료",
 		"Account index": "계정 인덱스",

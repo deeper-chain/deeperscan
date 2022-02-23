@@ -782,8 +782,9 @@
                       <tbody>
                           <tr *ngFor="let creditUpdate of creditUpdates.data">
                             <td class="is-hidden-mobile"><a [routerLink]="[networkURLPrefix, 'block', creditUpdate.attributes.block_id]">{{ creditUpdate.attributes.block_id }}</a></td>
-                            <td>{{ creditUpdate.attributes.block_datetime }} </td>
-                            <td>{{ creditUpdate.attributes.attributes[1].value }} </td>
+                            <td>{{ creditUpdate.attributes.block_datetime | date:'short' }} </td>
+                            <td *ngIf="creditUpdate.attributes.attributes[1].value">{{ creditUpdate.attributes.attributes[1].value }} </td>
+                            <td *ngIf="!creditUpdate.attributes.attributes[1].value">{{ creditUpdate.attributes.attributes[1] }} </td>
                             <td width="5%"><a class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/event/{{ creditUpdate.id }}">Details</a></td>
                           </tr>
                       </tbody>

@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Datetime": "日期",
+		"Credit": "信用",
+		"Credit history": "信用历史",
 		"Account \"{account}\" not found": "找不到帐户 \"{account}\" ",
 		"Account created": "Account created",
 		"Account index": "帐户指数",

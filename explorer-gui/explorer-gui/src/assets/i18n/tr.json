@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Datetime": "Sene",
+		"Credit": "Kredi",
+		"Credit history": "Kredi tarih",
 		"Account \"{account}\" not found": "Hesap \"{account}\" bulunamadı",
 		"Account created": "Hesap oluşturuldu",
 		"Account index": "Hesap indeksi",
