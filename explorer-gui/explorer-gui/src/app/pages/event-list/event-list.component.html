@@ -63,7 +63,7 @@
                                     <td><a routerLink="{{ networkURLPrefix }}/event/{{ event.id }}">{{ event.id }}</a></td>
                                     <td class="is-hidden-mobile"><a routerLink="{{ networkURLPrefix }}/block/{{ event.attributes.block_id }}">{{ event.attributes.block_id }}</a></td>
                                     <td class="is-hidden-mobile"><a *ngIf="event.attributes.extrinsic_idx" routerLink="{{ networkURLPrefix }}/transaction/{{ event.attributes.block_id }}-{{event.attributes.extrinsic_idx}}">{{ event.attributes.block_id }}-{{event.attributes.extrinsic_idx}}</a></td>
-                                    <td class="is-hidden-mobile">{{ event.attributes.block_datetime | date:'medium' }}</td>
+                                    <td class="is-hidden-mobile">{{ event.attributes.block_datetime | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                                     <td>{{ event.attributes.module_id }}</td>
                                     <td>{{ event.attributes.event_id }}</td>
                                     <td width="5%"><a class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/event/{{ event.id }}">{{ 'Event-list.Details' | translate }}</a></td>

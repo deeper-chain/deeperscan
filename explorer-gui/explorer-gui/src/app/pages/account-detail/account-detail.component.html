@@ -228,11 +228,6 @@
                       <span>{{ 'AccountDetail.Account lifecycle' | translate }}</span>
                     </a>
                   </li>
-                  <li [ngClass]="{'is-active': currentTab == 'credit-history'}">
-                    <a routerLink="." fragment="credit-history">
-                      <span>{{ 'AccountDetail.Credit history' | translate }}</span>
-                    </a>
-                  </li>
                   <li [ngClass]="{'is-active': currentTab == 'roles'}">
                     <a routerLink="." fragment="roles">
                       <span>{{ 'AccountDetail.Roles' | translate }}</span>
@@ -241,6 +236,11 @@
                   <li [ngClass]="{'is-active': currentTab == 'balance-history'}">
                     <a routerLink="." fragment="balance-history" (click)="renderChart()">
                       <span>{{ 'AccountDetail.Balance History' | translate }}</span>
+                    </a>
+                  </li>
+                  <li [ngClass]="{'is-active': currentTab == 'credit-history'}">
+                    <a routerLink="." fragment="credit-history">
+                      <span>{{ 'AccountDetail.Credit history' | translate }}</span>
                     </a>
                   </li>
                 </ul>
@@ -757,7 +757,7 @@
                           </thead>
                           <tbody>
                               <tr *ngFor="let block of authoredBlocks.data; trackBy: authoredBlocks.trackBy">
-                                  <td class="is-hidden-mobile">{{ block.attributes.parent_datetime | date:'short' }}</td>
+                                  <td class="is-hidden-mobile">{{ block.attributes.parent_datetime | date:'yyyy-MM-d h:mm:ss' }}</td>
                                   <td><a routerLink="{{ networkURLPrefix }}/block/{{ block.id }}">{{ block.id }}</a></td>
                                   <td><a routerLink="{{ networkURLPrefix }}/session/session/{{ block.attributes.session_id }}">{{ block.attributes.session_id }}</a></td>
                                   <td width="5%"><a class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/block/{{ block.id }}">{{ 'AccountDetail.Details' | translate }}</a></td>
@@ -782,7 +782,7 @@
                       <tbody>
                           <tr *ngFor="let creditUpdate of creditUpdates.data">
                             <td class="is-hidden-mobile"><a [routerLink]="[networkURLPrefix, 'block', creditUpdate.attributes.block_id]">{{ creditUpdate.attributes.block_id }}</a></td>
-                            <td>{{ creditUpdate.attributes.block_datetime | date:'short' }} </td>
+                            <td>{{ creditUpdate.attributes.block_datetime | date:'yyyy-MM-dd HH:mm:ss' }} </td>
                             <td *ngIf="creditUpdate.attributes.attributes[1].value">{{ creditUpdate.attributes.attributes[1].value }} </td>
                             <td *ngIf="!creditUpdate.attributes.attributes[1].value">{{ creditUpdate.attributes.attributes[1] }} </td>
                             <td width="5%"><a class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/event/{{ creditUpdate.id }}">Details</a></td>
