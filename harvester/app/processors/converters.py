@@ -739,6 +739,13 @@ class PolkascanHarvesterService(BaseService):
                 extrinsic_processor.accumulation_hook(self.db_session)
                 extrinsic_processor.process_search_index(self.db_session)
 
+            if block.datetime:
+                model.block_datetime = block.datetime
+                try:
+                    model.save(self.db_session)
+                except IntegrityError:
+                    self.db_session.rollback()
+
         # Process event processors
         for event in events:
             extrinsic = None

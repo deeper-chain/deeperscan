@@ -337,6 +337,7 @@
                             <tr>
                               <th>{{ 'AccountDetail.ID' | translate }}</th>
                               <th class="is-hidden-mobile">{{ 'AccountDetail.Block' | translate }}</th>
+                              <th class="is-hidden-mobile">{{ 'AccountDetail.Datetime' | translate }}</th>
                               <th>{{ 'AccountDetail.Module' | translate }}</th>
                               <th>{{ 'AccountDetail.Call' | translate }}</th>
                               <th class="is-hidden-mobile">{{ 'AccountDetail.Success' | translate }}</th>
@@ -347,6 +348,7 @@
                               <tr *ngFor="let extrinsic of extrinsics.data; trackBy: extrinsics.trackBy">
                                   <td><a routerLink="{{ networkURLPrefix }}/transaction/{{ extrinsic.attributes.extrinsic_hash ? '0x' + extrinsic.attributes.extrinsic_hash : extrinsic.id }}">{{ extrinsic.id }}</a></td>
                                   <td class="is-hidden-mobile"><a routerLink="{{ networkURLPrefix }}/block/{{ extrinsic.attributes.block_id }}">{{ extrinsic.attributes.block_id }}</a></td>
+                                  <td>{{ extrinsic.attributes.block_datetime | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                                   <td>{{ extrinsic.attributes.module_id }}</td>
                                   <td>{{ extrinsic.attributes.call_id }}</td>
                                   <td class="is-hidden-mobile">

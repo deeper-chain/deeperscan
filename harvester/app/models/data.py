@@ -289,6 +289,7 @@ class Extrinsic(BaseModel):
 
     block_id = sa.Column(sa.Integer(), primary_key=True, index=True)
     block = relationship(Block, foreign_keys=[block_id], primaryjoin=block_id == Block.id)
+    block_datetime = sa.Column(sa.DateTime(), nullable=True)
 
     extrinsic_idx = sa.Column(sa.Integer(), primary_key=True, index=True)
     extrinsic_hash = sa.Column(sa.String(64), index=True, nullable=True)
