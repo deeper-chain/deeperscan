@@ -44,6 +44,7 @@ import {RuntimeModuleService} from '../../services/runtime-module.service';
 import {RuntimeCallService} from '../../services/runtime-call.service';
 import {SS58} from '../../classes/ss58.class';
 import {blake2b} from 'blakejs';
+import {environment} from "../../../environments/environment";
 
 
 @Component({
@@ -119,6 +120,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   private ws: WebSocket = null;
   private ss58: SS58 = null;
   private staking: boolean = false;
+  private rewardCount: number = 0;
 
   constructor(
     private balanceTransferService: BalanceTransferService,
@@ -345,6 +347,18 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     }else{
       this.connect('wss://mainnet-dev.deeper.network');
     }
+
+    // console.log(environment.jsonApiRootUrl);
+    fetch(environment.jsonApiRootUrl+'/deeper/staking_delegate_count?addr='+this.accountId)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        this.rewardCount = data.count;
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    
   }
 
   selectModule(module) {

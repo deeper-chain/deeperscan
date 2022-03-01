@@ -124,6 +124,10 @@
                                   <i *ngIf="!staking" class="fa fa-times" style="color: darkred"></i>
                                 </td>
                               </tr>
+                              <tr>
+                                <td width="20%">{{ 'AccountDetail.Reward Count' | translate }}</td>
+                                <td>{{ rewardCount }}</td>
+                              </tr>
                               <tr *ngIf="account.getCurrentRoles().length > 0">
                                 <td>{{ 'AccountDetail.Current Roles' | translate }}</td>
                                 <td>
