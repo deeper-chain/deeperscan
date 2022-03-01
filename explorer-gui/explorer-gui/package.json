@@ -25,6 +25,7 @@
     "angular-highcharts": "^8.0.3",
     "angulartics2": "^7.5.2",
     "base": "^3.0.0",
+    "base-x": "^4.0.0",
     "blakejs": "^1.1.0",
     "bulma": "^0.7.4",
     "core-js": "^2.6.11",

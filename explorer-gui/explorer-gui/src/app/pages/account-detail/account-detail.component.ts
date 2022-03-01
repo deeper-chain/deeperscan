@@ -42,6 +42,7 @@ import {RuntimeModule} from '../../classes/runtime-module.class';
 import {RuntimeCall} from '../../classes/runtime-call.class';
 import {RuntimeModuleService} from '../../services/runtime-module.service';
 import {RuntimeCallService} from '../../services/runtime-call.service';
+import {SS58} from '../../classes/ss58.class';
 
 
 @Component({
@@ -113,6 +114,9 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   public balanceHistoryChart: Chart;
   private balanceHistoryChartOptions: {};
   private balanceHistoryChartData = {};
+
+  private ws: WebSocket = null;
+  private ss58: SS58 = null;
 
   constructor(
     private balanceTransferService: BalanceTransferService,
@@ -332,6 +336,8 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
       });
 
     });
+
+    this.connect('wss://mainnet-dev.deeper.network');
   }
 
   selectModule(module) {
@@ -397,30 +403,30 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   }
 
   public getRewardsEvents(page: number) {
-     this.eventService.all({
-        page: {number: page, size: 25},
-        remotefilter: {address: this.accountId, search_index: '39'},
-      }).subscribe(events => {
-        this.rewards = events;
-      });
+    this.eventService.all({
+      page: {number: page, size: 25},
+      remotefilter: {address: this.accountId, search_index: '39'},
+    }).subscribe(events => {
+      this.rewards = events;
+    });
   }
 
   public getCreditUpdateEvents() {
     this.eventService.all({
       //  page: {number: page, size: 25},
-       remotefilter: {address: this.accountId, search_index: '43'},
-     }).subscribe(events => {
-       this.creditUpdates = events;
-     });
- }
+      remotefilter: {address: this.accountId, search_index: '43'},
+    }).subscribe(events => {
+      this.creditUpdates = events;
+    });
+  }
 
   public getSlashEvents(page: number) {
-     this.eventService.all({
-        page: {number: page, size: 25},
-        remotefilter: {address: this.accountId, search_index: '1'},
-      }).subscribe(events => {
-        this.slashes = events;
-      });
+    this.eventService.all({
+      page: {number: page, size: 25},
+      remotefilter: {address: this.accountId, search_index: '1'},
+    }).subscribe(events => {
+      this.slashes = events;
+    });
   }
 
   public getCouncilActivity(page: number) {
@@ -555,5 +561,34 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     } else {
       return 'http://' + url;
     }
+  }
+
+  public connect(url: string): void {
+    this.ws = new WebSocket(url);
+    this.ws.onopen = this.onOpen.bind(this);
+    this.ws.onmessage = this.onMessage;
+    this.ws.onerror = this.onError;
+    this.ws.onclose = this.onClose;
+    // var ss58 = new SS58();
+    this.ss58 = new SS58();
+    console.log(this.ss58.ss58_decode('5CCpEK5Dzyzqk1KDSgJzga7pLwaDSrQevNZpL5iYXxXKqvmL'));
+    console.log(this.ss58.ss58_encode('0x062f6acf56fb09414bdd21d645dbc3b2c36d057e8c5a6fb0793ba8000e32c342'));
+  }
+
+  public onOpen(event: any): void {
+    console.log("connected");
+    this.ws.send('{"jsonrpc": "2.0", "method": "state_getStorageAt", "params": ["0x5f3e4907f716ac89b6347d15ececedcae1c5df6d2773f08c7b6b1b6d0139c22a30f0d16630dc1198efdd0402c1bce50e062f6acf56fb09414bdd21d645dbc3b2c36d057e8c5a6fb0793ba8000e32c342", "0x1d2b86e97a82b6688dc932341cc8bd95942e8ef99dfaedcc1a3413478f08261f"], "id": 1}');
+  }
+
+  public onMessage(event: any): void {
+    console.log("on message", event);
+  }
+
+  public onError(event: any): void {
+    console.log(JSON.stringify(event.data));
+  }
+
+  public onClose(event: any): void {
+    console.log(JSON.stringify(event.data));
   }
 }
