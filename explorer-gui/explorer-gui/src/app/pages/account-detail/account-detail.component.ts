@@ -43,6 +43,7 @@ import {RuntimeCall} from '../../classes/runtime-call.class';
 import {RuntimeModuleService} from '../../services/runtime-module.service';
 import {RuntimeCallService} from '../../services/runtime-call.service';
 import {SS58} from '../../classes/ss58.class';
+import {blake2b} from 'blakejs';
 
 
 @Component({
@@ -337,7 +338,12 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
 
     });
 
-    this.connect('wss://mainnet-dev.deeper.network');
+    this.ss58 = new SS58();
+    if(window.location.hostname == 'www.deeperscan.io'){
+      this.connect('wss://mainnet-deeper-chain.deeper.network');
+    }else{
+      this.connect('wss://mainnet-dev.deeper.network');
+    }
   }
 
   selectModule(module) {
@@ -566,22 +572,34 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   public connect(url: string): void {
     this.ws = new WebSocket(url);
     this.ws.onopen = this.onOpen.bind(this);
-    this.ws.onmessage = this.onMessage;
-    this.ws.onerror = this.onError;
-    this.ws.onclose = this.onClose;
-    // var ss58 = new SS58();
-    this.ss58 = new SS58();
-    console.log(this.ss58.ss58_decode('5CCpEK5Dzyzqk1KDSgJzga7pLwaDSrQevNZpL5iYXxXKqvmL'));
-    console.log(this.ss58.ss58_encode('0x062f6acf56fb09414bdd21d645dbc3b2c36d057e8c5a6fb0793ba8000e32c342'));
+    this.ws.onmessage = this.onMessage.bind(this);
+    this.ws.onerror = this.onError.bind(this);
+    this.ws.onclose = this.onClose.bind(this);
   }
 
   public onOpen(event: any): void {
     console.log("connected");
-    this.ws.send('{"jsonrpc": "2.0", "method": "state_getStorageAt", "params": ["0x5f3e4907f716ac89b6347d15ececedcae1c5df6d2773f08c7b6b1b6d0139c22a30f0d16630dc1198efdd0402c1bce50e062f6acf56fb09414bdd21d645dbc3b2c36d057e8c5a6fb0793ba8000e32c342", "0x1d2b86e97a82b6688dc932341cc8bd95942e8ef99dfaedcc1a3413478f08261f"], "id": 1}');
+    this.ws.send('{"jsonrpc": "2.0", "method": "chain_getHead", "params": [], "id": 1}');
   }
 
   public onMessage(event: any): void {
-    console.log("on message", event);
+    console.log("on message", event.data);
+    const message = JSON.parse(event.data);
+    if(message.id == 1){
+      var user_hex = this.ss58.ss58_decode(this.accountId);
+      var user_hash = this.ss58.arraytoHex(blake2b(this.ss58.hexToArray(user_hex), null, 16));
+      // var module_hash = this.ss58.arraytoHex(xxhash128(new TextEncoder().encode("Staking"), null, 16));
+      // var function_hash = this.ss58.arraytoHex(xxhash128(new TextEncoder().encode("Delegators"), null, 16));
+      // console.log(module_hash, function_hash);
+      const block_hash = message.result;
+  
+      this.ws.send('{"jsonrpc": "2.0", "method": "state_getStorageAt", "params": ["0x5f3e4907f716ac89b6347d15ececedcae1c5df6d2773f08c7b6b1b6d0139c22a'+ user_hash + user_hex +'", "'+ block_hash+ '"], "id": 2}');
+    }else if(message.id == 2){
+      console.log(message.result.slice(-1));
+      if(message.result.slice(-1) == '1'){
+
+      }
+    }
   }
 
   public onError(event: any): void {

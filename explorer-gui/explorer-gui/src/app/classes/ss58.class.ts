@@ -4,7 +4,7 @@ import base from 'base-x';
 
 
 export class SS58 {
-  private arraytoHex(bytes:Uint8Array) {
+  public arraytoHex(bytes:Uint8Array) {
     var a = [];
     for(const byte of bytes){
       a.push(('0' + (byte & 0xFF).toString(16)).slice(-2));
@@ -44,7 +44,7 @@ export class SS58 {
     }
   }
 
-  private hexToArray(hex:string) {
+  public hexToArray(hex:string) {
     var a = [];
     for(var i = 0; i < 64 ; i+= 2){
       // console.log(hex.slice(i, i+2));
