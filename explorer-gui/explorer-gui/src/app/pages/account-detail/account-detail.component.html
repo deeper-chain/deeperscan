@@ -117,6 +117,13 @@
                                   <i *ngIf="account.attributes.is_reaped" class="fa fa-times" style="color: darkred"></i>
                                 </td>
                               </tr>
+                              <tr>
+                                <td width="20%">{{ 'AccountDetail.Staking' | translate }}</td>
+                                <td>
+                                  <i *ngIf="staking" class="fa fa-check" style="color: forestgreen"></i>
+                                  <i *ngIf="!staking" class="fa fa-times" style="color: darkred"></i>
+                                </td>
+                              </tr>
                               <tr *ngIf="account.getCurrentRoles().length > 0">
                                 <td>{{ 'AccountDetail.Current Roles' | translate }}</td>
                                 <td>

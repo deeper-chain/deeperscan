@@ -118,6 +118,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
 
   private ws: WebSocket = null;
   private ss58: SS58 = null;
+  private staking: boolean = false;
 
   constructor(
     private balanceTransferService: BalanceTransferService,
@@ -583,7 +584,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   }
 
   public onMessage(event: any): void {
-    console.log("on message", event.data);
+    // console.log("on message", event.data);
     const message = JSON.parse(event.data);
     if(message.id == 1){
       var user_hex = this.ss58.ss58_decode(this.accountId);
@@ -595,9 +596,9 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   
       this.ws.send('{"jsonrpc": "2.0", "method": "state_getStorageAt", "params": ["0x5f3e4907f716ac89b6347d15ececedcae1c5df6d2773f08c7b6b1b6d0139c22a'+ user_hash + user_hex +'", "'+ block_hash+ '"], "id": 2}');
     }else if(message.id == 2){
-      console.log(message.result.slice(-1));
-      if(message.result.slice(-1) == '1'){
-
+      // console.log(message.result.slice(-1));
+      if(message.result && message.result.slice(-1) == '1'){
+        this.staking = true;
       }
     }
   }
