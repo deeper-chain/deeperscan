@@ -1450,8 +1450,7 @@ class TransactionResource(BaseResource):
         data = []
         result = self.session.execute(sql, params)
         if sum:
-            for row in result:
-                break
+            row = result.fetchone()
             resp.media = {'count': row[0]}
         else:
             for row in result:
@@ -1881,7 +1880,26 @@ class StakingDelegateCount(BaseResource):
             params['addr'] = ss58_decode(addr)
 
         result = self.session.execute(sql, params)
-        for row in result:
-            break
+        row = result.fetchone()
         resp.media = {'count': row[0]}
+
+
+class CurrentUserCredit(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr')
+        sql = 'SELECT block_id, sorting_value FROM data_account_search_index WHERE account_id = :addr AND index_type_id = :index_type_id ORDER BY block_id DESC LIMIT 1'
+        params = {
+            'index_type_id': settings.SEARCH_INDEX_CREDIT_UPDATESUCCESS
+        }
+        if addr.startswith('0x'):
+            params['addr'] = addr[2:]
+        else:
+            params['addr'] = ss58_decode(addr)
+
+        result = self.session.execute(sql, params)
+        row = result.fetchone()
+        if row:
+            resp.media = {'block_id': row[0], 'credit': int(row[1])}
+        else:
+            resp.media = {'block_id': 0, 'credit': 0}
 
