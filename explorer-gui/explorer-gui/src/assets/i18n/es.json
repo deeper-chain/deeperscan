@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "Replanteo",
+		"Current User Credit": "Crédito de usuario actual",
+		"Reward Count": "Recuento de recompensas",
 		"Datetime": "Fecha",
 		"Credit": "Crédito",
 		"Credit history": "Crédito historia",

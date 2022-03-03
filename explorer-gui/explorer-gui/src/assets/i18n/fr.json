@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "Jalonnement",
+		"Current User Credit": "Crédit utilisateur actuel",
+		"Reward Count": "Nombre de récompenses",
 		"Datetime": "Date",
 		"Credit": "Crédit",
 		"Credit history": "Crédit l'histoire",

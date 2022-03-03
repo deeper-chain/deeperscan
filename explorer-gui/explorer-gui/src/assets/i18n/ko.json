@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "스테이킹",
+		"Current User Credit": "현재 사용자 크레딧",
+		"Reward Count": "보상 수",
 		"Datetime": "날짜",
 		"Credit": "신용 거래",
 		"Credit history": "신용 거래역사",

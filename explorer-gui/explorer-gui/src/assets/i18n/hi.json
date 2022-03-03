@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "जताया",
+		"Current User Credit": "वर्तमान उपयोगकर्ता क्रेडिट",
+		"Reward Count": "इनाम की गिनती",
 		"Datetime": "तारीख",
 		"Credit": "श्रेय",
 		"Credit history": "श्रेय इतिहास",

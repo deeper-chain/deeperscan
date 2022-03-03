@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "Abstecken",
+		"Current User Credit": "Aktuelles Benutzerguthaben",
+		"Reward Count": "Belohnungszähler",
 		"Datetime": "Datum",
 		"Credit": "Kredit",
 		"Credit history": "Kredit geschichte",

@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "การปักหลัก",
+		"Current User Credit": "เครดิตผู้ใช้ปัจจุบัน",
+		"Reward Count": "จำนวนรางวัล",
 		"Datetime": "วันที่",
 		"Credit": "เครดิต",
 		"Credit history": "เครดิต ประวัติศาสตร์",

@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "Ставка",
+		"Current User Credit": "Поточний кредит користувача",
+		"Reward Count": "Розрахунок нагород",
 		"Datetime": "Дата",
 		"Credit": "Кредит",
 		"Credit history": "Кредит історії",

@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "Uitzetten",
+		"Current User Credit": "Huidige gebruikerstegoed",
+		"Reward Count": "Beloning Telling",
 		"Datetime": "Datum",
 		"Credit": "Credit",
 		"Credit history": "Credit geschiedenis",

@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "Esnetme",
+		"Current User Credit": "Mevcut Kullanıcı Kredisi",
+		"Reward Count": "Sylag sany",
 		"Datetime": "Sene",
 		"Credit": "Kredi",
 		"Credit history": "Kredi tarih",

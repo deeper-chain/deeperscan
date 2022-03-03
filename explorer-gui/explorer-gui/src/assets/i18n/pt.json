@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "Estacando",
+		"Current User Credit": "Crédito de usuário atual",
+		"Reward Count": "Contagem de recompensa",
 		"Datetime": "Encontro",
 		"Credit": "Credit",
 		"Credit history": "Crédito história",

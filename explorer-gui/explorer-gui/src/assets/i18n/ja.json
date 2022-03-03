@@ -1,5 +1,8 @@
 {
 	"AccountDetail": {
+		"Staking": "ステーキング",
+		"Current User Credit": "現在のユーザークレジット",
+		"Reward Count": "報酬カウント",
 		"Datetime": "日にち",
 		"Credit": "クレジット",
 		"Credit history": "クレジット歴史",
