@@ -1080,7 +1080,9 @@ class PolkascanHarvesterService(BaseService):
             model.save(self.db_session)
 
             for extrinsic in Extrinsic.query(self.db_session).filter_by(block_id=block.id):
-                model = ReorgExtrinsic(block_hash=block.hash, **extrinsic.asdict())
+                extrinsic_dict = extrinsic.asdict()
+                del extrinsic_dict['block_datetime']
+                model = ReorgExtrinsic(block_hash=block.hash, **extrinsic_dict)
                 model.save(self.db_session)
 
             for event in Event.query(self.db_session).filter_by(block_id=block.id):
