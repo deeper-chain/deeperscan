@@ -1367,11 +1367,16 @@ class CouncilMemberKicked(EventProcessor):
     event_id = 'MemberKicked'
 
     def process_search_index(self, db_session):
-
-        search_index = self.add_search_index(
-            index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_KICKED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
-        )
+        try:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_KICKED,
+                account_id=self.event.attributes[0]['value'].replace('0x', '')
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_KICKED,
+                account_id=self.event.attributes[0].replace('0x', '')
+            )
 
         search_index.save(db_session)
 
@@ -1382,11 +1387,16 @@ class CouncilMemberRenounced(EventProcessor):
     event_id = 'MemberRenounced'
 
     def process_search_index(self, db_session):
-
-        search_index = self.add_search_index(
-            index_type_id=settings.SEARCH_INDEX_COUNCIL_CANDIDACY_RENOUNCED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
-        )
+        try:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_CANDIDACY_RENOUNCED,
+                account_id=self.event.attributes[0]['value'].replace('0x', '')
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_CANDIDACY_RENOUNCED,
+                account_id=self.event.attributes[0].replace('0x', '')
+            )
 
         search_index.save(db_session)
 
@@ -1397,10 +1407,16 @@ class CouncilProposedEventProcessor(EventProcessor):
     event_id = 'Proposed'
 
     def process_search_index(self, db_session):
-        search_index = self.add_search_index(
-            index_type_id=settings.SEARCH_INDEX_COUNCIL_PROPOSED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
-        )
+        try:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_PROPOSED,
+                account_id=self.event.attributes[0]['value'].replace('0x', '')
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_PROPOSED,
+                account_id=self.event.attributes[0].replace('0x', '')
+            )
 
         search_index.save(db_session)
 
@@ -1411,10 +1427,16 @@ class CouncilVotedEventProcessor(EventProcessor):
     event_id = 'Voted'
 
     def process_search_index(self, db_session):
-        search_index = self.add_search_index(
-            index_type_id=settings.SEARCH_INDEX_COUNCIL_VOTE,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
-        )
+        try:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_VOTE,
+                account_id=self.event.attributes[0]['value'].replace('0x', '')
+            )
+        except:
+            search_index = self.add_search_index(
+                index_type_id=settings.SEARCH_INDEX_COUNCIL_VOTE,
+                account_id=self.event.attributes[0].replace('0x', '')
+            )
 
         search_index.save(db_session)
 
