@@ -18,7 +18,7 @@ services:
       - DB_PASSWORD=root
       - DB_NAME=polkascan
       - SUBSTRATE_RPC_URL=ws://172.17.0.1:9955
-      - SIDECAR_API_URL=http://172.17.0.1:8000
+      - SIDECAR_API_URL=http://api-sidecar:8080
       - SUBSTRATE_ADDRESS_TYPE=42
       - TYPE_REGISTRY=default
       - TYPE_REGISTRY_FILE=app/type_registry/custom_types.json
@@ -125,6 +125,14 @@ services:
     depends_on:
       - harvester-api
       - explorer-api
+
+  api-sidecar:
+    image: parity/substrate-api-sidecar:v11.3.15
+    volumes:
+      - './harvester/app/type_registry/custom_types.json:/tmp/custom_types.json'
+    environment:
+      - SAS_SUBSTRATE_WS_URL=ws://172.17.0.1:9955
+      - SAS_SUBSTRATE_TYPES=/tmp/custom_types.json
 
 volumes:
   db-data:
