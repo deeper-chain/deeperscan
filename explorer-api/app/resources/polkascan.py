@@ -39,7 +39,7 @@ from app.resources.base import JSONAPIResource, JSONAPIListResource, JSONAPIDeta
 from app.utils.ss58 import ss58_decode, ss58_encode
 from scalecodec.base import RuntimeConfiguration
 from substrateinterface import SubstrateInterface
-
+import requests
 
 class BlockDetailsResource(JSONAPIDetailResource):
 
@@ -1887,19 +1887,13 @@ class StakingDelegateCount(BaseResource):
 class CurrentUserCredit(BaseResource):
     def on_get(self, req, resp, **kwargs):
         addr = req.get_param('addr')
-        sql = 'SELECT block_id, sorting_value FROM data_account_search_index WHERE account_id = :addr AND index_type_id = :index_type_id ORDER BY block_id DESC LIMIT 1'
-        params = {
-            'index_type_id': settings.SEARCH_INDEX_CREDIT_UPDATESUCCESS
-        }
-        if addr.startswith('0x'):
-            params['addr'] = addr[2:]
-        else:
-            params['addr'] = ss58_decode(addr)
-
-        result = self.session.execute(sql, params)
-        row = result.fetchone()
-        if row:
-            resp.media = {'block_id': row[0], 'credit': int(row[1])}
-        else:
+        req_url = "{}/pallets/credit/storage/UserCredit?key1={}".format(settings.SIDECAR_API_URL, addr)
+        result = requests.get(req_url)
+        if result.status_code != 200:
             resp.media = {'block_id': 0, 'credit': 0}
+        else:
+            result_body = result.json()
+            block_id = int(result_body['at']['height']) if 'at' in result_body and 'height' in result_body['at'] else 0
+            credit = int(result_body['value']['credit']) if 'value' in result_body and 'credit' in result_body['value'] else 0
+            resp.media = {'block_id': block_id, 'credit': credit}
 

@@ -21,16 +21,16 @@
  */
 
 export const environment = {
-  production: true,
-  jsonApiDiscoveryRootUrl: $ENV.DISCOVERY_API_URL,
-  jsonApiRootUrl: null,
+  production: false,
+  jsonApiDiscoveryRootUrl: null,
+  jsonApiRootUrl: $ENV.API_URL,
   network: {
-    name: null,
-    networkId: null,
-    networkType: null,
-    chainType: null,
-    tokenSymbol: null,
-    tokenDecimals: null,
-    colorCode: null
+    name: $ENV.NETWORK_NAME,
+    networkId: $ENV.NETWORK_ID,
+    networkType: $ENV.NETWORK_TYPE,
+    chainType: $ENV.CHAIN_TYPE,
+    tokenSymbol: $ENV.NETWORK_TOKEN_SYMBOL,
+    tokenDecimals: $ENV.NETWORK_TOKEN_DECIMALS,
+    colorCode: $ENV.NETWORK_COLOR_CODE
   }
 };
