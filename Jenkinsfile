@@ -4,7 +4,7 @@ def slackChannel = '#devops-test'
 def execNode = 'master-runner'
 def upstreamProjects = ''
 def timeStamp = Calendar.getInstance().getTime().format('YYYYMMdd')
-def deployCmd = 'ansible-playbook -i ~/ansible/deeperscan/hosts ~/ansible/deeperscan/playbooks/deploy-dev.yml'
+def deployCmd = 'ansible-playbook -i /root/ansible/deeperscan/hosts /root/ansible/deeperscan/playbooks/deploy-dev.yml'
 if (env.BRANCH_NAME == "master") {
     deployCmd = ""
 }
