@@ -3,7 +3,7 @@
 def slackChannel = '#devops-test'
 def execNode = 'master-runner'
 def upstreamProjects = ''
-def tag = new Date()
+def timeStamp = Calendar.getInstance().getTime().format('YYYYMMdd')
 if (env.BRANCH_NAME == "master") {
     deployCmd = ""
 }
@@ -27,7 +27,7 @@ pipeline {
     }
     environment {
         webhook_key = credentials('webhook_key')
-        TAG = tag.format(yyyyMMdd)
+        TAG = "${timeStamp}"
     }
 
     stages {
