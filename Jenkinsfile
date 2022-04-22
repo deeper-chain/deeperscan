@@ -4,6 +4,7 @@ def slackChannel = '#devops-test'
 def execNode = 'master-runner'
 def upstreamProjects = ''
 def timeStamp = Calendar.getInstance().getTime().format('YYYYMMdd')
+def deployCmd = 'ansible-playbook -i ~/ansible/deeperscan/hosts ~/ansible/deeperscan/playbooks/deploy-dev.yml'
 if (env.BRANCH_NAME == "master") {
     deployCmd = ""
 }
@@ -28,6 +29,7 @@ pipeline {
     environment {
         webhook_key = credentials('webhook_key')
         TAG = "${timeStamp}"
+        DEPLOYCMD = "${deployCmd}"
     }
 
     stages {
@@ -69,14 +71,14 @@ pipeline {
             steps {    
             dir("explorer-api"){
                 sh 'echo $TAG ...........'
-                sh 'docker build -t 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-api:$TAG .'
+                sh 'docker build -t public.ecr.aws/w0b1r5l2/deeperscan/pre-explorer-api:$TAG .'
             }
             dir("harvester"){
-                sh 'docker build -t 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$TAG .'
+                sh 'docker build -t public.ecr.aws/w0b1r5l2/deeperscan/pre-harvester:$TAG .'
             }
             dir("explorer-gui"){
-                sh 'docker build --build-arg API_URL=http://voyager-ubuntu:8080/api/v1  --build-arg NETWORK_NAME=Deeper --build-arg NETWORK_ID=deeper --build-arg NETWORK_TYPE=pre --build-arg CHAIN_TYPE=relay --build-arg NETWORK_TOKEN_SYMBOL=DPR --build-arg NETWORK_TOKEN_DECIMALS=18 --build-arg NETWORK_COLOR_CODE=21C355 -t 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-gui:dev-$TAG .'
-                sh 'docker build --build-arg API_URL=https://scan.deeper.network/api/v1  --build-arg NETWORK_NAME=Deeper --build-arg NETWORK_ID=deeper --build-arg NETWORK_TYPE=pre --build-arg CHAIN_TYPE=relay --build-arg NETWORK_TOKEN_SYMBOL=DPR --build-arg NETWORK_TOKEN_DECIMALS=18 --build-arg NETWORK_COLOR_CODE=21C355 -t 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-gui:prod-$TAG .'
+                sh 'docker build --build-arg API_URL=https://dev.deeperscan.io/api/v1 --build-arg NETWORK_NAME=Deeper --build-arg NETWORK_ID=deeper --build-arg NETWORK_TYPE=pre --build-arg CHAIN_TYPE=relay --build-arg NETWORK_TOKEN_SYMBOL=DPR --build-arg NETWORK_TOKEN_DECIMALS=18 --build-arg NETWORK_COLOR_CODE=21C355 -t public.ecr.aws/w0b1r5l2/deeperscan/pre-explorer-gui:dev-$TAG .'
+                sh 'docker build --build-arg API_URL=https://scan.deeper.network/api/v1  --build-arg NETWORK_NAME=Deeper --build-arg NETWORK_ID=deeper --build-arg NETWORK_TYPE=pre --build-arg CHAIN_TYPE=relay --build-arg NETWORK_TOKEN_SYMBOL=DPR --build-arg NETWORK_TOKEN_DECIMALS=18 --build-arg NETWORK_COLOR_CODE=21C355 -t public.ecr.aws/w0b1r5l2/deeperscan/pre-explorer-gui:prod-$TAG .'
             }
             }
         }
@@ -88,10 +90,10 @@ pipeline {
             }
             steps{
                 sh '''
-                docker push 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-api:$TAG
-                docker push 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$TAG
-                docker push 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-gui:dev-$TAG
-                docker push 561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-gui:prod-$TAG
+                docker push public.ecr.aws/w0b1r5l2/deeperscan/pre-explorer-api:$TAG
+                docker push public.ecr.aws/w0b1r5l2/deeperscan/pre-harvester:$TAG
+                docker push public.ecr.aws/w0b1r5l2/deeperscan/pre-explorer-gui:dev-$TAG
+                docker push public.ecr.aws/w0b1r5l2/deeperscan/pre-explorer-gui:prod-$TAG
                 '''
             }
         }
@@ -103,7 +105,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'echo deploy'
+                sh '$DEPLOYCMD'
             }
         }
     }
