@@ -5,7 +5,7 @@ def execNode = 'master-runner'
 def upstreamProjects = ''
 def timeStamp = Calendar.getInstance().getTime().format('YYYYMMdd')
 // TODO  PATCH TAG
-def deployCmd = 'kube rollout restart deployment.apps/deeper-scan -n dev'
+def deployCmd = 'kubectl rollout restart deployment.apps/deeper-scan -n dev'
 if (env.BRANCH_NAME == "master") {
     deployCmd = ""
 }
