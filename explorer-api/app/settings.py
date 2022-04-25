@@ -21,6 +21,7 @@ import os
 
 DB_NAME = os.environ.get("DB_NAME", "polkascan")
 DB_HOST = os.environ.get("DB_HOST", "mysql")
+print('debug DB_HOST', DB_HOST)
 DB_PORT = os.environ.get("DB_PORT", 3306)
 DB_USERNAME = os.environ.get("DB_USERNAME", "root")
 DB_PASSWORD = os.environ.get("DB_PASSWORD", "root")
@@ -28,6 +29,7 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "root")
 DB_CONNECTION = os.environ.get("DB_CONNECTION", "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(
     DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 ))
+print('debug DB_CONNECTION', DB_CONNECTION)
 
 SUBSTRATE_RPC_URL = os.environ.get(
     "SUBSTRATE_RPC_URL", "http://substrate-node:9933/")
