@@ -9,9 +9,9 @@ echo "Environment: $ENVIRONMENT"
 echo "==========================="
 
 if [ "$ENVIRONMENT" = "prod" ]; then
-  echo "Wait for database..."
-  # Let the DB start
-  sleep 10;
+    echo "Wait for database..."
+    # Let the DB start
+    sleep 10
 fi
 
 # Set path
@@ -29,5 +29,5 @@ if [ "$ENVIRONMENT" = "dev" ]; then
 fi
 
 if [ "$ENVIRONMENT" = "prod" ]; then
-    gunicorn -b 0.0.0.0:8000 --workers=5 app.main:app --worker-class="egg:meinheld#gunicorn_worker"
+    gunicorn -b 0.0.0.0:8001 --workers=5 app.main:app --worker-class="egg:meinheld#gunicorn_worker"
 fi
