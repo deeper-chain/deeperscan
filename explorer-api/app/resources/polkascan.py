@@ -1893,7 +1893,7 @@ class CurrentUserCredit(BaseResource):
             resp.media = {'block_id': 0, 'credit': 0}
         else:
             result_body = result.json()
-            block_id = int(result_body['at']['height']) if 'at' in result_body and 'height' in result_body['at'] else 0
-            credit = int(result_body['value']['credit']) if 'value' in result_body and 'credit' in result_body['value'] else 0
+            block_id = int(result_body['at']['height']) if 'at' in result_body and result_body['at'] and 'height' in result_body['at'] else 0
+            credit = int(result_body['value']['credit']) if 'value' in result_body and result_body['value'] and 'credit' in result_body['value'] else 0
             resp.media = {'block_id': block_id, 'credit': credit}
 
