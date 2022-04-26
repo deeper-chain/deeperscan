@@ -1,10 +1,15 @@
 #!groovy
 
-def slackChannel = '#devops-test'
+def slackChannel = '#deeper-chain-devops'
 def execNode = 'master-runner'
 def upstreamProjects = ''
 def timeStamp = Calendar.getInstance().getTime().format('YYYYMMdd')
-def deployCmd = 'ansible-playbook -i /root/ansible/deeperscan/hosts /root/ansible/deeperscan/playbooks/deploy-dev.yml'
+def deployCmd = 'kubectl set image deployment/deeper-scan -n dev explorer-api=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-api:$TAG \
+harvester-api=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$TAG \
+harvester-worker=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$TAG \
+harvester-beat=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$TAG \
+harvester-monitor=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$TAG \
+explorer-gui=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-gui:dev-$TAG '
 if (env.BRANCH_NAME == "master") {
     deployCmd = ""
 }
