@@ -29,11 +29,14 @@ DB_CONNECTION = os.environ.get("DB_CONNECTION", "mysql+mysqlconnector://{}:{}@{}
     DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 ))
 
-SUBSTRATE_RPC_URL = os.environ.get("SUBSTRATE_RPC_URL", "http://substrate-node:9933/")
-SIDECAR_API_URL = os.environ.get("SIDECAR_API_URL", "https://sidecar.deeper.network")
+SUBSTRATE_RPC_URL = os.environ.get(
+    "SUBSTRATE_RPC_URL", "http://substrate-node:9933/")
+SIDECAR_API_URL = os.environ.get(
+    "SIDECAR_API_URL", "https://sidecar.deeper.network")
 SUBSTRATE_ADDRESS_TYPE = int(os.environ.get("SUBSTRATE_ADDRESS_TYPE", 42))
 SUBSTRATE_TOKEN_DECIMALS = int(os.environ.get("SUBSTRATE_TOKEN_DECIMALS", 18))
-SUBSTRATE_METADATA_VERSION = int(os.environ.get("SUBSTRATE_METADATA_VERSION", 8))
+SUBSTRATE_METADATA_VERSION = int(
+    os.environ.get("SUBSTRATE_METADATA_VERSION", 8))
 
 TYPE_REGISTRY = os.environ.get("TYPE_REGISTRY", "default")
 
@@ -97,8 +100,10 @@ SEARCH_INDEX_DEEPERNODE_IMONLINE = 42
 SEARCH_INDEX_CREDIT_UPDATESUCCESS = 43
 SEARCH_INDEX_SIGNED_EXTRINSIC = 99
 
-SUBSTRATE_STORAGE_BALANCE = os.environ.get("SUBSTRATE_STORAGE_BALANCE", "FreeBalance")
-USE_NODE_RETRIEVE_BALANCES = os.environ.get("USE_NODE_RETRIEVE_BALANCES", "False")
+SUBSTRATE_STORAGE_BALANCE = os.environ.get(
+    "SUBSTRATE_STORAGE_BALANCE", "FreeBalance")
+USE_NODE_RETRIEVE_BALANCES = os.environ.get(
+    "USE_NODE_RETRIEVE_BALANCES", "False")
 
 try:
     from app.local_settings import *
