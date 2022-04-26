@@ -4,12 +4,7 @@ def slackChannel = '#deeper-chain-devops'
 def execNode = 'master-runner'
 def upstreamProjects = ''
 def timeStamp = Calendar.getInstance().getTime().format('YYYYMMdd')
-def deployCmd ="kubectl set image deployment/deeper-scan -n dev explorer-api=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-api:$timeStamp \
-harvester-api=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$timeStamp \
-harvester-worker=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$timeStamp \
-harvester-beat=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$timeStamp \
-harvester-monitor=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-harvester:$timeStamp \
-explorer-gui=561108432312.dkr.ecr.ap-southeast-1.amazonaws.com/deeperscan/pre-explorer-gui:dev-$timeStamp"
+def deployCmd ='ansible-playbook -i /root/ansible/deeperscan/hosts /root/ansible/deeperscan/playbooks/deploy-dev.yml'
 if (env.BRANCH_NAME == "master") {
     deployCmd = ""
 }
