@@ -1,6 +1,6 @@
 #!groovy
 
-def slackChannel = '#deeper-chain-devops'
+def slackChannel = '#devops-test'
 def execNode = 'master-runner'
 def upstreamProjects = ''
 def timeStamp = Calendar.getInstance().getTime().format('YYYYMMdd')
