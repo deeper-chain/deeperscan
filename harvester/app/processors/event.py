@@ -956,6 +956,7 @@ class DelegatorRewardEventProcessor(EventProcessor):
             account_id=get_account_id_from_attr(self.event.attributes[0]),
             sorting_value=self.event.attributes[1]
         )
+        
         search_index.save(db_session)
 
 class ClaimPaymentEventProcessor(EventProcessor):
