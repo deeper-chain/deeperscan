@@ -30,7 +30,7 @@ from app import settings
 from sqlalchemy import func, distinct
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.models.harvester import Status
-from app.processors import NewSessionEventProcessor, Log, SlashEventProcessor, BalancesTransferProcessor
+from app.processors import NewSessionEventProcessor, Log, BalancesTransferProcessor
 from scalecodec.base import ScaleBytes, ScaleDecoder, RuntimeConfiguration
 from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
 from scalecodec.types import Extrinsic as ExtrinsicsDecoder

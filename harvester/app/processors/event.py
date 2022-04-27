@@ -588,9 +588,9 @@ class NewSessionEventProcessor(EventProcessor):
             pass
 
 def get_account_id_from_attr(maybe_account):
-    if type(maybe_account) == str:
+    if type(maybe_account) == str and len(maybe_account) == 66:
         return maybe_account.replace('0x', '')
-    elif 'value' in maybe_account and type(maybe_account['value']) == str:
+    elif maybe_account and 'value' in maybe_account and type(maybe_account['value']) == str and len(maybe_account['value']) == 66:
         return maybe_account['value'].replace('0x', '')
     else:
         raise ValueError('invalid account id: {}'.format(maybe_account))
@@ -628,7 +628,7 @@ class NewAccountEventProcessor(EventProcessor):
     def process_search_index(self, db_session):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_CREATED,
-            account_id=get_account_id_from_attr(self.event.attributes[0])
+            account_id=get_account_id_from_attr(self.event.attributes)
         )
 
         search_index.save(db_session)
@@ -640,24 +640,17 @@ class SystemNewAccountEventProcessor(EventProcessor):
     event_id = 'NewAccount'
 
     def accumulation_hook(self, db_session):
-
-        # Check event requirements
-        if len(self.event.attributes) == 66 and \
-                type(self.event.attributes) is str:
-
-            account_id = self.event.attributes.replace('0x', '')
-
-            self.block._accounts_new.append(account_id)
-
-            account_audit = AccountAudit(
-                account_id=account_id,
-                block_id=self.event.block_id,
-                extrinsic_idx=self.event.extrinsic_idx,
-                event_idx=self.event.event_idx,
-                type_id=ACCOUNT_AUDIT_TYPE_NEW
-            )
-
-            account_audit.save(db_session)
+        # for single value events, attributes is a string
+        account_id = get_account_id_from_attr(self.event.attributes)
+        self.block._accounts_new.append(account_id)
+        account_audit = AccountAudit(
+            account_id=account_id,
+            block_id=self.event.block_id,
+            extrinsic_idx=self.event.extrinsic_idx,
+            event_idx=self.event.event_idx,
+            type_id=ACCOUNT_AUDIT_TYPE_NEW
+        )
+        account_audit.save(db_session)
 
     def accumulation_revert(self, db_session):
         for item in AccountAudit.query(db_session).filter_by(block_id=self.block.id):
@@ -666,12 +659,13 @@ class SystemNewAccountEventProcessor(EventProcessor):
     def process_search_index(self, db_session):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_CREATED,
-            account_id=get_account_id_from_attr(self.event.attributes[0])
+            account_id=get_account_id_from_attr(self.event.attributes)
         )
 
         search_index.save(db_session)
 
 
+# This module should be removed, no such event
 class ReapedAccount(EventProcessor):
     module_id = 'Balances'
     event_id = 'ReapedAccount'
@@ -738,7 +732,7 @@ class KilledAccount(EventProcessor):
     event_id = 'KilledAccount'
 
     def accumulation_hook(self, db_session):
-        account_id = get_account_id_from_attr(self.event.attributes[0])
+        account_id = get_account_id_from_attr(self.event.attributes) # single value event
         self.block._accounts_reaped.append(account_id)
 
         account_audit = AccountAudit(
@@ -759,87 +753,10 @@ class KilledAccount(EventProcessor):
     def process_search_index(self, db_session):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_KILLED,
-            account_id=get_account_id_from_attr(self.event.attributes[0]),
+            account_id=get_account_id_from_attr(self.event.attributes),
         )
 
         search_index.save(db_session)
-
-
-class NewAccountIndexEventProcessor(EventProcessor):
-
-    module_id = 'Indices'
-    event_id = 'NewAccountIndex'
-
-    def accumulation_hook(self, db_session):
-
-        account_id = get_account_id_from_attr(self.event.attributes[0])
-        id = self.event.attributes[1]['value']
-
-        account_index_audit = AccountIndexAudit(
-            account_index_id=id,
-            account_id=account_id,
-            block_id=self.event.block_id,
-            extrinsic_idx=self.event.extrinsic_idx,
-            event_idx=self.event.event_idx,
-            type_id=ACCOUNT_INDEX_AUDIT_TYPE_NEW
-        )
-
-        account_index_audit.save(db_session)
-
-    def accumulation_revert(self, db_session):
-        for item in AccountIndexAudit.query(db_session).filter_by(block_id=self.block.id):
-            db_session.delete(item)
-
-
-class IndexAssignedEventProcessor(EventProcessor):
-
-    module_id = 'Indices'
-    event_id = 'IndexAssigned'
-
-    def accumulation_hook(self, db_session):
-
-        account_id = get_account_id_from_attr(self.event.attributes[0])
-        id = self.event.attributes[1]['value']
-
-        account_index_audit = AccountIndexAudit(
-            account_index_id=id,
-            account_id=account_id,
-            block_id=self.event.block_id,
-            extrinsic_idx=self.event.extrinsic_idx,
-            event_idx=self.event.event_idx,
-            type_id=ACCOUNT_INDEX_AUDIT_TYPE_NEW
-        )
-
-        account_index_audit.save(db_session)
-
-    def accumulation_revert(self, db_session):
-        for item in AccountIndexAudit.query(db_session).filter_by(block_id=self.block.id):
-            db_session.delete(item)
-
-
-class IndexFreedEventProcessor(EventProcessor):
-
-    module_id = 'Indices'
-    event_id = 'IndexFreed'
-
-    def accumulation_hook(self, db_session):
-
-        account_index = self.event.attributes[0]['value']
-
-        new_account_index_audit = AccountIndexAudit(
-            account_index_id=account_index,
-            account_id=None,
-            block_id=self.event.block_id,
-            extrinsic_idx=self.event.extrinsic_idx,
-            event_idx=self.event.event_idx,
-            type_id=ACCOUNT_INDEX_AUDIT_TYPE_REAPED
-        )
-
-        new_account_index_audit.save(db_session)
-
-    def accumulation_revert(self, db_session):
-        for item in AccountIndexAudit.query(db_session).filter_by(block_id=self.block.id):
-            db_session.delete(item)
 
 
 class ProposedEventProcessor(EventProcessor):
@@ -928,22 +845,6 @@ class CodeStoredEventProcessor(EventProcessor):
     def accumulation_revert(self, db_session):
         for item in Contract.query(db_session).filter_by(created_at_block=self.block.id):
             db_session.delete(item)
-
-
-class SlashEventProcessor(EventProcessor):
-
-    module_id = 'Staking'
-    event_id = 'Slash'
-
-    def process_search_index(self, db_session):
-
-        search_index = self.add_search_index(
-            index_type_id=SEARCH_INDEX_SLASHED_ACCOUNT,
-            account_id=get_account_id_from_attr(self.event.attributes[0]),
-            sorting_value=self.event.attributes[1]['value']
-        )
-
-        search_index.save(db_session)
 
 
 class DelegatorRewardEventProcessor(EventProcessor):
@@ -1059,7 +960,7 @@ class IdentitySetEventProcessor(EventProcessor):
     event_id = 'IdentitySet'
 
     def accumulation_hook(self, db_session):
-        account_id=get_account_id_from_attr(self.event.attributes[0])
+        account_id=get_account_id_from_attr(self.event.attributes)
         identity_audit = IdentityAudit(
             account_id=account_id,
             block_id=self.event.block_id,
@@ -1095,7 +996,7 @@ class IdentitySetEventProcessor(EventProcessor):
     def process_search_index(self, db_session):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_IDENTITY_SET,
-            account_id=get_account_id_from_attr(self.event.attributes[0])
+            account_id=get_account_id_from_attr(self.event.attributes)
         )
 
         search_index.save(db_session)
@@ -1299,20 +1200,7 @@ class CouncilMemberKicked(EventProcessor):
     def process_search_index(self, db_session):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_KICKED,
-            account_id=get_account_id_from_attr(self.event.attributes[0])
-        )
-        search_index.save(db_session)
-
-
-class CouncilMemberRenounced(EventProcessor):
-
-    module_id = 'electionsphragmen'
-    event_id = 'MemberRenounced'
-
-    def process_search_index(self, db_session):
-        search_index = self.add_search_index(
-            index_type_id=settings.SEARCH_INDEX_COUNCIL_CANDIDACY_RENOUNCED,
-            account_id=get_account_id_from_attr(self.event.attributes[0])
+            account_id=get_account_id_from_attr(self.event.attributes)
         )
         search_index.save(db_session)
 
@@ -1430,19 +1318,6 @@ class StakingDelegated(EventProcessor):
             sorting_value=None #self.event.attributes[1]['value'][0]
         )
 
-        search_index.save(db_session)
-
-
-class ClaimsClaimed(EventProcessor):
-    module_id = 'claims'
-    event_id = 'Claimed'
-
-    def process_search_index(self, db_session):
-        search_index = self.add_search_index(
-            index_type_id=settings.SEARCH_INDEX_CLAIMS_CLAIMED,
-            account_id=get_account_id_from_attr(self.event.attributes[0]),
-            sorting_value=self.event.attributes[2]['value']
-        )
         search_index.save(db_session)
 
 
