@@ -511,7 +511,6 @@ class BalanceTransferListResource(JSONAPIListResource):
             elif item.attributes[0] and 'value' in item.attributes[0] and type(item.attributes[0]['value']) == str:
                 sender_id = item.attributes[0]['value'].replace('0x', '')
             sender = Account.query(self.session).get(sender_id)
-
             if sender:
                 sender_data = sender.serialize()
             else:
@@ -530,7 +529,6 @@ class BalanceTransferListResource(JSONAPIListResource):
             elif item.attributes[1] and 'value' in item.attributes[1] and type(item.attributes[1]['value']) == str:
                 destination_id = item.attributes[1]['value'].replace('0x', '')
             destination = Account.query(self.session).get(destination_id)
-
             if destination:
                 destination_data = destination.serialize()
             else:
