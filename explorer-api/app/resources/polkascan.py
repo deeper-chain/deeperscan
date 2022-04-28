@@ -528,7 +528,7 @@ class BalanceTransferListResource(JSONAPIListResource):
             if type(item.attributes[1]) == str:
                 destination_id = item.attributes[1].replace('0x', '')
             elif item.attributes[1] and 'value' in item.attributes[1] and type(item.attributes[1]['value']) == str:
-                destination_id = item.attributes[0]['value'].replace('0x', '')
+                destination_id = item.attributes[1]['value'].replace('0x', '')
             destination = Account.query(self.session).get(destination_id)
 
             if destination:
