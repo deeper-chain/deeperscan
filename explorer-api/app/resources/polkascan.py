@@ -504,51 +504,44 @@ class BalanceTransferListResource(JSONAPIListResource):
         return query
 
     def serialize_item(self, item):
-
         if item.event_id == 'Transfer':
-            try:
-                sender = Account.query(self.session).get(item.attributes[0].replace('0x', ''))
-            except:
-                sender = Account.query(self.session).get(item.attributes[0]['value'].replace('0x', ''))
+            sender_id = 'unknown'
+            if type(item.attributes[0]) == str:
+                sender_id = item.attributes[0].replace('0x', '')
+            elif item.attributes[0] and 'value' in item.attributes[0] and type(item.attributes[0]['value']) == str:
+                sender_id = item.attributes[0]['value'].replace('0x', '')
+            sender = Account.query(self.session).get(sender_id)
 
             if sender:
                 sender_data = sender.serialize()
             else:
                 sender_data = {
                     'type': 'account',
-                    'id': item.attributes[0].replace('0x', ''),
+                    'id': sender_id,
                     'attributes': {
-                        'id': item.attributes[0].replace('0x', ''),
-                        'address': ss58_encode(item.attributes[0].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                        'id': sender_id,
+                        'address': ss58_encode(sender_id, settings.SUBSTRATE_ADDRESS_TYPE)
                     }
                 }
 
-            try:
-                destination = Account.query(self.session).get(item.attributes[1]['value'].replace('0x', ''))
-            except:
-                destination = Account.query(self.session).get(item.attributes[1].replace('0x', ''))
+            destination_id = 'unknown'
+            if type(item.attributes[1]) == str:
+                destination_id = item.attributes[1].replace('0x', '')
+            elif item.attributes[1] and 'value' in item.attributes[1] and type(item.attributes[1]['value']) == str:
+                destination_id = item.attributes[0]['value'].replace('0x', '')
+            destination = Account.query(self.session).get(destination_id)
 
             if destination:
                 destination_data = destination.serialize()
             else:
-                try:
-                    destination_data = {
-                        'type': 'account',
-                        'id': item.attributes[1]['value'].replace('0x', ''),
-                        'attributes': {
-                            'id': item.attributes[1]['value'].replace('0x', ''),
-                            'address': ss58_encode(item.attributes[1]['value'].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
-                        }
+                destination_data = {
+                    'type': 'account',
+                    'id': destination_id,
+                    'attributes': {
+                        'id': destination_id,
+                        'address': ss58_encode(destination_id, settings.SUBSTRATE_ADDRESS_TYPE)
                     }
-                except:
-                    destination_data = {
-                        'type': 'account',
-                        'id': item.attributes[1].replace('0x', ''),
-                        'attributes': {
-                            'id': item.attributes[1].replace('0x', ''),
-                            'address': ss58_encode(item.attributes[1].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
-                        }
-                    }
+                }
 
             # Some networks don't have fees
             if len(item.attributes) == 4:
@@ -561,25 +554,17 @@ class BalanceTransferListResource(JSONAPIListResource):
             except:
                 value = item.attributes[2]
 
-        elif item.event_id == 'Claimed':
-
-            fee = 0
-            sender_data = {'name': 'Claim', 'eth_address': item.attributes[1]['value']}
-            destination_data = {}
-            value = item.attributes[2]['value']
-
         elif item.event_id == 'Deposit':
 
             fee = 0
             sender_data = {'name': 'Deposit'}
             destination_data = {}
-            value = item.attributes[1]['value']
+            value = 0
+            if type(item.attributes[1]) == int:
+                value = item.attributes[1]
+            elif item.attributes[1] and 'value' in item.attributes[1] and type(item.attributes[1]['value']) == int:
+                value = item.attributes[1]['value']
 
-        elif item.event_id == 'Reward':
-            fee = 0
-            sender_data = {'name': 'Staking reward'}
-            destination_data = {}
-            value = item.attributes[1]['value']
         else:
             sender_data = {}
             fee = 0
