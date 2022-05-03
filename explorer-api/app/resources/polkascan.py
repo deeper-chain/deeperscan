@@ -494,7 +494,7 @@ class BalanceTransferListResource(JSONAPIListResource):
                     settings.SEARCH_INDEX_BALANCETRANSFER
                 ]),
                 SearchIndex.account_id == account_id
-            ).order_by(SearchIndex.sorting_value.desc())
+            ).order_by(SearchIndex.block_id.desc()).limit(1000) # to avoid too many results
 
             query = Event.query(self.session).filter(tuple_(Event.block_id, Event.event_idx).in_(
                 [[s.block_id, s.event_idx] for s in search_index]
