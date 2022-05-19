@@ -376,6 +376,8 @@ class EventDetailResource(JSONAPIDetailResource):
 
     def serialize_item(self, item):
         data = item.serialize()
+        if 'attributes' in data and 'attributes' in data['attributes'] and not isinstance(data['attributes']['attributes'], list) and not isinstance(data['attributes']['attributes'], dict):
+            data['attributes']['attributes'] = [data['attributes']['attributes']]
 
         runtime_event = RuntimeEvent.query(self.session).filter_by(
             module_id=item.module_id,
