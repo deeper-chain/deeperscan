@@ -378,6 +378,9 @@ class EventDetailResource(JSONAPIDetailResource):
         data = item.serialize()
         if 'attributes' in data and 'attributes' in data['attributes'] and not isinstance(data['attributes']['attributes'], list) and not isinstance(data['attributes']['attributes'], dict):
             data['attributes']['attributes'] = [data['attributes']['attributes']]
+        for idx, attr in enumerate(data['attributes']['attributes']):
+            if type(attr) == str and len(attr) == 66 and attr.startswith('0x'):
+                data['attributes']['attributes'][idx] = ss58_encode(attr.replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
 
         runtime_event = RuntimeEvent.query(self.session).filter_by(
             module_id=item.module_id,
