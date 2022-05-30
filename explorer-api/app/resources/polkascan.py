@@ -1885,3 +1885,18 @@ class CurrentUserCredit(BaseResource):
             credit = int(result_body['value']['credit']) if 'value' in result_body and result_body['value'] and 'credit' in result_body['value'] else 0
             resp.media = {'block_id': block_id, 'credit': credit}
 
+class CurrentUserReleaseTime(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr')
+        req_url = "{}/pallets/operation/storage/accountsReleaseInfo?key1={}".format(settings.SIDECAR_API_URL, addr)
+        result = requests.get(req_url)
+        if result.status_code != 200:
+            resp.media = {'block_id': 0, 'release_time': ''}
+        else:
+            result_body = result.json()
+            block_id = int(result_body['at']['height']) if 'at' in result_body and result_body['at'] and 'height' in result_body['at'] else 0
+            release_time = ''
+            if result_body['value'] != None:
+                release_time = datetime.fromtimestamp(int(result_body['value']['basicInfo']['startReleaseMoment']) / 1000).isoformat()
+            resp.media = {'block_id': block_id, 'release_time': release_time}
+

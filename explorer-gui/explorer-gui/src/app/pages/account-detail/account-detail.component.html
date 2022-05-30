@@ -132,6 +132,10 @@
                                 <td width="20%">{{ 'AccountDetail.Reward Count' | translate }}</td>
                                 <td>{{ rewardCount }}</td>
                               </tr>
+                              <tr>
+                                <td width="20%">{{ 'AccountDetail.Release Time' | translate }}</td>
+                                <td>{{ currentUserReleaseTime ? (currentUserReleaseTime | date:'yyyy-MM-dd HH:mm:ss') : 'None' }}</td>
+                              </tr>
                               <tr *ngIf="account.getCurrentRoles().length > 0">
                                 <td>{{ 'AccountDetail.Current Roles' | translate }}</td>
                                 <td>

@@ -122,6 +122,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   private staking: boolean = false;
   private rewardCount: number = 0;
   private currentUserCredit: number = 0;
+  private currentUserReleaseTime: string = '';
 
   constructor(
     private balanceTransferService: BalanceTransferService,
@@ -370,6 +371,15 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
         console.error('Error:', error);
       });
 
+    fetch(environment.jsonApiRootUrl+'/deeper/current_user_release_time?addr='+this.accountId)
+      .then(response => response.json())
+      .then(data => {
+        // format time with tz
+        this.currentUserReleaseTime = data.release_time;
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   }
 
   selectModule(module) {
