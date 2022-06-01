@@ -1466,7 +1466,8 @@ class TransactionResource(BaseResource):
 event_map = {
     'staking_delegatorreward': settings.SEARCH_INDEX_STAKING_REWARD,
     'micropayment_claimpayment': settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
-    'balances_transfer': settings.SEARCH_INDEX_BALANCETRANSFER
+    'balances_transfer': settings.SEARCH_INDEX_BALANCETRANSFER,
+    'operation_releasereward': settings.SEARCH_INDEX_RELEASE_REWARD,
 }
 
 class TransactionResource2(BaseResource):
@@ -1589,6 +1590,12 @@ class TransactionResource2(BaseResource):
                         _from = json_data[0]
                         _to = json_data[1]
                         amount = json_data[2]
+
+                elif index_type_id == settings.SEARCH_INDEX_RELEASE_REWARD:
+                    json_data = json.loads(row[4])
+                    _from = None
+                    _to = json_data[0]
+                    amount = json_data[1]
                 else:
                     continue
 
