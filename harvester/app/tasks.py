@@ -112,14 +112,12 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
     add_count = 0
 
     try:
-        print('accumulate_block_recursive start, block_hash: {}, {}, {}'.format(block_hash, start, end))
+
         for nr in range(0, 10):
             if not block or block.id > 0:
                 # Process block
-                print('accumulate_block_recursive starting, block_hash: {}, {}, {}'.format(block_hash, start, end))
                 block = harvester.add_block(block_hash)
                 self.session.commit()
-                print('accumulate_block_recursive started, block_hash: {}, {}, {}, {}'.format(block_hash, start, end, block.id))
 
                 add_count += 1
                 print('+ Added {} {}'.format(block_hash, block.id))
@@ -146,7 +144,6 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
     #     print('. Skipped duplicate {} '.format(block_hash))
     except Exception as exc:
         print('! ERROR adding {}'.format(block_hash))
-        print(exc)
         raise HarvesterCouldNotAddBlock(block_hash) from exc
 
     return {
@@ -226,7 +223,7 @@ def start_harvester(self, check_gaps=False):
     block_sets = []
     if check_gaps:
         # Check for gaps between already harvested blocks and try to fill them first
-        remaining_sets_result = Block.get_missing_block_ids(self.session)
+        remaining_sets_result = BlockMissing.get_missing_block_ids(self.session)
 
         c = 0
         for block_set in remaining_sets_result:
@@ -240,7 +237,6 @@ def start_harvester(self, check_gaps=False):
             start_block_hash = substrate.get_block_hash(block_to)
 
             # Start processing task
-            print('start_harvester: end: {} start: {}, from: {}, to: {}'.format(end_block_hash, start_block_hash, block_from, block_to))
             accumulate_block_recursive.delay(start_block_hash, end_block_hash, block_from, block_to)
 
             block_sets.append({
