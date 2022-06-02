@@ -762,6 +762,8 @@ class PolkascanHarvesterService(BaseService):
                 try:
                     extrinsic = extrinsics[event.extrinsic_idx]
                 except IndexError:
+                    if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                        print('debug9 4439553')
                     extrinsic = None
 
             for processor_class in ProcessorRegistry().get_event_processors(event.module_id, event.event_id):
@@ -775,6 +777,8 @@ class PolkascanHarvesterService(BaseService):
             try:
                 event.save(self.db_session)
             except IntegrityError:
+                if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                    print('debug8 4439553')
                 self.db_session.rollback()
 
         # Process block processors
@@ -782,15 +786,21 @@ class PolkascanHarvesterService(BaseService):
             block_processor = processor_class(block, substrate=self.substrate, harvester=self)
             block_processor.accumulation_hook(self.db_session)
 
+        if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+            print('debug5 4439553')
         # Debug info
         if settings.DEBUG:
             block.debug_info = json_block
 
         # ==== Save data block ==================================
+        if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+            print('debug6 4439553')
         if not exist_block:
             try:
                 block.save(self.db_session)
             except IntegrityError:
+                if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                    print('debug7 4439553')
                 self.db_session.rollback()
 
         return block
