@@ -1351,11 +1351,11 @@ class OperationReleaseReward(EventProcessor):
     event_id = 'ReleaseReward'
 
     def process_search_index(self, db_session):
-        print('process OperationReleaseReward')
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_RELEASE_REWARD,
             account_id=get_account_id_from_attr(self.event.attributes[0]),
             sorting_value=self.event.attributes[1]
         )
+        print('process OperationReleaseReward')
 
         search_index.save(db_session)
