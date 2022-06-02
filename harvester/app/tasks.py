@@ -233,10 +233,11 @@ def start_harvester(self, check_gaps=False):
                 block_to = block_from + 200
 
             # Get start and end block hash
-            end_block_hash = substrate.get_block_hash(block_from)
-            start_block_hash = substrate.get_block_hash(block_to)
+            end_block_hash = substrate.get_block_hash(block_to)
+            start_block_hash = substrate.get_block_hash(block_from)
 
             # Start processing task
+            print('start_harvester {}, {}, {}, {}'.format(start_block_hash, end_block_hash, block_from, block_to))
             accumulate_block_recursive.delay(start_block_hash, end_block_hash, block_from, block_to)
 
             block_sets.append({
