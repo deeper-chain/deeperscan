@@ -780,7 +780,11 @@ class PolkascanHarvesterService(BaseService):
             if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
                 print('debug4.2 4439553')
             event.block_datetime = block.datetime
+            if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                print('debug4.23 4439553')
             try:
+                if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                    print('debug4.21 4439553')
                 event.save(self.db_session)
             except IntegrityError:
                 if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
