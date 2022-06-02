@@ -773,6 +773,8 @@ class PolkascanHarvesterService(BaseService):
                 event_processor.accumulation_hook(self.db_session)
                 event_processor.process_search_index(self.db_session)
 
+            if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                print('debug4.2 4439553')
             event.block_datetime = block.datetime
             try:
                 event.save(self.db_session)
@@ -782,6 +784,8 @@ class PolkascanHarvesterService(BaseService):
                 self.db_session.rollback()
 
         # Process block processors
+        if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+            print('debug4.1 4439553')
         for processor_class in ProcessorRegistry().get_block_processors():
             block_processor = processor_class(block, substrate=self.substrate, harvester=self)
             block_processor.accumulation_hook(self.db_session)
