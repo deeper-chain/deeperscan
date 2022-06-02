@@ -507,6 +507,8 @@ class PolkascanHarvesterService(BaseService):
                 hash=block_hash,
                 parent_hash=parent_hash).first()
 
+        if block_hash = '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+            print('debug1 4439553')
         if exist_block:
             block = exist_block
         else:
@@ -550,6 +552,8 @@ class PolkascanHarvesterService(BaseService):
         extrinsic_success_idx = {}
         events = []
 
+        if block_hash = '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+            print('debug2 4439553')
         try:
             # TODO implemented solution in substrate interface for runtime transition blocks
             # Events are decoded against runtime of parent block
@@ -617,6 +621,8 @@ class PolkascanHarvesterService(BaseService):
             block.count_events = len(events_decoder)
 
         except SubstrateRequestException:
+            if block_hash = '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                print('debug3 4439553')
             block.count_events = 0
         #except ValueError:
         #    if block_id in [974059, 971763, 1022086, 1024652]:
@@ -746,6 +752,8 @@ class PolkascanHarvesterService(BaseService):
                 except IntegrityError:
                     self.db_session.rollback()
 
+        if block_hash = '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+            print('debug4 4439553')
         # Process event processors
         for event in events:
             extrinsic = None
