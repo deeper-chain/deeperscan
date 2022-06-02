@@ -782,7 +782,13 @@ class PolkascanHarvesterService(BaseService):
                 if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
                     print('debug8 4439553')
                 self.db_session.rollback()
+            except Exception as e:
+                if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                    print('debug4.4 4439553')
+                print(e)
 
+        if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+            print('debug4.3 4439553')
         # Process block processors
         if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
             print('debug4.1 4439553')
