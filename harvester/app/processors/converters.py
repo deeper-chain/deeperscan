@@ -463,6 +463,7 @@ class PolkascanHarvesterService(BaseService):
 
     def add_block(self, block_hash):
 
+        print('add_block {}'.format(block_hash))
         # Check if block is already process
         if Block.query(self.db_session).filter_by(hash=block_hash).count() > 0:
             raise BlockAlreadyAdded(block_hash)

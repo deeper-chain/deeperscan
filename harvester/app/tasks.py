@@ -146,6 +146,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
     #     print('. Skipped duplicate {} '.format(block_hash))
     except Exception as exc:
         print('! ERROR adding {}'.format(block_hash))
+        print(exc)
         raise HarvesterCouldNotAddBlock(block_hash) from exc
 
     return {
