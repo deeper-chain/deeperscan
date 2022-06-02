@@ -765,6 +765,10 @@ class PolkascanHarvesterService(BaseService):
                     if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
                         print('debug9 4439553')
                     extrinsic = None
+                except Exception as e:
+                    if block_hash == '0xf1068271a9e61aa13362555091ffb192e1118b63c861dbe8656b5fa36ee321d8':
+                        print('debug9.1 4439553')
+                    print(e)
 
             for processor_class in ProcessorRegistry().get_event_processors(event.module_id, event.event_id):
                 event_processor = processor_class(block, event, extrinsic,
