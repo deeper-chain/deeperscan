@@ -116,8 +116,10 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
         for nr in range(0, 10):
             if not block or block.id > 0:
                 # Process block
+                print('accumulate_block_recursive starting, block_hash: {}, {}, {}'.format(block_hash, start, end))
                 block = harvester.add_block(block_hash)
                 self.session.commit()
+                print('accumulate_block_recursive started, block_hash: {}, {}, {}, {}'.format(block_hash, start, end, block.id))
 
                 add_count += 1
                 print('+ Added {} {}'.format(block_hash, block.id))
