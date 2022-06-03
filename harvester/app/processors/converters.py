@@ -1304,14 +1304,3 @@ class PolkascanHarvesterService(BaseService):
 
 
         print("DEEPER--->>> deeper_test finished")
-
-
-
-
-
-
-
-
-
-
-
