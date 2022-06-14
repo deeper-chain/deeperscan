@@ -17,7 +17,7 @@
   <div *ngSwitchCase="'Balance'">{{ formatBalance(item.value) | number:'1.0-15'}} {{ networkTokenSymbol }}</div>
   <div *ngSwitchCase="'Compact<Balance>'">{{ formatBalance(item.value) | number:'1.0-15'}} {{ networkTokenSymbol }}</div>
   <div *ngSwitchCase="'Compact<BalanceOf>'">{{ formatBalance(item.value) | number:'1.0-15'}} {{ networkTokenSymbol }}</div>
-  <div *ngSwitchCase="'Compact<Moment>'">{{ item.value | date:'medium' }}</div>
+  <div *ngSwitchCase="'Compact<Moment>'">{{ item.value | date:'full' }}</div>
   <div *ngSwitchCase="'Bytes'"><markdown [data]="item.value"></markdown></div>
   <div *ngSwitchCase="'DownloadableBytesHash'"><a routerLink="{{ networkURLPrefix }}/extrinsic-param/download/{{ item.value }}">Download binary</a></div>
   <div *ngSwitchCase="'bool'">
