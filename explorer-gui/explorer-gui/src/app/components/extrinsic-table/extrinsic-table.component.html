@@ -24,7 +24,7 @@
                         </tr>
                         <tr *ngIf="context != 'block' && extrinsic.attributes.datetime">
                           <td width="15%">{{ 'extrinsic-table.Timestamp' | translate }}</td>
-                          <td>{{ extrinsic.attributes.datetime | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                          <td>{{ extrinsic.attributes.datetime | date:'yyyy-MM-dd HH:mm:ss':'UTC+0' }}</td>
                         </tr>
                         <tr>
                           <td width="15%">{{ title || 'Extrinsic'}} {{ 'extrinsic-table.Index' | translate }}</td>

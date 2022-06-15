@@ -38,7 +38,7 @@
                                   <td [ngSwitch]="runtimeConstant.attributes.type">
                                   <div *ngSwitchCase="'Address'"><a routerLink="{{ networkURLPrefix }}/account/{{ runtimeConstant.attributes.value }}" class="address-mobile-format"><app-identicon [accountId]="runtimeConstant.attributes.value"></app-identicon>{{ runtimeConstant.attributes.value }}</a></div>
                                   <div *ngSwitchCase="'Balance'">{{ formatBalance(runtimeConstant.attributes.value) | number:'1.0-15'}} {{ networkTokenSymbol }}</div>
-                                  <div *ngSwitchCase="'Moment'">{{ runtimeConstant.attributes.value | date:'medium' }}</div>
+                                  <div *ngSwitchCase="'Moment'">{{ runtimeConstant.attributes.value | date:'yyyy-MM-dd HH:mm:ss':'UTC+0' }}</div>
                                   <div *ngSwitchDefault><pre>{{ runtimeConstant.attributes.value | json }}</pre></div>
                                 </td>
                               </tr>

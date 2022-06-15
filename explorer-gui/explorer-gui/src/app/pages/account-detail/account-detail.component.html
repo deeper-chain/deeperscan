@@ -134,7 +134,7 @@
                               </tr>
                               <tr>
                                 <td width="20%">{{ 'AccountDetail.Release Time' | translate }}</td>
-                                <td>{{ currentUserReleaseTime ? (currentUserReleaseTime | date:'yyyy-MM-dd HH:mm:ss') : 'None' }}</td>
+                                <td>{{ currentUserReleaseTime ? (currentUserReleaseTime | date:'yyyy-MM-dd HH:mm:ss':'UTC+0') : 'None' }}</td>
                               </tr>
                               <tr *ngIf="account.getCurrentRoles().length > 0">
                                 <td>{{ 'AccountDetail.Current Roles' | translate }}</td>
@@ -367,7 +367,7 @@
                               <tr *ngFor="let extrinsic of extrinsics.data; trackBy: extrinsics.trackBy">
                                   <td><a routerLink="{{ networkURLPrefix }}/transaction/{{ extrinsic.attributes.extrinsic_hash ? '0x' + extrinsic.attributes.extrinsic_hash : extrinsic.id }}">{{ extrinsic.id }}</a></td>
                                   <td class="is-hidden-mobile"><a routerLink="{{ networkURLPrefix }}/block/{{ extrinsic.attributes.block_id }}">{{ extrinsic.attributes.block_id }}</a></td>
-                                  <td>{{ extrinsic.attributes.block_datetime | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                                  <td>{{ extrinsic.attributes.block_datetime | date:'yyyy-MM-dd HH:mm:ss':'UTC+0' }}</td>
                                   <td>{{ extrinsic.attributes.module_id }}</td>
                                   <td>{{ extrinsic.attributes.call_id }}</td>
                                   <td class="is-hidden-mobile">
@@ -778,7 +778,7 @@
                           </thead>
                           <tbody>
                               <tr *ngFor="let block of authoredBlocks.data; trackBy: authoredBlocks.trackBy">
-                                  <td class="is-hidden-mobile">{{ block.attributes.parent_datetime | date:'yyyy-MM-d h:mm:ss' }}</td>
+                                  <td class="is-hidden-mobile">{{ block.attributes.parent_datetime | date:'yyyy-MM-dd HH:mm:ss':'UTC+0' }}</td>
                                   <td><a routerLink="{{ networkURLPrefix }}/block/{{ block.id }}">{{ block.id }}</a></td>
                                   <td><a routerLink="{{ networkURLPrefix }}/session/session/{{ block.attributes.session_id }}">{{ block.attributes.session_id }}</a></td>
                                   <td width="5%"><a class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/block/{{ block.id }}">{{ 'AccountDetail.Details' | translate }}</a></td>
@@ -803,7 +803,7 @@
                       <tbody>
                           <tr *ngFor="let creditUpdate of creditUpdates.data">
                             <td class="is-hidden-mobile"><a [routerLink]="[networkURLPrefix, 'block', creditUpdate.attributes.block_id]">{{ creditUpdate.attributes.block_id }}</a></td>
-                            <td>{{ creditUpdate.attributes.block_datetime | date:'yyyy-MM-dd HH:mm:ss' }} </td>
+                            <td>{{ creditUpdate.attributes.block_datetime | date:'yyyy-MM-dd HH:mm:ss':'UTC+0' }} </td>
                             <td *ngIf="creditUpdate.attributes.attributes[1].value">{{ creditUpdate.attributes.attributes[1].value }} </td>
                             <td *ngIf="!creditUpdate.attributes.attributes[1].value">{{ creditUpdate.attributes.attributes[1] }} </td>
                             <td width="5%"><a class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/event/{{ creditUpdate.id }}">Details</a></td>
