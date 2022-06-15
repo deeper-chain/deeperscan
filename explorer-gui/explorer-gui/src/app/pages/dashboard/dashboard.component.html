@@ -132,7 +132,7 @@
                   <tr *ngFor="let block of blocks.data; trackBy: blocks.trackBy">
 <!--                    <td width="5%"><i class="fa fa-cube" style="color: #4891ED;"></i></td>-->
                     <td width="10%"><a style="color: #4891ED;" routerLink="{{ networkURLPrefix }}/block/{{ block.id }}">{{ block.id }}</a></td>
-                    <td class="is-hidden-mobile"><span *ngIf="block.attributes.datetime" rel="tooltip" title="{{ block.attributes.datetime | date:'full' }}">{{ block.attributes.datetime | timeago }}</span></td>
+                    <td class="is-hidden-mobile"><span *ngIf="block.attributes.datetime" rel="tooltip" title="{{ block.attributes.datetime | date:'yyyy-MM-dd HH:mm:ss':'UTC+0' }}">{{ block.attributes.datetime | timeago }}</span></td>
                     <td>{{ block.attributes.count_extrinsics_signed }}</td>
                     <td>{{ block.attributes.count_events_module }}</td>
                     <td width="5%"><a style="background-color: #4891ED;" class="button is-small is-primary" routerLink="{{ networkURLPrefix }}/block/{{ block.id }}">{{ 'DashBoard.Details' | translate }}</a></td>

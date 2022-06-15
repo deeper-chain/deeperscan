@@ -36,7 +36,7 @@
                       <tbody>
                           <tr>
                               <td width="15%">{{ 'Block-Detail.Timestamp' | translate }}</td>
-                              <td>{{ block.attributes.datetime | date:'full' }}</td>
+                              <td>{{ block.attributes.datetime | date:'yyyy-MM-dd HH:mm:ss':'UTC+0' }}</td>
                           </tr>
                           <tr>
                               <td width="15%">{{ 'Block-Detail.Hash' | translate }}</td>
