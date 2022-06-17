@@ -1876,21 +1876,44 @@ class StakingDelegateCount(BaseResource):
 
         result = self.session.execute(sql, params)
         row = result.fetchone()
-        resp.media = {'count': row[0]}
+        staking_status = 'None'
+        user_credit = get_user_credit(addr)
+        if user_credit:
+            campaign_id = user_credit['campaign_id']
+            if campaign_id == 0 or campaign_id == 1:
+                staking_status = 'Genesis'
+            elif campaign_id == 2:
+                staking_status = 'Basic Mining 1.0'
+            elif campaign_id == 3 or campaign_id == 4:
+                staking_status = 'Basic Mining 2.0'
+        resp.media = {'count': row[0], 'staking_status': staking_status}
 
+def get_user_credit(addr):
+    req_url = "{}/pallets/credit/storage/UserCredit?key1={}".format(settings.SIDECAR_API_URL, addr)
+    result = requests.get(req_url)
+    if result.status_code != 200:
+        return None
+    else:
+        result_body = result.json()
+        if not 'value' in result_body or not result_body['value']:
+            return None
+        block_id = int(result_body['at']['height']) if 'at' in result_body and result_body['at'] and 'height' in result_body['at'] else 0
+        credit = int(result_body['value']['credit']) if 'value' in result_body and result_body['value'] and 'credit' in result_body['value'] else 0
+        campaign_id = int(result_body['value']['campaignId']) if 'value' in result_body and result_body['value'] and 'campaignId' in result_body['value'] else 0
+        return {
+            'block_id': block_id,
+            'credit': credit,
+            'campaign_id': campaign_id
+        }
 
 class CurrentUserCredit(BaseResource):
     def on_get(self, req, resp, **kwargs):
         addr = req.get_param('addr')
-        req_url = "{}/pallets/credit/storage/UserCredit?key1={}".format(settings.SIDECAR_API_URL, addr)
-        result = requests.get(req_url)
-        if result.status_code != 200:
+        user_credit = get_user_credit(addr)
+        if not user_credit:
             resp.media = {'block_id': 0, 'credit': 0}
         else:
-            result_body = result.json()
-            block_id = int(result_body['at']['height']) if 'at' in result_body and result_body['at'] and 'height' in result_body['at'] else 0
-            credit = int(result_body['value']['credit']) if 'value' in result_body and result_body['value'] and 'credit' in result_body['value'] else 0
-            resp.media = {'block_id': block_id, 'credit': credit}
+            resp.media = {'block_id': user_credit['block_id'], 'credit': user_credit['credit']}
 
 class CurrentUserReleaseTime(BaseResource):
     def on_get(self, req, resp, **kwargs):
