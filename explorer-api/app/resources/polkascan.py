@@ -1907,3 +1907,12 @@ class CurrentUserReleaseTime(BaseResource):
                 release_time = datetime.fromtimestamp(int(result_body['value']['basicInfo']['startReleaseMoment']) / 1000).isoformat()
             resp.media = {'block_id': block_id, 'release_time': release_time}
 
+class OracleResource(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        sql = 'select value, updated_at from dpr_ezc_oracles order by id desc limit 1';
+        result = self.session.execute(sql)
+        row = result.fetchone()
+        if row:
+            resp.media = {'oracle': int(row[0]), 'updated_at': row[1].isoformat()}
+        else:
+            resp.media = {'oracle': 0, 'updated_at': ''}
