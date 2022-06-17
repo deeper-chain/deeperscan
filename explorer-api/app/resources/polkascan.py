@@ -1882,9 +1882,9 @@ class StakingDelegateCount(BaseResource):
             campaign_id = user_credit['campaign_id']
             if campaign_id == 0 or campaign_id == 1:
                 staking_status = 'Genesis'
-            elif campaign_id == 2:
+            elif campaign_id == 2 or campaign_id == 3:
                 staking_status = 'Basic Mining 1.0'
-            elif campaign_id == 3 or campaign_id == 4:
+            elif campaign_id == 4:
                 staking_status = 'Basic Mining 2.0'
         resp.media = {'count': row[0], 'staking_status': staking_status}
 
