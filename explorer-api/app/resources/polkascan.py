@@ -298,19 +298,19 @@ class ExtrinsicDetailResource(JSONAPIDetailResource):
 
             # Retrieve runtime error
             if extrinsic_failed_event:
-                if 'Module' in extrinsic_failed_event.attributes[0]['value']:
+                if 'Module' in extrinsic_failed_event.attributes[0]:
 
                     error = RuntimeErrorMessage.query(self.session).filter_by(
-                        module_index=extrinsic_failed_event.attributes[0]['value']['Module']['index'],
-                        index=extrinsic_failed_event.attributes[0]['value']['Module']['error'],
+                        module_index=extrinsic_failed_event.attributes[0]['Module']['index'],
+                        index=extrinsic_failed_event.attributes[0]['Module']['error'],
                         spec_version=item.spec_version_id
                     ).first()
 
                     if error:
                         data['attributes']['error_message'] = error.documentation
-                elif 'BadOrigin' in extrinsic_failed_event.attributes[0]['value']:
+                elif 'BadOrigin' in extrinsic_failed_event.attributes[0]:
                     data['attributes']['error_message'] = 'Bad origin'
-                elif 'CannotLookup' in extrinsic_failed_event.attributes[0]['value']:
+                elif 'CannotLookup' in extrinsic_failed_event.attributes[0]:
                     data['attributes']['error_message'] = 'Cannot lookup'
 
         return data
