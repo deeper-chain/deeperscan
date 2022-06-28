@@ -121,6 +121,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   private ss58: SS58 = null;
   private staking: boolean = false;
   private rewardCount: number = 0;
+  private stakingStatus: string = '';
   private currentUserCredit: number = 0;
   private currentUserReleaseTime: string = '';
 
@@ -354,8 +355,8 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     fetch(environment.jsonApiRootUrl+'/deeper/staking_delegate_count?addr='+this.accountId)
       .then(response => response.json())
       .then(data => {
-        // console.log('Success:', data);
         this.rewardCount = data.count;
+        this.stakingStatus = data.staking_status;
       })
       .catch((error) => {
         console.error('Error:', error);
