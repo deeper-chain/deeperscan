@@ -1468,6 +1468,7 @@ event_map = {
     'micropayment_claimpayment': settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT,
     'balances_transfer': settings.SEARCH_INDEX_BALANCETRANSFER,
     'operation_releasereward': settings.SEARCH_INDEX_RELEASE_REWARD,
+    'uniques_transferred': settings.SEARCH_INDEX_UNIQUES_TRANSFERRED,
 }
 
 class TransactionResource2(BaseResource):
@@ -1596,6 +1597,12 @@ class TransactionResource2(BaseResource):
                     _from = None
                     _to = json_data[0]
                     amount = json_data[1]
+
+                elif index_type_id == settings.SEARCH_INDEX_UNIQUES_TRANSFERRED:
+                    json_data = json.loads(row[4])
+                    _from = json_data[2]
+                    _to = json_data[3]
+                    amount = '{},{}'.format(json_data[0], json_data[1]) # class, instance
                 else:
                     continue
 

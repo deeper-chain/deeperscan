@@ -1356,6 +1356,24 @@ class OperationReleaseReward(EventProcessor):
             account_id=get_account_id_from_attr(self.event.attributes[0]),
             sorting_value=self.event.attributes[1]
         )
-        print('process OperationReleaseReward')
 
+        search_index.save(db_session)
+
+class UniquesTransferred(EventProcessor):
+    module_id = 'uniques'
+    event_id = 'Transferred'
+
+    def process_search_index(self, db_session):
+        # can search by from or to address, order by class
+        search_index = self.add_search_index(
+            index_type_id=settings.SEARCH_INDEX_UNIQUES_TRANSFERRED,
+            account_id=get_account_id_from_attr(self.event.attributes[2]), # from address
+            sorting_value=self.event.attributes[0]
+        )
+
+        search_index = self.add_search_index(
+            index_type_id=settings.SEARCH_INDEX_UNIQUES_TRANSFERRED,
+            account_id=get_account_id_from_attr(self.event.attributes[3]), # to address
+            sorting_value=self.event.attributes[0]
+        )
         search_index.save(db_session)
