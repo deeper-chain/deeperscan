@@ -1883,7 +1883,7 @@ class StakingDelegateCount(BaseResource):
 
         result = self.session.execute(sql, params)
         row = result.fetchone()
-        staking_status = 'None'
+        staking_status = 'None' # 0: genesis gold, 1: genesis silver, 2: basic 1.0, 3: DPRB mining, 4: basic 2.0
         user_credit = get_user_credit(addr)
         if user_credit:
             campaign_id = user_credit['campaign_id']
