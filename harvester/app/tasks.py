@@ -214,6 +214,7 @@ def start_sequencer(self):
 
 @capp.task(base=BaseTask, bind=True)
 def start_harvester(self, check_gaps=False):
+
     substrate = SubstrateInterface(
         url=SUBSTRATE_RPC_URL,
         type_registry_preset=app.settings.TYPE_REGISTRY,
@@ -221,31 +222,24 @@ def start_harvester(self, check_gaps=False):
     )
 
     block_sets = []
+
     if check_gaps:
         # Check for gaps between already harvested blocks and try to fill them first
-        remaining_sets_result = BlockMissing.get_missing_block_ids(self.session)
+        remaining_sets_result = Block.get_missing_block_ids(self.session)
 
-        c = 0
         for block_set in remaining_sets_result:
-            block_from = int(block_set['block_from'])
-            block_to = int(block_set['block_to'])
-            if block_from + 200 < block_to:
-                block_to = block_from + 200
 
             # Get start and end block hash
-            end_block_hash = substrate.get_block_hash(block_from)
-            start_block_hash = substrate.get_block_hash(block_to)
+            end_block_hash = substrate.get_block_hash(int(block_set['block_from']))
+            start_block_hash = substrate.get_block_hash(int(block_set['block_to']))
 
             # Start processing task
-            accumulate_block_recursive.delay(start_block_hash, end_block_hash, block_from, block_to)
+            accumulate_block_recursive.delay(start_block_hash, end_block_hash)
 
             block_sets.append({
                 'start_block_hash': start_block_hash,
                 'end_block_hash': end_block_hash
             })
-            c += 1
-            if c == 10:
-                break
 
     # Start sequencer
     sequencer_task = start_sequencer.delay()
@@ -264,10 +258,6 @@ def start_harvester(self, check_gaps=False):
         'start_block_hash': start_block_hash,
         'end_block_hash': end_block_hash
     })
-
-    if DEEPER_DEBUG:
-        print('DEEPER--->>>  substrate.close')
-    substrate.close()
 
     return {
         'result': 'Harvester job started',
