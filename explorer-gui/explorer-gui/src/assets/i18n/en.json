@@ -100,6 +100,7 @@
 		"Type": "Type",
 		"Unbonded": "Unbonded",
 		"View next": "View next",
+		"View prev": "View prev",
 		"Voted on": "Voted on",
 		"Voted on {number} candidates locking {deposit} {currency}": "Voted on {number} candidates locking {deposit} {currency}",
 		"Web": "Web",

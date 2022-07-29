@@ -345,6 +345,7 @@
                       </table>
                   </div>
                   <footer class="card-footer" *ngIf="balanceTransfers?.data.length == 25">
+                      <a *ngIf="balanceTransfersPage > 1" class="card-footer-item" routerLink="." [queryParams]="{ balanceTransfersPage: balanceTransfersPage - 1}" [fragment]="currentTab">{{ 'AccountDetail.View prev' | translate }}</a>
                       <a class="card-footer-item" routerLink="." [queryParams]="{ balanceTransfersPage: balanceTransfersPage + 1}" [fragment]="currentTab">{{ 'AccountDetail.View next' | translate }}</a>
                   </footer>
               </div>
