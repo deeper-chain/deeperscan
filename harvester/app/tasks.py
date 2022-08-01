@@ -76,7 +76,8 @@ class BaseTask(celery.Task):
 
 
 @capp.task(base=BaseTask, bind=True)
-def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None, end=None):
+def accumulate_block_recursive(self, block_hash, end_block_hash=None):
+    print('accumulate_block_recursive: start: {}, end: {}'.format(block_hash, end_block_hash))
 
     harvester = PolkascanHarvesterService(
         db_session=self.session,
@@ -122,9 +123,6 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
                 add_count += 1
                 print('+ Added {} {}'.format(block_hash, block.id))
 
-                BlockMissing.extend_missing_range(self.session, block.id)
-                BlockMissing.fill_missing_range(self.session, block.id, block.id)
-
                 # Break loop if targeted end block hash is reached
                 if block_hash == end_block_hash or block.id == 0:
                     break
@@ -136,7 +134,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
         self.metadata_store = harvester.metadata_store
 
         if block_hash != end_block_hash and block and block.id > 0:
-            accumulate_block_recursive.delay(block.parent_hash, end_block_hash, block.id-1)
+            accumulate_block_recursive.delay(block.parent_hash, end_block_hash)
 
     except BlockAlreadyAdded as e:
         print('. Skipped {} '.format(block_hash))
@@ -157,7 +155,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None, start=None
 def start_sequencer(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
 
-    # print('start_sequencer')
+    print('start_sequencer task')
     if sequencer_task.value:
         task_result = AsyncResult(sequencer_task.value)
         try:
@@ -178,6 +176,7 @@ def start_sequencer(self):
             type_registry_file=TYPE_REGISTRY_FILE
         )
         try:
+            print('start_sequencer outer')
             result = harvester.start_sequencer()
         except BlockIntegrityError as e:
             result = {'result': str(e)}

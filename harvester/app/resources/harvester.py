@@ -56,7 +56,7 @@ class PolkascanBlockHarvesterResource(BaseResource):
         start_block_hash = substrate.get_block_hash(block_to)
 
         # Start processing task
-        task = accumulate_block_recursive.delay(start_block_hash, end_block_hash, block_from, block_to)
+        task = accumulate_block_recursive.delay(start_block_hash, end_block_hash)
 
         resp.status = falcon.HTTP_201
 

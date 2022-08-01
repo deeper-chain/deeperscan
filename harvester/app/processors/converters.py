@@ -1000,6 +1000,7 @@ class PolkascanHarvesterService(BaseService):
 
     def start_sequencer(self):
         self.integrity_checks()
+        print('start_sequencer after integrity_checks')
         self.db_session.commit()
 
         block_nr = None
