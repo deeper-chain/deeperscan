@@ -41,6 +41,7 @@ from scalecodec.types import LogDigest
 class LogBlockProcessor(BlockProcessor):
 
     def accumulation_hook(self, db_session):
+        print("DEEPER--->>> LogBlockProcessor accumulation_hook")
 
         self.block.count_log = len(self.block.logs)
 
@@ -83,8 +84,7 @@ class LogBlockProcessor(BlockProcessor):
 class BlockTotalProcessor(BlockProcessor):
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> BlockTotalProcessor sequencing_hook")
+        print("DEEPER--->>> BlockTotalProcessor sequencing_hook")
 
         if not parent_sequenced_block_data:
             parent_sequenced_block_data = {}
@@ -156,6 +156,7 @@ class BlockTotalProcessor(BlockProcessor):
 class AccountBlockProcessor(BlockProcessor):
 
     def accumulation_hook(self, db_session):
+        print("DEEPER--->>> AccountBlockProcessor accumulation_hook")
         self.block.count_accounts_new += len(set(self.block._accounts_new))
         self.block.count_accounts_reaped += len(set(self.block._accounts_reaped))
 
@@ -275,9 +276,7 @@ class AccountIndexBlockProcessor(BlockProcessor):
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
 
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> AccountIndexBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
-
+        print("DEEPER--->>> AccountIndexBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
         for account_index_audit in AccountIndexAudit.query(db_session).filter_by(
                 block_id=self.block.id
         ).order_by('event_idx'):

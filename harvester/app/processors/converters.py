@@ -44,7 +44,7 @@ from substrateinterface.utils.hasher import xxh128
 from app.models.data import Extrinsic, Block, Event, Runtime, RuntimeModule, RuntimeCall, RuntimeCallParam, \
     RuntimeEvent, RuntimeEventAttribute, RuntimeType, RuntimeStorage, BlockTotal, RuntimeConstant, AccountAudit, \
     AccountIndexAudit, ReorgBlock, ReorgExtrinsic, ReorgEvent, ReorgLog, RuntimeErrorMessage, Account, \
-    AccountInfoSnapshot, SearchIndex, BlockMissing
+    AccountInfoSnapshot, SearchIndex
 
 
 if settings.DEBUG:
@@ -826,8 +826,7 @@ class PolkascanHarvesterService(BaseService):
             id=block.id
         )
 
-        #if settings.DEEPER_DEBUG:
-        #    print("DEEPER--->>> sequence_block block.id={}, parent_block_data={}, parent_sequenced_block_data={}".format(block.id, parent_block_data, parent_sequenced_block_data))
+        print("DEEPER--->>> sequence_block block.id={}, parent_block_data={}, parent_sequenced_block_data={}".format(block.id, parent_block_data, parent_sequenced_block_data))
 
         # Process block processors
         for processor_class in ProcessorRegistry().get_block_processors():
@@ -891,19 +890,12 @@ class PolkascanHarvesterService(BaseService):
             finalized_block_hash = substrate.get_chain_finalised_head()
             finalized_block_number = substrate.get_block_number(finalized_block_hash)
 
-
         # 2. Check integrity head
         integrity_head = Status.get_status(self.db_session, 'INTEGRITY_HEAD')
-
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> integrity_checks finalized_block_hash={}, finalized_block_number={}, integrity_head.value={}".format(finalized_block_hash,finalized_block_number,integrity_head.value))
 
         if not integrity_head.value:
             # Only continue if block #1 exists
             if Block.query(self.db_session).filter_by(id=1).count() == 0:
-                if settings.DEEPER_DEBUG:
-                    print('DEEPER--->>>  integrity_checks substrate.close 1')
-                substrate.close()
                 raise BlockIntegrityError('Chain not at genesis')
 
             integrity_head.value = 0
@@ -911,36 +903,34 @@ class PolkascanHarvesterService(BaseService):
             integrity_head.value = int(integrity_head.value)
 
         start_block_id = max(integrity_head.value - 1, 0)
-        end_block_id = min(finalized_block_number, start_block_id + 10000)
-        chunk_size = 100
+        end_block_id = finalized_block_number
+        chunk_size = 1000
         parent_block = None
-        integrity_head_hash = substrate.get_block_hash(integrity_head.value)
 
+        print('start_sequencer integrity_checks start: {}, end: {}'.format(start_block_id, end_block_id))
         if start_block_id < end_block_id:
             # Continue integrity check
 
-            # print('== Start integrity checks from {} to {} =='.format(start_block_id, end_block_id))
+            print('== Start integrity_checks from {} to {} =='.format(start_block_id, end_block_id))
 
             for block_nr in range(start_block_id, end_block_id, chunk_size):
                 # TODO replace limit with filter_by block range
-                block_range = Block.query(self.db_session).order_by('id')[block_nr:block_nr + chunk_size]
+                block_range = Block.query(self.db_session).order_by(Block.id.asc()).filter(Block.id >= block_nr).limit(chunk_size).all()
+                print('integrity_checks in outer for loop block_nr: {}, l: {}'.format(block_nr, len(block_range)))
                 for block in block_range:
+                    print('integrity_checks for1 block {}'.format(block.id))
                     if parent_block:
                         if block.id != parent_block.id + 1:
+                            print('integrity_checks if1 left {}, right {}'.format(block.id, parent_block.id + 1))
 
                             # Save integrity head if block hash of parent matches with hash in node
-                            if parent_block.hash == integrity_head_hash:
+                            if parent_block.hash == substrate.get_block_hash(integrity_head.value):
                                 integrity_head.save(self.db_session)
                                 self.db_session.commit()
 
-                            if settings.DEEPER_DEBUG:
-                                print('DEEPER--->>>  integrity_checks substrate.close 2')
-                            substrate.close()
-                            # raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
-                            print('Block #{} is missing.. stopping check and continue'.format(parent_block.id + 1))
-                            BlockMissing.add_missing_range(self.db_session, parent_block.id + 1, block.id - 1)
-                            return
+                            raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
                         elif block.parent_hash != parent_block.hash:
+                            print('integrity_checks if2 left {}, right {}'.format(block.parent_hash, parent_block.hash))
 
                             self.process_reorg_block(parent_block)
                             self.process_reorg_block(block)
@@ -957,50 +947,35 @@ class PolkascanHarvesterService(BaseService):
 
                             # Save integrity head if block hash of parent matches with hash in node
                             #if parent_block.parent_hash == substrate.get_block_hash(integrity_head.value):
+                            print('integrity_checks before save 1')
                             integrity_head.save(self.db_session)
                             self.db_session.commit()
 
-                            if settings.DEEPER_DEBUG:
-                                print('DEEPER--->>> integrity_checks substrate.close 3')
-                            substrate.close()
-                            # raise BlockIntegrityError('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
-                            print('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
-                            return
+                            raise BlockIntegrityError('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
                         else:
+                            print('integrity_checks if3 {}'.format(block.id))
                             integrity_head.value = block.id
 
                     parent_block = block
-                    BlockMissing.fill_missing_range(self.db_session, block.id, block.id)
+
                     if block.id == end_block_id:
+                        print('integrity_checks if4 {}'.format(block.id))
                         break
 
+            print('integrity_checks after outer for loop')
             if parent_block:
-                # try:
-                if parent_block.hash == integrity_head_hash:
+                print('integrity_checks if parent_block')
+                if parent_block.hash == substrate.get_block_hash(int(integrity_head.value)):
+                    print('integrity_checks if parent_block equals {}'.format(parent_block.hash))
                     integrity_head.save(self.db_session)
                     self.db_session.commit()
-                # except BrokenPipeError:
-                #     print('DEEPER--->>> integrity_checks substrate closed')
-                #     substrate = SubstrateInterface(
-                #         url=settings.SUBSTRATE_RPC_URL,
-                #         runtime_config=RuntimeConfiguration(),
-                #         type_registry_preset=settings.TYPE_REGISTRY
-                #     )
-                #     self.substrate.connect_websocket()
-
-                #     if parent_block.hash == substrate.get_block_hash(int(integrity_head.value)):
-                #         integrity_head.save(self.db_session)
-                #         self.db_session.commit()
-
-            if settings.DEEPER_DEBUG:
-                print('DEEPER--->>> integrity_checks substrate.close 4')
-            substrate.close()
 
         return {'integrity_head': integrity_head.value}
 
     def start_sequencer(self):
+        print('start_sequencer before integrity_checks')
         self.integrity_checks()
-        print('start_sequencer after integrity_checks')
+        print('start_sequencer after integrity_checks after')
         self.db_session.commit()
 
         block_nr = None
@@ -1021,8 +996,7 @@ class PolkascanHarvesterService(BaseService):
         sequencer_parent_block = BlockTotal.query(self.db_session).filter_by(id=sequencer_head).first()
         parent_block = Block.query(self.db_session).filter_by(id=sequencer_head).first()
 
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> start_sequencer sequencer_head={},  sequencer_parent_block={}, parent_block={}".format(sequencer_head, sequencer_parent_block, parent_block))
+        print("DEEPER--->>> start_sequencer sequencer_head={},  sequencer_parent_block={}, parent_block={}".format(sequencer_head, sequencer_parent_block, parent_block))
 
         for block_nr in range(sequencer_head + 1, int(integrity_head.value) + 1):
 
@@ -1064,7 +1038,6 @@ class PolkascanHarvesterService(BaseService):
 
             sequenced_block = self.sequence_block(block, parent_block_data, sequencer_parent_block_data)
             self.db_session.commit()
-            BlockMissing.fill_missing_range(self.db_session, block.id, block.id)
             parent_block = block
             sequencer_parent_block = sequenced_block
 
