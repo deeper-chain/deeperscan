@@ -123,7 +123,7 @@ class PolkascanHarvesterQueueResource(BaseResource):
             }
         else:
 
-            remaining_sets_result = BlockMissing.get_missing_block_ids(self.session)
+            remaining_sets_result = Block.get_missing_block_ids(self.session)
 
             resp.status = falcon.HTTP_200
 
@@ -305,6 +305,7 @@ class StartSequenceBlockResource(BaseResource):
 
     def on_post(self, req, resp):
 
+        self.session.commit() # not commit would read old value
         sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
 
         if sequencer_task.value is None:

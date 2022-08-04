@@ -32,7 +32,7 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql import func
 
-from app.models.data import BlockMissing, Extrinsic, Block, BlockTotal, Account, AccountInfoSnapshot, SearchIndex
+from app.models.data import Block, Account, AccountInfoSnapshot, SearchIndex
 from app.models.harvester import Status
 from app.processors.converters import PolkascanHarvesterService, HarvesterCouldNotAddBlock, BlockAlreadyAdded, \
     BlockIntegrityError
@@ -114,7 +114,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
 
     try:
 
-        for nr in range(0, 10):
+        for nr in range(0, 100):
             if not block or block.id > 0:
                 # Process block
                 block = harvester.add_block(block_hash)
@@ -155,19 +155,23 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
 def start_sequencer(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
 
-    print('start_sequencer task')
+    print('start_sequencer task {}'.format(sequencer_task.value))
     if sequencer_task.value:
         task_result = AsyncResult(sequencer_task.value)
         try:
             task_ready = task_result.ready()
         except TypeError:
+            print('start_sequencer TypeError')
             task_ready = True
         if not task_result or task_ready:
+            print('start_sequencer task_ready')
             sequencer_task.value = None
             sequencer_task.save(self.session)
+            self.session.commit()
 
     if sequencer_task.value is None:
         sequencer_task.value = self.request.id
+        print('start_sequencer none to value: {}'.format(self.request.id))
         sequencer_task.save(self.session)
 
         harvester = PolkascanHarvesterService(
@@ -181,6 +185,7 @@ def start_sequencer(self):
         except BlockIntegrityError as e:
             result = {'result': str(e)}
 
+        print('start_sequencer value to none: {}'.format(sequencer_task.value))
         sequencer_task.value = None
         sequencer_task.save(self.session)
 
@@ -191,6 +196,7 @@ def start_sequencer(self):
 
         return result
     else:
+        print('start_sequencer not none {}'.format(sequencer_task.value))
         return {'result': 'Sequencer already running'}
 
 
