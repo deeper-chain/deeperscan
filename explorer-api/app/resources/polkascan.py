@@ -1981,3 +1981,37 @@ class OracleResource(BaseResource):
             resp.media = {'oracle': int(row[0]), 'updated_at': row[1].isoformat()}
         else:
             resp.media = {'oracle': 0, 'updated_at': ''}
+
+# {
+#     "id": 0,
+#     "jsonrpc": "2.0",
+#     "method": "eth_call",
+#     "params": [
+#         {
+#             "data": "0x82295d9b0000000000000000000000007a5b2024e179b312b924ff02f4c27b5df5326601",
+#             "to": "0xbca8f0ed708176383806b76cf98822c9e9fbd033"
+#         },
+#         "latest"
+#     ]
+# }
+class NpowResource(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr') # evm address
+        if len(addr) != 42 or not addr.startswith('0x'): # ensure evm address
+            resp.media = {'error': 'addr should starts with 0x and has length 42'}
+            resp.status = falcon.HTTP_400
+            return
+        payload = {
+            'id': 0,
+            'jsonrpc': '2.0',
+            'method': 'eth_call',
+            'params': [{'data': '0x82295d9b000000000000000000000000{}'.format(addr[2:]), 'to': settings.EVM_DEP_ADDRESS}, 'latest'],
+        }
+        res = requests.post(settings.EVM_RPC_URL, json=payload)
+        res_body = json.loads(res.text)
+        day = int(res_body['result'], base=16)
+        sql = 'select sum(ezc) from dpr_ezc_rewards where eth_addr=:eth_addr and day >= :day';
+        sum_result = self.session.execute(sql, {'eth_addr': addr, 'day': day})
+        sum_row = sum_result.fetchone()
+
+        resp.media = {'addr': addr, 'ezc': int(sum_row[0])}
