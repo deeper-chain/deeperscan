@@ -1922,6 +1922,41 @@ class CurrentUserCredit(BaseResource):
         else:
             resp.media = {'block_id': user_credit['block_id'], 'credit': user_credit['credit']}
 
+def get_user_account(addr):
+    req_url = "{}/pallets/system/storage/Account?key1={}".format(settings.SIDECAR_API_URL, addr)
+    result = requests.get(req_url)
+    if result.status_code != 200:
+        return None
+    else:
+        result_body = result.json()
+        if not 'value' in result_body or not result_body['value']:
+            return None
+        block_id = int(result_body['at']['height']) if 'at' in result_body and result_body['at'] and 'height' in result_body['at'] else 0
+        nonce = int(result_body['value']['nonce']) if 'value' in result_body and result_body['value'] and 'nonce' in result_body['value'] else 0
+        try:
+            free = int(result_body['value']['data']['free'])
+            reserved = int(result_body['value']['data']['reserved'])
+        except KeyError:
+            print('get_user_account no balance info {}'.format(result_body['value']))
+            free = 0
+            reserved = 0
+
+        return {
+            'block_id': block_id,
+            'nonce': nonce,
+            'free': free,
+            'reserved': reserved,
+        }
+
+class CurrentUserAccount(BaseResource):
+    def on_get(self, req, resp, **kwargs):
+        addr = req.get_param('addr')
+        user_account = get_user_account(addr)
+        if not user_account:
+            resp.media = {'block_id': 0, 'account': {'nonce': 0, 'free': 0, 'reserved': 0}}
+        else:
+            resp.media = {'block_id': user_account['block_id'], 'account': user_account}
+
 class CurrentUserReleaseTime(BaseResource):
     def on_get(self, req, resp, **kwargs):
         addr = req.get_param('addr')

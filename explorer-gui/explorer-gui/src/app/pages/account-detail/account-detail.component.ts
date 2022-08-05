@@ -46,6 +46,11 @@ import {SS58} from '../../classes/ss58.class';
 import {blake2b} from 'blakejs';
 import {environment} from "../../../environments/environment";
 
+interface IUserAccount {
+    nonce: number;
+    free: number;
+    reserved: number;
+}
 
 @Component({
   selector: 'app-account-detail',
@@ -123,6 +128,7 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
   private rewardCount: number = 0;
   private stakingStatus: string = '';
   private currentUserCredit: number = 0;
+  private currentUserAccount: IUserAccount = {nonce: 0, free:0, reserved: 0};
   private currentUserReleaseTime: string = '';
 
   constructor(
@@ -367,6 +373,16 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
       .then(data => {
         // console.log('Success:', data);
         this.currentUserCredit = data.credit;
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+
+    fetch(environment.jsonApiRootUrl+'/deeper/current_user_account?addr='+this.accountId)
+      .then(response => response.json())
+      .then(data => {
+        // console.log('Success:', data);
+        this.currentUserAccount = data.account;
       })
       .catch((error) => {
         console.error('Error:', error);

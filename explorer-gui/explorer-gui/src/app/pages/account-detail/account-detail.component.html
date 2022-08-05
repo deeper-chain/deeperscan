@@ -35,25 +35,17 @@
                   <div class="content">
                       <table class="table is-fullwidth is-striped">
                           <tbody>
-                              <tr *ngIf="account.attributes.free_balance">
-                                <td>{{ 'AccountDetail.Free Balance' | translate }}</td>
-                                <td>{{ formatBalance(account.attributes.free_balance) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
-                              </tr>
-                              <tr *ngIf="account.attributes.reserved_balance">
-                                <td>{{ 'AccountDetail.Reserved Balance' | translate }}</td>
-                                <td>{{ formatBalance(account.attributes.reserved_balance) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
-                              </tr>
-                              <tr *ngIf="account.attributes.balance_total">
+                              <tr *ngIf="currentUserAccount.free">
                                 <td>{{ 'AccountDetail.Total Balance' | translate }}</td>
-                                <td>{{ formatBalance(account.attributes.balance_total) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
+                                <td>{{ formatBalance(currentUserAccount.free + currentUserAccount.reserved) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
                               </tr>
-                              <tr *ngIf="account.attributes.balance_free">
+                              <tr *ngIf="currentUserAccount.free">
                                 <td>{{ 'AccountDetail.Free Balance' | translate }}</td>
-                                <td>{{ formatBalance(account.attributes.balance_free) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
+                                <td>{{ formatBalance(currentUserAccount.free) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
                               </tr>
-                              <tr *ngIf="account.attributes.balance_reserved">
+                              <tr *ngIf="currentUserAccount.reserved">
                                 <td>{{ 'AccountDetail.Reserved Balance' | translate }}</td>
-                                <td>{{ formatBalance(account.attributes.balance_reserved) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
+                                <td>{{ formatBalance(currentUserAccount.reserved) | number:'1.0-15' }} {{ networkTokenSymbol }}</td>
                               </tr>
                               <tr *ngIf="account.attributes.index_address">
                                 <td>{{ 'AccountDetail.Account index' | translate }}</td>
