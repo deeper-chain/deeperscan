@@ -2013,5 +2013,7 @@ class NpowResource(BaseResource):
         sql = 'select sum(ezc) from dpr_ezc_rewards where eth_addr=:eth_addr and day >= :day';
         sum_result = self.session.execute(sql, {'eth_addr': addr, 'day': day})
         sum_row = sum_result.fetchone()
-
-        resp.media = {'addr': addr, 'ezc': int(sum_row[0])}
+        if sum_row[0] == None:
+            resp.media = {'addr': addr, 'ezc': 0}
+        else:
+            resp.media = {'addr': addr, 'ezc': int(sum_row[0])}
