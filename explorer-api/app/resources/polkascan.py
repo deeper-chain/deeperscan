@@ -2001,6 +2001,7 @@ class NpowResource(BaseResource):
             resp.media = {'error': 'addr should starts with 0x and has length 42'}
             resp.status = falcon.HTTP_400
             return
+        # check method prefix online
         payload = {
             'id': 0,
             'jsonrpc': '2.0',
