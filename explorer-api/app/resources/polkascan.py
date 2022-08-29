@@ -2011,10 +2011,7 @@ class NpowResource(BaseResource):
         res = requests.post(settings.EVM_RPC_URL, json=payload)
         res_body = json.loads(res.text)
         day = int(res_body['result'], base=16)
-        sql = 'select sum(ezc) from dpr_ezc_rewards where eth_addr=:eth_addr and day >= :day';
+        sql = 'select COALESCE(sum(ezc), 0), COALESCE(sum(dpr), 0) from dpr_ezc_rewards where eth_addr=:eth_addr and day >= :day';
         sum_result = self.session.execute(sql, {'eth_addr': addr, 'day': day})
         sum_row = sum_result.fetchone()
-        if sum_row[0] == None:
-            resp.media = {'addr': addr, 'ezc': 0}
-        else:
-            resp.media = {'addr': addr, 'ezc': int(sum_row[0])}
+        resp.media = {'addr': addr, 'ezc': int(sum_row[0]), 'dpr': int(sum_row[1])}
