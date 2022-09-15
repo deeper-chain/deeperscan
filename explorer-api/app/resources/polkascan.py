@@ -2028,8 +2028,5 @@ class NpowWithdrawsResource(BaseResource):
         rows = result.fetchall()
         withdraws = []
         for row in rows:
-            withdraws.append({
-                'created_at': row.0, 
-                'dpr': row.1
-            })
+            withdraws.append({'created_at': row[0], 'dpr': row[1]})
         resp.media = {'addr': addr, 'withdraws': withdraws}
