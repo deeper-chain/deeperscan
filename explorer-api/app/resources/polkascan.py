@@ -1469,6 +1469,7 @@ event_map = {
     'balances_transfer': settings.SEARCH_INDEX_BALANCETRANSFER,
     'operation_releasereward': settings.SEARCH_INDEX_RELEASE_REWARD,
     'uniques_transferred': settings.SEARCH_INDEX_UNIQUES_TRANSFERRED,
+    'staking_npowmint': settings.SEARCH_INDEX_NPOW_MINT,
 }
 
 class TransactionResource2(BaseResource):
@@ -1603,6 +1604,11 @@ class TransactionResource2(BaseResource):
                     _from = json_data[2]
                     _to = json_data[3]
                     amount = '{},{}'.format(json_data[0], json_data[1]) # class, instance
+                elif index_type_id == settings.SEARCH_INDEX_NPOW_MINT:
+                    json_data = json.loads(row[4])
+                    _from = None
+                    _to = json_data[0]
+                    amount = json_data[1]
                 else:
                     continue
 
@@ -2015,18 +2021,3 @@ class NpowResource(BaseResource):
         sum_result = self.session.execute(sql, {'eth_addr': addr, 'day': day})
         sum_row = sum_result.fetchone()
         resp.media = {'addr': addr, 'ezc': int(sum_row[0]), 'dpr': int(sum_row[1])}
-
-class NpowWithdrawsResource(BaseResource):
-    def on_get(self, req, resp, **kwargs):
-        addr = req.get_param('addr') # evm address
-        if len(addr) != 42 or not addr.startswith('0x'): # ensure evm address
-            resp.media = {'error': 'addr should starts with 0x and has length 42'}
-            resp.status = falcon.HTTP_400
-            return
-        sql = 'select created_at, dpr from dpr_ezc_npows where eth_addr=:eth_addr and dpr > 0 and dpr != 2147483647';
-        result = self.session.execute(sql, {'eth_addr': addr})
-        rows = result.fetchall()
-        withdraws = []
-        for row in rows:
-            withdraws.append({'created_at': row[0].isoformat(), 'dpr': int(row[1])})
-        resp.media = {'addr': addr, 'withdraws': withdraws}

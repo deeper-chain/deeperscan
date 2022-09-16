@@ -1377,3 +1377,17 @@ class UniquesTransferred(EventProcessor):
             sorting_value=self.event.attributes[0]
         )
         search_index.save(db_session)
+
+class StakingNpowMint(EventProcessor):
+    module_id = 'staking'
+    event_id = 'NpowMint'
+
+    def process_search_index(self, db_session):
+        # can search by from or to address, order by class
+        search_index = self.add_search_index(
+            index_type_id=settings.SEARCH_INDEX_NPOW_MINT,
+            account_id=get_account_id_from_attr(self.event.attributes[0]), # from address
+            sorting_value=self.event.attributes[1]
+        )
+
+        search_index.save(db_session)
