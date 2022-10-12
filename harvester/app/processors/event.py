@@ -28,7 +28,7 @@ from app.models.data import Contract, Session, AccountAudit, \
 from app.processors.base import EventProcessor
 from app.settings import ACCOUNT_AUDIT_TYPE_NEW, ACCOUNT_AUDIT_TYPE_REAPED, ACCOUNT_INDEX_AUDIT_TYPE_NEW, \
     ACCOUNT_INDEX_AUDIT_TYPE_REAPED, LEGACY_SESSION_VALIDATOR_LOOKUP, SEARCH_INDEX_SLASHED_ACCOUNT, \
-    SEARCH_INDEX_BALANCETRANSFER, SEARCH_INDEX_HEARTBEATRECEIVED, SUBSTRATE_METADATA_VERSION, \
+    SEARCH_INDEX_BALANCETRANSFER, SUBSTRATE_METADATA_VERSION, \
     IDENTITY_TYPE_SET, IDENTITY_TYPE_CLEARED, IDENTITY_TYPE_KILLED, \
     IDENTITY_JUDGEMENT_TYPE_GIVEN, SEARCH_INDEX_STAKING_REWARD, SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT
 
@@ -903,21 +903,6 @@ class BalancesDeposit(EventProcessor):
             index_type_id=settings.SEARCH_INDEX_BALANCES_DEPOSIT,
             account_id=get_account_id_from_attr(self.event.attributes[0]),
             sorting_value=self.event.attributes[1]
-        )
-
-        search_index.save(db_session)
-
-
-class HeartbeatReceivedEventProcessor(EventProcessor):
-
-    module_id = 'imonline'
-    event_id = 'HeartbeatReceived'
-
-    def process_search_index(self, db_session):
-        search_index = self.add_search_index(
-            index_type_id=SEARCH_INDEX_HEARTBEATRECEIVED,
-            account_id=get_account_id_from_attr(self.event.attributes[0]),
-            sorting_value=None
         )
 
         search_index.save(db_session)
