@@ -28,7 +28,7 @@ from app.models.data import Contract, Session, AccountAudit, \
 from app.processors.base import EventProcessor
 from app.settings import ACCOUNT_AUDIT_TYPE_NEW, ACCOUNT_AUDIT_TYPE_REAPED, ACCOUNT_INDEX_AUDIT_TYPE_NEW, \
     ACCOUNT_INDEX_AUDIT_TYPE_REAPED, LEGACY_SESSION_VALIDATOR_LOOKUP, SEARCH_INDEX_SLASHED_ACCOUNT, \
-    SEARCH_INDEX_BALANCETRANSFER, SEARCH_INDEX_HEARTBEATRECEIVED, SUBSTRATE_METADATA_VERSION, \
+    SEARCH_INDEX_BALANCETRANSFER, SUBSTRATE_METADATA_VERSION, \
     IDENTITY_TYPE_SET, IDENTITY_TYPE_CLEARED, IDENTITY_TYPE_KILLED, \
     IDENTITY_JUDGEMENT_TYPE_GIVEN, SEARCH_INDEX_STAKING_REWARD, SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT
 
@@ -593,6 +593,7 @@ def get_account_id_from_attr(maybe_account):
     elif maybe_account and 'value' in maybe_account and type(maybe_account['value']) == str and len(maybe_account['value']) == 66:
         return maybe_account['value'].replace('0x', '')
     else:
+        print('maybe_account', maybe_account)
         raise ValueError('invalid account id: {}'.format(maybe_account))
 
 class NewAccountEventProcessor(EventProcessor):
@@ -769,7 +770,7 @@ class ProposedEventProcessor(EventProcessor):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_DEMOCRACY_PROPOSE,
             account_id=self.extrinsic.address,
-            sorting_value=self.extrinsic.params[1]['value']
+            sorting_value=self.extrinsic.params[1]
         )
 
         search_index.save(db_session)
@@ -814,7 +815,7 @@ class TreasuryAwardedEventProcessor(EventProcessor):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_TREASURY_AWARDED,
             account_id=get_account_id_from_attr(self.event.attributes[2]),
-            sorting_value=self.event.attributes[1]['value']
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -830,7 +831,7 @@ class CodeStoredEventProcessor(EventProcessor):
         self.block.count_contracts_new += 1
 
         contract = Contract(
-            code_hash=self.event.attributes[0]['value'].replace('0x', ''),
+            code_hash=self.event.attributes[0].replace('0x', ''),
             created_at_block=self.event.block_id,
             created_at_extrinsic=self.event.extrinsic_idx,
             created_at_event=self.event.event_idx,
@@ -903,21 +904,6 @@ class BalancesDeposit(EventProcessor):
             index_type_id=settings.SEARCH_INDEX_BALANCES_DEPOSIT,
             account_id=get_account_id_from_attr(self.event.attributes[0]),
             sorting_value=self.event.attributes[1]
-        )
-
-        search_index.save(db_session)
-
-
-class HeartbeatReceivedEventProcessor(EventProcessor):
-
-    module_id = 'imonline'
-    event_id = 'HeartbeatReceived'
-
-    def process_search_index(self, db_session):
-        search_index = self.add_search_index(
-            index_type_id=SEARCH_INDEX_HEARTBEATRECEIVED,
-            account_id=get_account_id_from_attr(self.event.attributes[0]),
-            sorting_value=None
         )
 
         search_index.save(db_session)
@@ -1165,7 +1151,7 @@ class CouncilNewTermEventProcessor(EventProcessor):
     def sequencing_hook(self, db_session, parent_block, parent_sequenced_block):
 
         new_member_ids = [
-            member_struct['account'].replace('0x', '') for member_struct in self.event.attributes[0]['value']
+            member_struct['account'].replace('0x', '') for member_struct in self.event.attributes[0]
         ]
 
         Account.query(db_session).filter(
@@ -1182,7 +1168,7 @@ class CouncilNewTermEventProcessor(EventProcessor):
 
     def process_search_index(self, db_session):
 
-        for member_struct in self.event.attributes[0]['value']:
+        for member_struct in self.event.attributes[0]:
             search_index = self.add_search_index(
                 index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_ELECTED,
                 account_id=member_struct['account'].replace('0x', ''),
@@ -1271,7 +1257,7 @@ class StakingBonded(EventProcessor):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_STAKING_BONDED,
             account_id=get_account_id_from_attr(self.event.attributes[0]),
-            sorting_value=self.event.attributes[1]['value']
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -1286,7 +1272,7 @@ class StakingUnbonded(EventProcessor):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_STAKING_UNBONDED,
             account_id=get_account_id_from_attr(self.event.attributes[0]),
-            sorting_value=self.event.attributes[1]['value']
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -1301,7 +1287,7 @@ class StakingWithdrawn(EventProcessor):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_STAKING_WITHDRAWN,
             account_id=get_account_id_from_attr(self.event.attributes[0]),
-            sorting_value=self.event.attributes[1]['value']
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
