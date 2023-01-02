@@ -59,7 +59,11 @@ class DemocracyVoteExtrinsicProcessor(ExtrinsicProcessor):
             # Try to retrieve balance of vote
             if self.extrinsic.params[1]['type'] == 'AccountVote<BalanceOf>':
                 if 'Standard' in self.extrinsic.params[1]['value']:
-                    sorting_value = self.extrinsic.params[1]['value']['Standard']['balance']
+                    try:
+                        sorting_value = self.extrinsic.params[1]['value']['Standard']['balance']
+                    except:
+                        print('DEEPER--->>> tuple indices must be integers or slices, not str')
+                        print(self.extrinsic.params[1]['value']['Standard'])
 
             search_index = self.add_search_index(
                 index_type_id=settings.SEARCH_INDEX_DEMOCRACY_VOTE,
