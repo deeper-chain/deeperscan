@@ -770,7 +770,7 @@ class ProposedEventProcessor(EventProcessor):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_DEMOCRACY_PROPOSE,
             account_id=self.extrinsic.address,
-            sorting_value=self.extrinsic.params[1]
+            sorting_value=self.extrinsic.params[1]['value']
         )
 
         search_index.save(db_session)
@@ -858,7 +858,7 @@ class DelegatorRewardEventProcessor(EventProcessor):
             account_id=get_account_id_from_attr(self.event.attributes[0]),
             sorting_value=self.event.attributes[1]
         )
-        
+
         search_index.save(db_session)
 
 class ClaimPaymentEventProcessor(EventProcessor):
