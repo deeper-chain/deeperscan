@@ -41,25 +41,83 @@ from scalecodec.types import LogDigest
 class LogBlockProcessor(BlockProcessor):
 
     def accumulation_hook(self, db_session):
+        log_digest_cls = self.substrate.runtime_config.get_decoder_class('sp_runtime::generic::digest::DigestItem')
+
+        if log_digest_cls is None:
+            raise NotImplementedError("No decoding class found for 'DigestItem'")
+
         print("DEEPER--->>> LogBlockProcessor accumulation_hook")
 
         self.block.count_log = len(self.block.logs)
 
         for idx, log_data in enumerate(self.block.logs):
-            log_digest = LogDigest(ScaleBytes(log_data))
-            log_digest.decode()
-
             log = Log.query(db_session).filter_by(
                     block_id=self.block.id,
                     log_idx=idx,).first()
 
             if not log:
+                log_digest = log_digest_cls(data=ScaleBytes(log_data))
+                log_digest.decode()
+
+                log_type = log_digest.value_object[0]
+                log_inner_data = {}
+
+                if ('PreRuntime' == log_type or 'Seal' == log_type) and self.substrate.implements_scaleinfo():
+                    engine_id = bytes.fromhex(log_digest.value[log_type][0][2:]).decode('utf-8')
+                    if engine_id == 'aura' and 'PreRuntime' == log_type:
+                        predigest_data = log_digest.value['PreRuntime'][1]
+                        try:
+                            if predigest_data[:2] != '0x':
+                                predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                            else:
+                                predigest_data = ScaleBytes(predigest_data)
+                        except ValueError:
+                            predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                        aura_predigest = self.substrate.runtime_config.create_scale_object(
+                            type_string='RawAuraPreDigest',
+                            data=predigest_data
+                        )
+                        aura_predigest.decode()
+                        slot_number = aura_predigest.value['slot_number']
+                        log_inner_data = {"data": {"slot_number": slot_number}, "engine": "aura"}
+                    elif engine_id == 'aura' and 'Seal' == log_type:
+                        log_inner_data = {"data": log_digest.value['Seal'][1], "engine": "aura"}
+
+                    elif engine_id == 'BABE' and 'PreRuntime' == log_type:
+                        predigest_data = log_digest.value['PreRuntime'][1]
+                        try:
+                            if predigest_data[:2] != '0x':
+                                predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                            else:
+                                predigest_data = ScaleBytes(predigest_data)
+                        except ValueError:
+                            predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                        babe_predigest = self.substrate.runtime_config.create_scale_object(
+                            type_string='RawBabePreDigest',
+                            data=predigest_data
+                        )
+                        babe_predigest.decode()
+                        rank_validator = babe_predigest[1].value['authority_index']
+                        slot_number = babe_predigest[1].value['slot_number']
+                        log_inner_data = {"data": {"slot_number": slot_number, "authority_index": rank_validator},
+                                        "engine": "BABE"}
+                    elif engine_id == 'BABE' and 'Seal' == log_type:
+                        log_inner_data = {"data": log_digest.value['Seal'][1], "engine": "BABE"}
+                else:
+                    if type(log_digest.value) == str:
+                        log_inner_data = log_digest.value
+                    else:
+                        log_inner_data = log_digest.value[log_type]
+
                 log = Log(
                     block_id=self.block.id,
                     log_idx=idx,
                     type_id=log_digest.index,
-                    type=log_digest.index_value,
-                    data=log_digest.value,
+                    type=log_type,
+                    data={
+                        'type': log_type,
+                        'value': log_inner_data,
+                    },
                 )
 
                 if log.type == 'PreRuntime':
@@ -205,18 +263,18 @@ class AccountBlockProcessor(BlockProcessor):
                     print("DEEPER--->>> AccountBlockProcessor sequencing_hook NoResultFound account.id=0x{} address={} hash={}".format(account.id, account.address, self.block.hash))
 
                 # Retrieve and set initial balance
-                account_info_data = self.substrate.get_runtime_state(
+                account_info_data = self.substrate.query(
                     module='System',
                     storage_function='Account',
                     params=['0x{}'.format(account.id)],
                     block_hash=self.block.hash
-                ).get('result')
+                )
 
                 try:
                     if account_info_data:
-                        account.balance_free = account_info_data["data"]["free"]
-                        account.balance_reserved = account_info_data["data"]["reserved"]
-                        account.balance_total = account_info_data["data"]["free"] + account_info_data["data"]["reserved"]
+                        account.balance_free = account_info_data["data"]["free"].decode()
+                        account.balance_reserved = account_info_data["data"]["reserved"].decode()
+                        account.balance_total = account.balance_free + account.balance_total
                         account.nonce = account_info_data["nonce"]
 
                 except ValueError:
@@ -246,27 +304,22 @@ class AccountBlockProcessor(BlockProcessor):
                 updated_at_block=self.block.id
             )
 
-            account_info_data = self.substrate.get_runtime_state(
+            account_info_data = self.substrate.query(
                 module='System',
                 storage_function='Account',
                 params=['0x{}'.format(account.id)],
                 block_hash=self.block.hash
-            ).get('result')
+            )
 
             try:
-                account_info_data = self.substrate.get_runtime_state(
-                    module='System',
-                    storage_function='Account',
-                    params=['0x{}'.format(account.id)],
-                    block_hash=self.block.hash
-                ).get('result')
-
                 if account_info_data:
-                    account.balance_free = account_info_data["data"]["free"]
-                    account.balance_reserved = account_info_data["data"]["reserved"]
-                    account.balance_total = account_info_data["data"]["free"] + account_info_data["data"]["reserved"]
+                    account.balance_free = account_info_data["data"]["free"].decode()
+                    account.balance_reserved = account_info_data["data"]["reserved"].decode()
+                    account.balance_total = account.balance_free + account.balance_total
                     account.nonce = account_info_data["nonce"]
-            except ValueError:
+            except ValueError as e:
+                print('!FIXIT ---> ValueError')
+                print(e)
                 pass
 
             account.save(db_session)
@@ -535,5 +588,3 @@ class AccountInfoBlockProcessor(BlockProcessor):
                 account.balance_free = account_info.balance_free
                 account.nonce = account_info.nonce
                 account.save(db_session)
-
-

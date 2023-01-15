@@ -48,23 +48,23 @@ class NewSessionEventProcessor(EventProcessor):
 
         # Retrieve current era
         try:
-            current_era = self.substrate.get_runtime_state(
+            current_era = self.substrate.query(
                 module="Staking",
                 storage_function="CurrentEra",
                 params=[],
                 block_hash=self.block.hash
-            ).get('result')
+            )
         except StorageFunctionNotFound:
             current_era = None
 
         # Retrieve validators for new session from storage
         try:
-            validators = self.substrate.get_runtime_state(
+            validators = self.substrate.query(
                 module="Session",
                 storage_function="Validators",
                 params=[],
                 block_hash=self.block.hash
-            ).get('result', [])
+            ) or []
         except StorageFunctionNotFound:
             validators = []
 
@@ -76,12 +76,12 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Retrieve controller account
             try:
-                validator_controller = self.substrate.get_runtime_state(
+                validator_controller = self.substrate.query(
                     module="Staking",
                     storage_function="Bonded",
                     params=[validator_account.public_key],
                     block_hash=self.block.hash
-                ).get('result')
+                )
 
                 if validator_controller:
                     validator_controller = validator_controller.replace('0x', '')
@@ -90,12 +90,12 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Retrieve validator preferences for stash account
             try:
-                validator_prefs = self.substrate.get_runtime_state(
+                validator_prefs = self.substrate.query(
                     module="Staking",
                     storage_function="ErasValidatorPrefs",
                     params=[current_era, validator_account.public_key],
                     block_hash=self.block.hash
-                ).get('result')
+                )
             except StorageFunctionNotFound:
                 validator_prefs = None
 
@@ -104,12 +104,12 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Retrieve bonded
             try:
-                exposure = self.substrate.get_runtime_state(
+                exposure = self.substrate.query(
                     module="Staking",
                     storage_function="ErasStakers",
                     params=[current_era, validator_account.public_key],
                     block_hash=self.block.hash
-                ).get('result')
+                )
             except StorageFunctionNotFound:
                 exposure = None
 
@@ -569,12 +569,12 @@ class NewSessionEventProcessor(EventProcessor):
 
     def process_search_index(self, db_session):
         try:
-            validators = self.substrate.get_runtime_state(
+            validators = self.substrate.query(
                 module="Session",
                 storage_function="Validators",
                 params=[],
                 block_hash=self.block.hash
-            ).get('result', [])
+            ) or []
 
             # Add search indices for validators sessions
             for account_id in validators:
@@ -1224,14 +1224,11 @@ class RegistrarAddedEventProcessor(EventProcessor):
 
     def sequencing_hook(self, db_session, parent_block, parent_sequenced_block):
 
-        registrars = self.substrate.get_runtime_state(
+        registrars = self.substrate.query(
             module="Identity",
             storage_function="Registrars",
             params=[]
-        ).get('result')
-
-        if not registrars:
-            registrars = []
+        ) or []
 
         registrar_ids = [registrar['account'].replace('0x', '') for registrar in registrars]
 
