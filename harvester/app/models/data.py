@@ -157,7 +157,7 @@ class BlockMissing(BaseModel):
             session.execute(text('DELETE FROM data_block_missing WHERE start = :start AND end = :end'), \
                 {'start':rstart, 'end':rend})
             session.commit()
-
+        
         r = session.execute(text('SELECT start, end FROM data_block_missing WHERE start <= :end AND end >= :end'), \
             {'end':end}).first()
         if r:
@@ -872,3 +872,5 @@ class SearchIndex(BaseModel):
     account_id = sa.Column(sa.String(64), nullable=True, index=True)
     index_type_id = sa.Column(sa.Integer(), nullable=False, index=True)
     sorting_value = sa.Column(sa.Numeric(precision=65, scale=0), nullable=True, index=True)
+
+

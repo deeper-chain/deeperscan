@@ -67,16 +67,16 @@ class ExtractExtrinsicsResource(BaseResource):
         )
 
         # Get extrinsics
-        json_block = substrate.get_block(block_hash=req.params.get('block_hash'))
+        json_block = substrate.get_chain_block(req.params.get('block_hash'))
 
         if not json_block:
             resp.status = falcon.HTTP_404
         else:
 
-            extrinsics = json_block['extrinsics']
+            extrinsics = json_block['block']['extrinsics']
 
             # Get metadata
-            metadata_decoder = substrate.get_block_metadata(json_block['header']['parentHash'])
+            metadata_decoder = substrate.get_block_metadata(json_block['block']['header']['parentHash'])
 
             #result = [{'runtime': substrate.get_block_runtime_version(req.params.get('block_hash')), 'metadata': metadata_result.get_data_dict()}]
             result = []
@@ -166,3 +166,4 @@ class CreateSnapshotResource(BaseResource):
         )
 
         resp.media = {'result': 'Balance snapshop task started', 'task_id': task.id}
+

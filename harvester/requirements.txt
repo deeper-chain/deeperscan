@@ -43,11 +43,8 @@ xxhash>=1.3.0
 pydevd-pycharm
 
 websocket-client~=0.57.0
-py-sr25519-bindings==0.2.0
-py-ed25519-bindings==1.0.2
+py-sr25519-bindings==0.1.3
+py-ed25519-bindings==0.1.3
 py-bip39-bindings>=0.1.6
 
 ed25519==1.5
-
-scalecodec~=1.1.4
-substrate-interface~=1.4.2

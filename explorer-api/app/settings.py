@@ -38,7 +38,7 @@ SUBSTRATE_TOKEN_DECIMALS = int(os.environ.get("SUBSTRATE_TOKEN_DECIMALS", 18))
 SUBSTRATE_METADATA_VERSION = int(
     os.environ.get("SUBSTRATE_METADATA_VERSION", 8))
 
-TYPE_REGISTRY = os.environ.get("TYPE_REGISTRY", "core")
+TYPE_REGISTRY = os.environ.get("TYPE_REGISTRY", "default")
 EVM_RPC_URL = os.environ.get("EVM_RPC_URL", "https://mainnet-dev.deeper.network/rpc")
 EVM_DEP_ADDRESS = os.environ.get("EVM_DEP_ADDRESS", "0xbca8f0ed708176383806b76cf98822c9e9fbd033")
 
