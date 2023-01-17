@@ -8,6 +8,9 @@ WORKDIR /usr/src/app
 
 RUN pip3 install --upgrade pip
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 # add requirements
 COPY ./requirements.txt /usr/src/app/requirements.txt
 
