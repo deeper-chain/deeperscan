@@ -20,6 +20,7 @@
 #
 from packaging import version
 from scalecodec.base import RuntimeConfiguration
+from scalecodec.types import ss58_decode
 
 from app import settings
 from app.models.data import Contract, Session, AccountAudit, \
@@ -48,7 +49,7 @@ class NewSessionEventProcessor(EventProcessor):
 
         # Retrieve current era
         try:
-            current_era = self.substrate.get_runtime_state(
+            current_era = self.substrate.query(
                 module="Staking",
                 storage_function="CurrentEra",
                 params=[],
@@ -59,7 +60,7 @@ class NewSessionEventProcessor(EventProcessor):
 
         # Retrieve validators for new session from storage
         try:
-            validators = self.substrate.get_runtime_state(
+            validators = self.substrate.query(
                 module="Session",
                 storage_function="Validators",
                 params=[],
@@ -76,7 +77,7 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Retrieve controller account
             try:
-                validator_controller = self.substrate.get_runtime_state(
+                validator_controller = self.substrate.query(
                     module="Staking",
                     storage_function="Bonded",
                     params=[validator_account.public_key],
@@ -90,7 +91,7 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Retrieve validator preferences for stash account
             try:
-                validator_prefs = self.substrate.get_runtime_state(
+                validator_prefs = self.substrate.query(
                     module="Staking",
                     storage_function="ErasValidatorPrefs",
                     params=[current_era, validator_account.public_key],
@@ -104,7 +105,7 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Retrieve bonded
             try:
-                exposure = self.substrate.get_runtime_state(
+                exposure = self.substrate.query(
                     module="Staking",
                     storage_function="ErasStakers",
                     params=[current_era, validator_account.public_key],
@@ -569,7 +570,7 @@ class NewSessionEventProcessor(EventProcessor):
 
     def process_search_index(self, db_session):
         try:
-            validators = self.substrate.get_runtime_state(
+            validators = self.substrate.query(
                 module="Session",
                 storage_function="Validators",
                 params=[],
@@ -588,7 +589,9 @@ class NewSessionEventProcessor(EventProcessor):
             pass
 
 def get_account_id_from_attr(maybe_account):
-    if type(maybe_account) == str and len(maybe_account) == 66:
+    if type(maybe_account) == str and maybe_account[0:2] != '0x':
+        return ss58_decode(maybe_account)
+    elif type(maybe_account) == str and len(maybe_account) == 66:
         return maybe_account.replace('0x', '')
     elif maybe_account and 'value' in maybe_account and type(maybe_account['value']) == str and len(maybe_account['value']) == 66:
         return maybe_account['value'].replace('0x', '')
@@ -1224,7 +1227,7 @@ class RegistrarAddedEventProcessor(EventProcessor):
 
     def sequencing_hook(self, db_session, parent_block, parent_sequenced_block):
 
-        registrars = self.substrate.get_runtime_state(
+        registrars = self.substrate.query(
             module="Identity",
             storage_function="Registrars",
             params=[]

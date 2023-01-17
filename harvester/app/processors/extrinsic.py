@@ -62,7 +62,7 @@ class DemocracyVoteExtrinsicProcessor(ExtrinsicProcessor):
                     try:
                         sorting_value = self.extrinsic.params[1]['value']['Standard']['balance']
                     except:
-                        print('DEEPER--->>> tuple indices must be integers or slices, not str')
+                        print('!FIXIT ---> tuple indices must be integers or slices, not str')
                         print(self.extrinsic.params[1]['value']['Standard'])
 
             search_index = self.add_search_index(
