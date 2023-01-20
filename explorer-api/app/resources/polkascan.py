@@ -1624,7 +1624,7 @@ class TransactionResource2(BaseResource):
                 }
 
                 data.append(row_dict)
-                sum_amount += amount
+                sum_amount += int(amount)
 
         if sum_option:
             resp.media = {'count': sum_amount}
