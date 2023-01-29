@@ -941,6 +941,7 @@ class PolkascanHarvesterService(BaseService):
                 # TODO replace limit with filter_by block range
                 block_range = Block.query(self.db_session).order_by(Block.id.asc()).filter(Block.id >= block_nr).limit(chunk_size).all()
                 print('integrity_checks in outer for loop block_nr: {}, l: {}'.format(block_nr, len(block_range)))
+                print('{}',block_range);
                 for block in block_range:
                     print('integrity_checks for1 block {}'.format(block.id))
                     if parent_block:

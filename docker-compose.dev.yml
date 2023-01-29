@@ -100,8 +100,6 @@ services:
       - 'db-data:/var/lib/mysql'
     ports:
       - '33061:3306'
-    security_opt:
-      - seccomp:unconfined
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=polkascan
