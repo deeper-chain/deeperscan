@@ -941,6 +941,7 @@ class PolkascanHarvesterService(BaseService):
                 # TODO replace limit with filter_by block range
                 block_range = Block.query(self.db_session).order_by(Block.id.asc()).filter(Block.id >= block_nr).limit(chunk_size).all()
                 print('integrity_checks in outer for loop block_nr: {}, l: {}'.format(block_nr, len(block_range)))
+                # print('{}',block_range);
                 for block in block_range:
                     print('integrity_checks for1 block {}'.format(block.id))
                     if parent_block:
@@ -951,7 +952,7 @@ class PolkascanHarvesterService(BaseService):
                             if parent_block.hash == substrate.get_block_hash(integrity_head.value):
                                 integrity_head.save(self.db_session)
                                 self.db_session.commit()
-
+                                
                             raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
                         elif block.parent_hash != parent_block.hash:
                             print('integrity_checks if2 left {}, right {}'.format(block.parent_hash, parent_block.hash))
