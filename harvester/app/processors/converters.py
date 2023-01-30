@@ -952,8 +952,7 @@ class PolkascanHarvesterService(BaseService):
                             if parent_block.hash == substrate.get_block_hash(integrity_head.value):
                                 integrity_head.save(self.db_session)
                                 self.db_session.commit()
-                                print('1-thread')
-                            print('2-thread')
+                                
                             raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
                         elif block.parent_hash != parent_block.hash:
                             print('integrity_checks if2 left {}, right {}'.format(block.parent_hash, parent_block.hash))

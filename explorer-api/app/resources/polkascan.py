@@ -426,7 +426,8 @@ class NetworkStatisticsResource(JSONAPIResource):
 
             best_block = BlockTotal.query(self.session).filter_by(id=self.session.query(func.max(BlockTotal.id)).one()[0]).first()
 
-            # print('XXX--->>>', best_block)
+            print('XXX--->>>', best_block)
+            print('XXX--->>>', int(best_block.total_extrinsics_signed))
             # print('XXX--->>> cache_key ', cache_key)
             # print('XXX--->>> self.session ', self.session)
             # print('XXX--->>> BlockTotal ' , BlockTotal)
