@@ -581,7 +581,7 @@ class NewSessionEventProcessor(EventProcessor):
                 print('account_id--->>>', account_id)
                 search_index = self.add_search_index(
                     index_type_id=settings.SEARCH_INDEX_STAKING_SESSION,
-                    account_id=account_id.replace('0x', '')
+                    account_id=account_id.data.to_hex()
                 )
 
                 search_index.save(db_session)

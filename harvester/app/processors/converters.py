@@ -148,7 +148,7 @@ class PolkascanHarvesterService(BaseService):
 
                     for idx, account_id in enumerate(genesis_accounts):
                         account_audit = AccountAudit(
-                            account_id=account_id.replace('0x', ''),
+                            account_id=account_id.data.to_hex(),
                             block_id=block.id,
                             extrinsic_idx=None,
                             event_idx=None,
@@ -161,7 +161,7 @@ class PolkascanHarvesterService(BaseService):
 
                         account_index_audit = AccountIndexAudit(
                             account_index_id=account_index_id,
-                            account_id=account_id.replace('0x', ''),
+                            account_id=account_id.data.to_hex(),
                             block_id=block.id,
                             extrinsic_idx=None,
                             event_idx=None,
