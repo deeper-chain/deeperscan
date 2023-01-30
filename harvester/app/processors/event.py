@@ -582,6 +582,8 @@ class NewSessionEventProcessor(EventProcessor):
                 search_index = self.add_search_index(
                     index_type_id=settings.SEARCH_INDEX_STAKING_SESSION,
                     account_id=account_id.data.to_hex()
+                    print('account_id(convert):', account_id)
+                    # 0x1016bde5e70ea8ce93a1c83b54ec7ceac1fb20800094336f5303d2298f4a1e0d05281cbf5a26f7bb0c9c25a449dfbd15b63258510bbbc195c6c1bdd2f4a6765f283ce10c8375de7f327034e41bc665378a37f99726fb20d1bacc287f62a98fee19d467e3b27d7b8faf411582f03fa65a208fa6ba17e85796f41fbe5ebaf27d5e3a
                 )
 
                 search_index.save(db_session)
