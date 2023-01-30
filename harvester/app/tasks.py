@@ -240,6 +240,7 @@ def start_harvester(self, check_gaps=False):
 
             # Start processing task
             accumulate_block_recursive.delay(start_block_hash, end_block_hash)
+            print('accumulate_block_recursive--->>> before ', start_block_hash, end_block_hash)
 
             block_sets.append({
                 'start_block_hash': start_block_hash,
@@ -252,14 +253,13 @@ def start_harvester(self, check_gaps=False):
     # Continue from current (finalised) head
     if FINALIZATION_ONLY == 1:
         start_block_hash = substrate.get_chain_finalised_head()
-        print('start_block_hash -->>>', start_block_hash)
     else:
         start_block_hash = substrate.get_chain_head()
 
     end_block_hash = None
 
     accumulate_block_recursive.delay(start_block_hash, end_block_hash)
-    print('accumulate_block_recursive--->>>', start_block_hash, end_block_hash)
+    print('accumulate_block_recursive--->>> after', start_block_hash, end_block_hash)
 
     block_sets.append({
         'start_block_hash': start_block_hash,
