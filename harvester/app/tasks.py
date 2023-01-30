@@ -252,6 +252,7 @@ def start_harvester(self, check_gaps=False):
     # Continue from current (finalised) head
     if FINALIZATION_ONLY == 1:
         start_block_hash = substrate.get_chain_finalised_head()
+        print('start_block_hash -->>>', start_block_hash)
     else:
         start_block_hash = substrate.get_chain_head()
 
