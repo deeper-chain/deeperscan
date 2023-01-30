@@ -578,9 +578,9 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Add search indices for validators sessions
             for account_id in validators:
+                print('account_id--->>>', account_id)
                 search_index = self.add_search_index(
                     index_type_id=settings.SEARCH_INDEX_STAKING_SESSION,
-                    print('account_id--->>>', account_id)
                     account_id=account_id.replace('0x', '')
                 )
 
