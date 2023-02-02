@@ -563,11 +563,11 @@ class PolkascanHarvesterService(BaseService):
         try:
             # TODO implemented solution in substrate interface for runtime transition blocks
             # Events are decoded against runtime of parent block
-            RuntimeConfiguration().set_active_spec_version_id(parent_spec_version)
+            RuntimeConfiguration().set_active_spec_version_id(int(parent_spec_version))
             events_decoder = self.substrate.get_events(block_hash)
 
             # Revert back to current runtime
-            RuntimeConfiguration().set_active_spec_version_id(block.spec_version_id)
+            RuntimeConfiguration().set_active_spec_version_id(int(block.spec_version_id))
 
             event_idx = 0
 
