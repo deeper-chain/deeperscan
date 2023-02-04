@@ -221,8 +221,9 @@ class AccountBlockProcessor(BlockProcessor):
         self.block.count_accounts = self.block.count_accounts_new - self.block.count_accounts_reaped
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        print("test DEEPER--->>> AccountBlockProcessor sequencing_hook self.block.id = {}".format(self))
-        
+        if settings.DEEPER_DEBUG:
+            print("DEEPER--->>> AccountBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
+            
         for account_audit in AccountAudit.query(db_session).filter_by(block_id=self.block.id).order_by('event_idx'):
             if settings.DEEPER_DEBUG:
                 print("DEEPER--->>> AccountBlockProcessor sequencing_hook account_audit.account_id = {}".format(account_audit.account_id))
