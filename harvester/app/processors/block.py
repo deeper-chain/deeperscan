@@ -315,7 +315,7 @@ class AccountBlockProcessor(BlockProcessor):
                 if account_info_data:
                     account.balance_free = account_info_data["data"]["free"].decode()
                     account.balance_reserved = account_info_data["data"]["reserved"].decode()
-                    account.balance_total = account.balance_free + account.balance_total
+                    account.balance_total = account.balance_free + account.balance_reserved
                     account.nonce = account_info_data["nonce"]
             except ValueError as e:
                 print('!FIXIT ---> ValueError')
