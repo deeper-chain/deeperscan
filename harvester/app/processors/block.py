@@ -275,7 +275,7 @@ class AccountBlockProcessor(BlockProcessor):
                         account.balance_free = account_info_data["data"]["free"].decode()
                         account.balance_reserved = account_info_data["data"]["reserved"].decode()
                         account.balance_total = account.balance_free + account.balance_reserved
-                        account.nonce = account_info_data["nonce"]
+                        account.nonce = account_info_data["nonce"].decode()
 
                 except ValueError:
                     pass
@@ -284,8 +284,6 @@ class AccountBlockProcessor(BlockProcessor):
                 # if account_audit.type_id != ACCOUNT_AUDIT_TYPE_NEW:
                 #     account.is_reaped = True
                 #     account.count_reaped = 1
-            print('!DEBUG ---> account')
-            print(vars(account))
             account.save(db_session)
 
         # Until SUDO and batch calls are processed separately we need to do a safety check to be sure we include all
