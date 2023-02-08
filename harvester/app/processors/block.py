@@ -284,7 +284,8 @@ class AccountBlockProcessor(BlockProcessor):
                 # if account_audit.type_id != ACCOUNT_AUDIT_TYPE_NEW:
                 #     account.is_reaped = True
                 #     account.count_reaped = 1
-
+            print('!DEBUG ---> account')
+            print(vars(account))
             account.save(db_session)
 
         # Until SUDO and batch calls are processed separately we need to do a safety check to be sure we include all
