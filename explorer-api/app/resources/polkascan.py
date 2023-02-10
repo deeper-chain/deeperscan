@@ -564,7 +564,7 @@ class BalanceTransferListResource(JSONAPIListResource):
             sender_data = {'name': 'Deposit'}
             destination_data = {}
             value = 0
-            if type(item.attributes[1]) == int or type(item.attributes[1]) == float:
+            if type(item.attributes[1]) == int or type(item.attributes[1]) == float or type(item.attributes[1]) == str:
                 value = item.attributes[1]
             elif item.attributes[1] and 'value' in item.attributes[1]:
                 value = item.attributes[1]['value']
