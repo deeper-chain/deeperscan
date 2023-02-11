@@ -315,12 +315,14 @@ class AccountBlockProcessor(BlockProcessor):
                     account.balance_free = account_info_data["data"]["free"].decode()
                     account.balance_reserved = account_info_data["data"]["reserved"].decode()
                     account.balance_total = account.balance_free + account.balance_reserved
-                    account.nonce = account_info_data["nonce"]
+                    account.nonce = account_info_data["nonce"].decode()
             except ValueError as e:
                 print('!FIXIT ---> ValueError')
                 print(e)
                 pass
-
+            
+            print('!DEBUG ---> account')
+            print(vars(account))
             account.save(db_session)
 
 
