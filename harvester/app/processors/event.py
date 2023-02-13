@@ -522,7 +522,7 @@ class NewSessionEventProcessor(EventProcessor):
             count_blocks = self.block.id
 
         session_total = SessionTotal(
-            id=session_id - 1,
+            id=int(session_id) - 1,
             end_at_block=self.block.id,
             count_blocks=count_blocks
         )
