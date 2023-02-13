@@ -513,6 +513,8 @@ class NewSessionEventProcessor(EventProcessor):
         session.save(db_session)
 
         # Retrieve previous session to calculate count_blocks
+        print('!wubintestDEBUG ---> account')
+        print(session_id)
         prev_session = Session.query(db_session).filter_by(id=session_id - 1).first()
 
         if prev_session:
