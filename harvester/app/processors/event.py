@@ -569,25 +569,26 @@ class NewSessionEventProcessor(EventProcessor):
             self.add_session_old(db_session, session_id)
 
     def process_search_index(self, db_session):
-        try:
-            validators = self.substrate.query(
-                module="Session",
-                storage_function="Validators",
-                params=[],
-                block_hash=self.block.hash
-            ) or []
-
-            # Add search indices for validators sessions
-            for account_id in validators:
-                search_index = self.add_search_index(
-                    index_type_id=settings.SEARCH_INDEX_STAKING_SESSION,
-                    account_id=account_id.public_key.replace('0x', ''),
-
-                )
-                
-                search_index.save(db_session)
-        except ValueError:
-            pass
+        # try:
+        #     validators = self.substrate.query(
+        #         module="Session",
+        #         storage_function="Validators",
+        #         params=[],
+        #         block_hash=self.block.hash
+        #     ) or []
+        #
+        #     # Add search indices for validators sessions
+        #     for account_id in validators:
+        #         search_index = self.add_search_index(
+        #             index_type_id=settings.SEARCH_INDEX_STAKING_SESSION,
+        #             account_id=account_id.public_key.replace('0x', ''),
+        #
+        #         )
+        #
+        #         search_index.save(db_session)
+        # except ValueError:
+        #     pass
+        return
 
 def get_account_id_from_attr(maybe_account):
     if type(maybe_account) == str and len(maybe_account) == 66:
