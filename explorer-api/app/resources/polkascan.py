@@ -1525,10 +1525,11 @@ class TransactionResource2(BaseResource):
 
         data = []
         sum_amount = 0
+        sql += ' ORDER BY block_id DESC limit 600'    
         result = self.session.execute(sql, params)
 
         conditions = []
-        if len(result) > 1000:
+        if len(result) == 600:
             print('!testDEBUG ---> account')
             print(addr)
             print(from_addr)
