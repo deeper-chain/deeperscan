@@ -294,6 +294,8 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.block_id == self.block.id,
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
+            if search_index.index_type_id == 38:
+                continue
             account = Account(
                 id=search_index.account_id,
                 address=ss58_encode(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE),
