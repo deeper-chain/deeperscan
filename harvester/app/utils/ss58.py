@@ -82,8 +82,6 @@ def ss58_encode(address, address_type=42):
     elif len(address_bytes) in [1, 2, 4, 8]:
         # Checksum size is 1 byte for account index
         checksum_length = 1
-    elif len(address_bytes) == 31:
-        return 0
     else:
         raise ValueError("Invalid length for address")
 
