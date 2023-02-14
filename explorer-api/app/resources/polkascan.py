@@ -1530,7 +1530,7 @@ class TransactionResource2(BaseResource):
         row_count = result.rowcount
 
         conditions = []
-        if len(row_count) == 600:
+        if row_count == 600:
             print('!testDEBUG ---> account')
             print(addr)
             print(from_addr)
