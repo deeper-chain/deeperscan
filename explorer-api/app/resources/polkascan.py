@@ -1534,7 +1534,8 @@ class TransactionResource2(BaseResource):
             print(from_addr)
             print(to_addr)
             print(sum_option)
-               
+            print(sql)
+            
         for row in result:
             # print("result:", row)
             row = list(row)
