@@ -588,7 +588,7 @@ class NewSessionEventProcessor(EventProcessor):
         #         search_index.save(db_session)
         # except ValueError:
         #     pass
-        return
+        pass
 
 def get_account_id_from_attr(maybe_account):
     if type(maybe_account) == str and len(maybe_account) == 66:
