@@ -1527,15 +1527,17 @@ class TransactionResource2(BaseResource):
         sum_amount = 0
         sql += ' ORDER BY block_id DESC limit 600'    
         result = self.session.execute(sql, params)
+        row_count = result.rowcount
 
         conditions = []
-        if len(result) == 600:
+        if len(row_count) == 600:
             print('!testDEBUG ---> account')
             print(addr)
             print(from_addr)
             print(to_addr)
             print(sum_option)
             print(sql)
+            print(result)
             
         for row in result:
             # print("result:", row)
