@@ -1528,6 +1528,13 @@ class TransactionResource2(BaseResource):
         result = self.session.execute(sql, params)
 
         conditions = []
+        if len(result) > 1000:
+            print('!testDEBUG ---> account')
+            print(addr)
+            print(from_addr)
+            print(to_addr)
+            print(sum_option)
+               
         for row in result:
             # print("result:", row)
             row = list(row)
