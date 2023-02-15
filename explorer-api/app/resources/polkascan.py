@@ -1479,10 +1479,14 @@ class TransactionResource2(BaseResource):
         from_addr = req.get_param('from', None)
         to_addr = req.get_param('to', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
+        total_option = str(req.get_param('total')).lower() == 'true'
 
         # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
-        sql = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
+        sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
+        sql_total = 'SELECT count(*) FROM data_account_search_index WHERE'
         params = {}
+        
+        
         if addr:
             assert ' ' not in addr
             range_condition = ' (account_id = :from OR account_id = :to)'
@@ -1510,7 +1514,10 @@ class TransactionResource2(BaseResource):
                 params['to'] = ss58_decode(to_addr)
         else:
             pass # wrong param, at least addr or from or to
-        sql += range_condition
+        
+        
+        sql_index += range_condition
+        sql_total += range_condition
 
         module_id = req.get_param('module_id', None)
         event_id = req.get_param('event_id', None)
@@ -1520,26 +1527,29 @@ class TransactionResource2(BaseResource):
 
             index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
             type_condition = ' AND index_type_id = :index_type_id'
-            sql += type_condition
+            sql_index += type_condition
             params['index_type_id'] = index_type_id
 
         data = []
         sum_amount = 0
-        sql += ' ORDER BY block_id DESC limit 600'    
-        result = self.session.execute(sql, params)
+        sql_index += ' ORDER BY block_id DESC limit 600'    
+        index_result = self.session.execute(sql_index, params)
+        
+        total_result = self.session.execute(sql_total, params).fetchone()
+        total = int(total_result[0]) if result is not None else 0  # set count to zero if the result is None
 
-        conditions = []
-            
-        for row in result:
-            # print("result:", row)
-            row = list(row)
-            block_id = row[0]
-            event_idx = row[1]
-            if block_id is not None and event_idx is not None:
-                conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
+        if total_option == False:
+            conditions = []
+            for row in index_result:
+                # print("result:", row)
+                row = list(row)
+                block_id = row[0]
+                event_idx = row[1]
+                if block_id is not None and event_idx is not None:
+                    conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
 
-        if conditions:
-            sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
+            if conditions:
+                sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
 
             start_time = req.get_param('start_time', None)
             if start_time:
@@ -1631,6 +1641,8 @@ class TransactionResource2(BaseResource):
 
         if sum_option:
             resp.media = {'count': sum_amount}
+        elif total_option:
+            resp.meida = {'total': total}
         else:
             resp.media = {'data': data}
 
