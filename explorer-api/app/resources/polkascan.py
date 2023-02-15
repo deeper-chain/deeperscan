@@ -1481,44 +1481,31 @@ class TransactionResource2(BaseResource):
         sum_option = str(req.get_param('sum')).lower() == 'true'
         total_option = str(req.get_param('total')).lower() == 'true'
 
-        # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
         sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
         sql_total = 'SELECT count(*) FROM data_account_search_index WHERE'
         params = {}
-        
-        
+
+        # Set range condition and params based on address parameters
         if addr:
             assert ' ' not in addr
-            range_condition = ' (account_id = :from OR account_id = :to)'
-            if addr.startswith('0x'):
-                params['from'] = addr.replace('0x', '')
-                params['to'] = addr.replace('0x', '')
-            else:
-                params['from'] = ss58_decode(addr)
-                params['to'] = ss58_decode(addr)
-
+            addr = addr.replace('0x', '')
+            range_condition = f"account_id = '{addr}'"
         elif from_addr:
             assert ' ' not in from_addr
-            range_condition = ' account_id = :from'
-            if from_addr.startswith('0x'):
-                params['from'] = from_addr.replace('0x', '')
-            else:
-                params['from'] = ss58_decode(from_addr)
-
+            from_addr = from_addr.replace('0x', '')
+            range_condition = f"account_id = '{from_addr}'"
         elif to_addr:
             assert ' ' not in to_addr
-            range_condition = ' account_id = :to'
-            if to_addr.startswith('0x'):
-                params['to'] = to_addr.replace('0x', '')
-            else:
-                params['to'] = ss58_decode(to_addr)
+            to_addr = to_addr.replace('0x', '')
+            range_condition = f"(account_id = '{to_addr}' OR account_id = '{to_addr}')"
         else:
-            pass # wrong param, at least addr or from or to
-        
-        
+            return  # Invalid parameters, must include at least one of addr, from, or to
+
+        # Add range condition to SQL queries
         sql_index += range_condition
         sql_total += range_condition
 
+        # Set type condition and params based on module_id and event_id parameters
         module_id = req.get_param('module_id', None)
         event_id = req.get_param('event_id', None)
         if module_id and event_id:
@@ -1530,121 +1517,27 @@ class TransactionResource2(BaseResource):
             sql_index += type_condition
             params['index_type_id'] = index_type_id
 
-        data = []
-        sum_amount = 0
-        sql_index += ' ORDER BY block_id DESC limit 600'    
+        # Execute SQL queries and retrieve results
+        sql_index += ' ORDER BY block_id DESC limit 600'
         index_result = self.session.execute(sql_index, params)
-        
         total_result = self.session.execute(sql_total, params).fetchone()
-        total = int(total_result[0]) if total_result is not None else 0  # set count to zero if the result is None
+        total = int(total_result[0]) if total_result is not None else 0
 
-        if total_option == False:
-            conditions = []
-            for row in index_result:
-                # print("result:", row)
-                row = list(row)
-                block_id = row[0]
-                event_idx = row[1]
-                if block_id is not None and event_idx is not None:
-                    conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
-
-            if conditions:
-                sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
-
-            start_time = req.get_param('start_time', None)
-            if start_time:
-                assert type(int(start_time)) is int
-                start_time_condition = ' AND block_datetime >= :start_time'
-                sql += start_time_condition
-                params['start_time'] = datetime.fromtimestamp(int(start_time))
-
-            end_time = req.get_param('end_time', None)
-            if end_time:
-                assert type(int(end_time)) is int
-                end_time_condition = ' AND block_datetime < :end_time'
-                sql += end_time_condition
-                params['end_time'] = datetime.fromtimestamp(int(end_time))
-
-            # print(sql)
-            result = self.session.execute(sql, params)
-
-            for row in result:
-                row = list(row)
-                module_id = row[2]
-                event_id = row[3]
-                index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-                # print('index_type_id', index_type_id, module_id, event_id)
-                if index_type_id == settings.SEARCH_INDEX_STAKING_REWARD:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    try:
-                        _to = json_data[0]['value']
-                        amount = json_data[1]['value']
-                    except:
-                        _to = json_data[0]
-                        amount = json_data[1]
-
-                elif index_type_id == settings.SEARCH_INDEX_BALANCETRANSFER:
-                    json_data = json.loads(row[4])
-                    try:
-                        _from = json_data[0]['value']
-                        _to = json_data[1]['value']
-                        amount = json_data[2]['value']
-                    except:
-                        _from = json_data[0]
-                        _to = json_data[1]
-                        amount = json_data[2]
-
-                elif index_type_id == settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
-                    json_data = json.loads(row[4])
-                    try:
-                        _from = json_data[0]['value']
-                        _to = json_data[1]['value']
-                        amount = json_data[2]['value']
-                    except:
-                        _from = json_data[0]
-                        _to = json_data[1]
-                        amount = json_data[2]
-
-                elif index_type_id == settings.SEARCH_INDEX_RELEASE_REWARD:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    _to = json_data[0]
-                    amount = json_data[1]
-
-                elif index_type_id == settings.SEARCH_INDEX_UNIQUES_TRANSFERRED:
-                    json_data = json.loads(row[4])
-                    _from = json_data[2]
-                    _to = json_data[3]
-                    amount = '{},{}'.format(json_data[0], json_data[1]) # class, instance
-                elif index_type_id == settings.SEARCH_INDEX_NPOW_MINT:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    _to = json_data[0]
-                    amount = json_data[1]
-                else:
-                    continue
-
-                row_dict = {
-                    'block_id': row[0],
-                    'event_idx': row[1],
-                    'module_id': module_id,
-                    'event_id': event_id,
-                    '_from': _from,
-                    '_to': _to,
-                    'amount': str(amount),
-                    'timestamp': int(row[5].timestamp())
-                }
-
-                data.append(row_dict)
-                sum_amount += int(amount)
-
-        if sum_option:
-            resp.media = {'count': sum_amount}
-        elif total_option:
+        if total_option:
             resp.media = {'total': total}
+        elif sum_option:
+            sum_amount = 0
+            for row in index_result:
+                sum_amount += int(row[2])
+            resp.media = {'count': sum_amount}
         else:
+            data = []
+            for row in index_result:
+                block_id, event_idx, account_id = row
+                row_dict = {'block_id': block_id, 'event_idx': event_idx, 'account_id': account_id}
+                data.append(row_dict)
             resp.media = {'data': data}
+
 
 '''
 const processArg = require('./processArg');
