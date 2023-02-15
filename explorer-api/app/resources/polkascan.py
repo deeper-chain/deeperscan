@@ -1532,7 +1532,7 @@ class TransactionResource2(BaseResource):
         
         total = int(total_result[0]) if total_result is not None else 0  # set count to zero if the result is None
 
-        if not total_option:
+        if total_option == False:
             conditions = []
             for row in index_result:
                 # print("result:", row)
