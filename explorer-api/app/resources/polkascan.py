@@ -1640,13 +1640,11 @@ class TransactionResource2(BaseResource):
                 sum_amount += int(amount)
 
         if sum_option:
-            resp.media = {'count': sum_amount}
+            resp.media = {'count': total}
         elif total_option:
             resp.meida = {'total': total}
         else:
             resp.media = {'data': data}
-        
-        resp.meida = {'total': 17}
 
 '''
 const processArg = require('./processArg');
