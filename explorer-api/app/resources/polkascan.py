@@ -1536,7 +1536,7 @@ class TransactionResource2(BaseResource):
         index_result = self.session.execute(sql_index, params)
         
         total_result = self.session.execute(sql_total, params).fetchone()
-        total = int(total_result[0]) if result is not None else 0  # set count to zero if the result is None
+        total = int(total_result[0]) if total_result is not None else 0  # set count to zero if the result is None
 
         if total_option == False:
             conditions = []
