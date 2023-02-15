@@ -1537,8 +1537,6 @@ class TransactionResource2(BaseResource):
         
         total_result = self.session.execute(sql_total, params).fetchone()
         total = int(total_result[0]) if total_result is not None else 0  # set count to zero if the result is None
-        print(total_result)
-        print(total)
 
         if total_option == False:
             conditions = []
@@ -1647,6 +1645,8 @@ class TransactionResource2(BaseResource):
             resp.meida = {'total': total}
         else:
             resp.media = {'data': data}
+        
+        resp.meida = {'total': total}
 
 '''
 const processArg = require('./processArg');
