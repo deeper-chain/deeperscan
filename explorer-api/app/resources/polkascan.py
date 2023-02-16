@@ -1636,7 +1636,7 @@ class TransactionResource2(BaseResource):
         if sum_option:
             resp.media = {'count': sum_amount}
         elif total_option:
-            resp.media = {'total': total}
+            resp.media = {'count': total}
         else:
             resp.media = {'data': data}
         
