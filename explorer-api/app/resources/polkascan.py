@@ -1479,7 +1479,7 @@ class TransactionResource2(BaseResource):
         from_addr = req.get_param('from', None)
         to_addr = req.get_param('to', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
-        total_option = str(req.get_param('total')).lower() == 'true'
+        total_option = str(req.get_param('count')).lower() == 'true'
 
         # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
         sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
