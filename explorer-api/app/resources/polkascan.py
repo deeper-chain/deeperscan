@@ -1478,14 +1478,16 @@ class TransactionResource2(BaseResource):
         addr = req.get_param('addr', None)
         from_addr = req.get_param('from', None)
         to_addr = req.get_param('to', None)
+        start_time = req.get_param('start_time', None)
+        end_time = req.get_param('end_time', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
         total_option = str(req.get_param('count')).lower() == 'true'
+        
 
         # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
         sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
         sql_total = 'SELECT count(*) FROM data_account_search_index WHERE'
         params = {}
-        
         
         if addr:
             assert ' ' not in addr
@@ -1508,7 +1510,6 @@ class TransactionResource2(BaseResource):
         else:
             pass # wrong param, at least addr or from or to
         
-        
         sql_index += range_condition
         sql_total += range_condition
 
@@ -1522,6 +1523,18 @@ class TransactionResource2(BaseResource):
             type_condition = ' AND index_type_id = :index_type_id'
             sql_index += type_condition
             params['index_type_id'] = index_type_id
+            
+        if start_time:
+            assert type(int(start_time)) is int
+            start_time_condition = ' AND block_datetime >= :start_time'
+            sql += start_time_condition
+            params['start_time'] = datetime.fromtimestamp(int(start_time))
+            
+        if end_time:
+            assert type(int(end_time)) is int
+            end_time_condition = ' AND block_datetime < :end_time'
+            sql += end_time_condition
+            params['end_time'] = datetime.fromtimestamp(int(end_time))
 
         data = []
         sum_amount = 0
@@ -1545,14 +1558,12 @@ class TransactionResource2(BaseResource):
             if conditions:
                 sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
 
-            start_time = req.get_param('start_time', None)
             if start_time:
                 assert type(int(start_time)) is int
                 start_time_condition = ' AND block_datetime >= :start_time'
                 sql += start_time_condition
                 params['start_time'] = datetime.fromtimestamp(int(start_time))
 
-            end_time = req.get_param('end_time', None)
             if end_time:
                 assert type(int(end_time)) is int
                 end_time_condition = ' AND block_datetime < :end_time'
