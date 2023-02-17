@@ -1526,7 +1526,7 @@ class TransactionResource2(BaseResource):
             
         if start_time:
             assert type(int(start_time)) is int
-            start_time_condition = ' AND block_datetime >= :start_time'
+            start_time_condition = ' BETWEEN block_datetime >= :start_time'
             sql_total += start_time_condition
             params['start_time'] = datetime.fromtimestamp(int(start_time))
             
