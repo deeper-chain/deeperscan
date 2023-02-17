@@ -1527,13 +1527,13 @@ class TransactionResource2(BaseResource):
         if start_time:
             assert type(int(start_time)) is int
             start_time_condition = ' AND block_datetime >= :start_time'
-            sql += start_time_condition
+            sql_total += start_time_condition
             params['start_time'] = datetime.fromtimestamp(int(start_time))
             
         if end_time:
             assert type(int(end_time)) is int
             end_time_condition = ' AND block_datetime < :end_time'
-            sql += end_time_condition
+            sql_total += end_time_condition
             params['end_time'] = datetime.fromtimestamp(int(end_time))
 
         data = []
