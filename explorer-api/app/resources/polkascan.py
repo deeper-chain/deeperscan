@@ -1523,18 +1523,6 @@ class TransactionResource2(BaseResource):
             type_condition = ' AND index_type_id = :index_type_id'
             sql_index += type_condition
             params['index_type_id'] = index_type_id
-            
-        if start_time:
-            assert type(int(start_time)) is int
-            start_time_condition = ' BETWEEN block_datetime >= :start_time'
-            sql_total += start_time_condition
-            params['start_time'] = datetime.fromtimestamp(int(start_time))
-            
-        if end_time:
-            assert type(int(end_time)) is int
-            end_time_condition = ' AND block_datetime < :end_time'
-            sql_total += end_time_condition
-            params['end_time'] = datetime.fromtimestamp(int(end_time))
 
         data = []
         sum_amount = 0
