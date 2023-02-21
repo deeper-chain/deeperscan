@@ -77,7 +77,8 @@ class BaseTask(celery.Task):
 
 @capp.task(base=BaseTask, bind=True)
 def accumulate_block_recursive(self, block_hash, end_block_hash=None):
-    print('accumulate_block_recursive: start: {}, end: {}'.format(block_hash, end_block_hash))
+    if DEBUG:
+        print('accumulate_block_recursive: start: {}, end: {}'.format(block_hash, end_block_hash))
 
     harvester = PolkascanHarvesterService(
         db_session=self.session,
@@ -121,7 +122,8 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
                 self.session.commit()
 
                 add_count += 1
-                print('+ Added {} {}'.format(block_hash, block.id))
+                if DEBUG:
+                    print('+ Added {} {}'.format(block_hash, block.id))
 
                 # Break loop if targeted end block hash is reached
                 if block_hash == end_block_hash or block.id == 0:
@@ -154,24 +156,27 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
 @capp.task(base=BaseTask, bind=True)
 def start_sequencer(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
-
-    print('start_sequencer task {}'.format(sequencer_task.value))
+    if DEBUG:
+        print('start_sequencer task {}'.format(sequencer_task.value))
     if sequencer_task.value:
         task_result = AsyncResult(sequencer_task.value)
         try:
             task_ready = task_result.ready()
         except TypeError:
-            print('start_sequencer TypeError')
+            if DEBUG:
+                print('start_sequencer TypeError')
             task_ready = True
         if not task_result or task_ready:
-            print('start_sequencer task_ready')
+            if DEBUG:
+                print('start_sequencer task_ready')
             sequencer_task.value = None
             sequencer_task.save(self.session)
             self.session.commit()
 
     if sequencer_task.value is None:
         sequencer_task.value = self.request.id
-        print('start_sequencer none to value: {}'.format(self.request.id))
+        if DEBUG:
+            print('start_sequencer none to value: {}'.format(self.request.id))
         sequencer_task.save(self.session)
 
         harvester = PolkascanHarvesterService(
@@ -180,12 +185,13 @@ def start_sequencer(self):
             type_registry_file=TYPE_REGISTRY_FILE
         )
         try:
-            print('start_sequencer outer')
+            if DEBUG:
+                print('start_sequencer outer')
             result = harvester.start_sequencer()
         except BlockIntegrityError as e:
             result = {'result': str(e)}
-
-        print('start_sequencer value to none: {}'.format(sequencer_task.value))
+        if DEBUG:
+            print('start_sequencer value to none: {}'.format(sequencer_task.value))
         sequencer_task.value = None
         sequencer_task.save(self.session)
 
@@ -196,7 +202,8 @@ def start_sequencer(self):
 
         return result
     else:
-        print('start_sequencer not none {}'.format(sequencer_task.value))
+        if DEBUG:
+            print('start_sequencer not none {}'.format(sequencer_task.value))
         return {'result': 'Sequencer already running'}
 
 
@@ -240,7 +247,8 @@ def start_harvester(self, check_gaps=False):
 
             # Start processing task
             accumulate_block_recursive.delay(start_block_hash, end_block_hash)
-            print('accumulate_block_recursive--->>> before ', start_block_hash, end_block_hash)
+            if DEBUG:
+                print('accumulate_block_recursive--->>> before ', start_block_hash, end_block_hash)
 
             block_sets.append({
                 'start_block_hash': start_block_hash,
@@ -259,7 +267,8 @@ def start_harvester(self, check_gaps=False):
     end_block_hash = None
 
     accumulate_block_recursive.delay(start_block_hash, end_block_hash)
-    print('accumulate_block_recursive--->>> after', start_block_hash, end_block_hash)
+    if DEBUG:
+        print('accumulate_block_recursive--->>> after', start_block_hash, end_block_hash)
 
     block_sets.append({
         'start_block_hash': start_block_hash,
@@ -320,7 +329,7 @@ def rebuild_account_info_snapshot(self, index):
     # set balances according to most recent snapshot
     account_info = self.session.execute("""
             select
-               a.account_id, 
+               a.account_id,
                a.balance_total,
                a.balance_free,
                a.balance_reserved,
@@ -328,9 +337,9 @@ def rebuild_account_info_snapshot(self, index):
         from
              data_account_info_snapshot as a
         inner join (
-            select 
-                account_id, max(block_id) as max_block_id 
-            from data_account_info_snapshot 
+            select
+                account_id, max(block_id) as max_block_id
+            from data_account_info_snapshot
             group by account_id
         ) as b
         on a.account_id = b.account_id and a.block_id = b.max_block_id
@@ -416,7 +425,7 @@ def update_balances_in_block(self, block_id):
 @capp.task(base=BaseTask, bind=True)
 def clean_up_SEQUENCER_TASK_ID(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
-
-    print('clean_up_SEQUENCER_TASK_ID')
+    if DEBUG:
+        print('clean_up_SEQUENCER_TASK_ID')
     sequencer_task.value = None
     sequencer_task.save(self.session)

@@ -596,7 +596,8 @@ def get_account_id_from_attr(maybe_account):
     elif maybe_account and 'value' in maybe_account and type(maybe_account['value']) == str and len(maybe_account['value']) == 66:
         return maybe_account['value'].replace('0x', '')
     else:
-        print('maybe_account', maybe_account)
+        if settings.DEBUG:
+            print('maybe_account', maybe_account)
         raise ValueError('invalid account id: {}'.format(maybe_account))
 
 class NewAccountEventProcessor(EventProcessor):

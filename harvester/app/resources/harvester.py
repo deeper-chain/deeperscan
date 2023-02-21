@@ -204,26 +204,30 @@ class PolkascanProcessBlockResource(BaseResource):
             resp.media = {'errors': ['Either block_hash or block_id should be supplied']}
 
         if block_hash:
-            print('Processing {} ...'.format(block_hash))
+            if settings.DEBUG:
+                print('Processing {} ...'.format(block_hash))
             harvester = PolkascanHarvesterService(
                 db_session=self.session,
                 type_registry=TYPE_REGISTRY,
                 type_registry_file=TYPE_REGISTRY_FILE
             )
-            print('Processing xxxxxx  {} - {} ...'.format(TYPE_REGISTRY, TYPE_REGISTRY_FILE))
+            if settings.DEBUG:
+                print('Processing xxxxxx  {} - {} ...'.format(TYPE_REGISTRY, TYPE_REGISTRY_FILE))
 
 
             block = Block.query(self.session).filter(Block.hash == block_hash).first()
 
             # Delete the block and add it again
             if block:
-                print('Processing delete {} - {} ...'.format(req.media.get('block_id'), block_hash))
+                if settings.DEBUG:
+                    print('Processing delete {} - {} ...'.format(req.media.get('block_id'), block_hash))
                 harvester.remove_block(block_hash);
                 harvester.db_session.commit()
 
 
             amount = req.media.get('amount', 1)
-            print('Processing amont {} ...'.format(amount))
+            if settings.DEBUG:
+                print('Processing amont {} ...'.format(amount))
 
             for nr in range(0, amount):
                 try:
@@ -262,7 +266,8 @@ class SequenceBlockResource(BaseResource):
             resp.media = {'errors': ['Either block_hash or block_id should be supplied']}
 
         if block:
-            print('Sequencing #{} ...'.format(block.id))
+            if settings.DEBUG:
+                print('Sequencing #{} ...'.format(block.id))
 
             harvester = PolkascanHarvesterService(
                 db_session=self.session,
