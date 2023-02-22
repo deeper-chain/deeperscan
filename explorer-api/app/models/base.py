@@ -77,7 +77,7 @@ class BaseModelObj(DictableModel):
 
     def format_address(self, item):
         item['orig_value'] = item['value'].replace('0x', '')
-        item['value'] = ss58_encode(item['value'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE)
+        item['value'] = ss58_encode(item['value'].data.to_hex(), SUBSTRATE_ADDRESS_TYPE)
         return item
 
 
