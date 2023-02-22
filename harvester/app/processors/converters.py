@@ -269,8 +269,8 @@ class PolkascanHarvesterService(BaseService):
                 )
 
                 runtime.save(self.db_session)
-
-                print('store version to db', self.substrate.runtime_version)
+                if settings.DEBUG:
+                    print('store version to db', self.substrate.runtime_version)
 
                 for module_index, module in enumerate(metadata_decoder.pallets):
 
@@ -849,8 +849,8 @@ class PolkascanHarvesterService(BaseService):
         sequenced_block = BlockTotal(
             id=block.id
         )
-
-        print("DEEPER--->>> sequence_block block.id={}, parent_block_data={}, parent_sequenced_block_data={}".format(block.id, parent_block_data, parent_sequenced_block_data))
+        if settings.DEEPER_DEBUG:
+            print("DEEPER--->>> sequence_block block.id={}, parent_block_data={}, parent_sequenced_block_data={}".format(block.id, parent_block_data, parent_sequenced_block_data))
 
         # Process block processors
         for processor_class in ProcessorRegistry().get_block_processors():
@@ -930,32 +930,36 @@ class PolkascanHarvesterService(BaseService):
         end_block_id = finalized_block_number
         chunk_size = 1000
         parent_block = None
-
-        print('start_sequencer integrity_checks start: {}, end: {}'.format(start_block_id, end_block_id))
+        if settings.DEBUG:
+            print('start_sequencer integrity_checks start: {}, end: {}'.format(start_block_id, end_block_id))
         if start_block_id < end_block_id:
             # Continue integrity check
-
-            print('== Start integrity_checks from {} to {} =='.format(start_block_id, end_block_id))
+            if settings.DEBUG:
+                print('== Start integrity_checks from {} to {} =='.format(start_block_id, end_block_id))
 
             for block_nr in range(start_block_id, end_block_id, chunk_size):
                 # TODO replace limit with filter_by block range
                 block_range = Block.query(self.db_session).order_by(Block.id.asc()).filter(Block.id >= block_nr).limit(chunk_size).all()
-                print('integrity_checks in outer for loop block_nr: {}, l: {}'.format(block_nr, len(block_range)))
+                if settings.DEBUG:
+                    print('integrity_checks in outer for loop block_nr: {}, l: {}'.format(block_nr, len(block_range)))
                 # print('{}',block_range);
                 for block in block_range:
-                    print('integrity_checks for1 block {}'.format(block.id))
+                    if settings.DEBUG:
+                        print('integrity_checks for1 block {}'.format(block.id))
                     if parent_block:
                         if block.id != parent_block.id + 1:
-                            print('integrity_checks if1 left {}, right {}'.format(block.id, parent_block.id + 1))
+                            if settings.DEBUG:
+                                print('integrity_checks if1 left {}, right {}'.format(block.id, parent_block.id + 1))
 
                             # Save integrity head if block hash of parent matches with hash in node
                             if parent_block.hash == substrate.get_block_hash(integrity_head.value):
                                 integrity_head.save(self.db_session)
                                 self.db_session.commit()
-                                
+
                             raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
                         elif block.parent_hash != parent_block.hash:
-                            print('integrity_checks if2 left {}, right {}'.format(block.parent_hash, parent_block.hash))
+                            if settings.DEBUG:
+                                print('integrity_checks if2 left {}, right {}'.format(block.parent_hash, parent_block.hash))
 
                             self.process_reorg_block(parent_block)
                             self.process_reorg_block(block)
@@ -972,35 +976,42 @@ class PolkascanHarvesterService(BaseService):
 
                             # Save integrity head if block hash of parent matches with hash in node
                             #if parent_block.parent_hash == substrate.get_block_hash(integrity_head.value):
-                            print('integrity_checks before save 1')
+                            if settings.DEBUG:
+                                print('integrity_checks before save 1')
                             integrity_head.save(self.db_session)
                             self.db_session.commit()
 
                             raise BlockIntegrityError('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
                         else:
-                            print('integrity_checks if3 {}'.format(block.id))
+                            if settings.DEBUG:
+                                print('integrity_checks if3 {}'.format(block.id))
                             integrity_head.value = block.id
 
                     parent_block = block
 
                     if block.id == end_block_id:
-                        print('integrity_checks if4 {}'.format(block.id))
+                        if settings.DEBUG:
+                            print('integrity_checks if4 {}'.format(block.id))
                         break
-
-            print('integrity_checks after outer for loop')
+            if settings.DEBUG:
+                print('integrity_checks after outer for loop')
             if parent_block:
-                print('integrity_checks if parent_block')
+                if settings.DEBUG:
+                    print('integrity_checks if parent_block')
                 if parent_block.hash == substrate.get_block_hash(int(integrity_head.value)):
-                    print('integrity_checks if parent_block equals {}'.format(parent_block.hash))
+                    if settings.DEBUG:
+                        print('integrity_checks if parent_block equals {}'.format(parent_block.hash))
                     integrity_head.save(self.db_session)
                     self.db_session.commit()
 
         return {'integrity_head': integrity_head.value}
 
     def start_sequencer(self):
-        print('start_sequencer before integrity_checks')
+        if settings.DEBUG:
+            print('start_sequencer before integrity_checks')
         self.integrity_checks()
-        print('start_sequencer after integrity_checks after')
+        if settings.DEBUG:
+            print('start_sequencer after integrity_checks after')
         self.db_session.commit()
 
         block_nr = None
@@ -1020,8 +1031,8 @@ class PolkascanHarvesterService(BaseService):
 
         sequencer_parent_block = BlockTotal.query(self.db_session).filter_by(id=sequencer_head).first()
         parent_block = Block.query(self.db_session).filter_by(id=sequencer_head).first()
-
-        print("DEEPER--->>> start_sequencer sequencer_head={},  sequencer_parent_block={}, parent_block={}".format(sequencer_head, sequencer_parent_block, parent_block))
+        if settings.DEEPER_DEBUG:
+            print("DEEPER--->>> start_sequencer sequencer_head={},  sequencer_parent_block={}, parent_block={}".format(sequencer_head, sequencer_parent_block, parent_block))
 
         for block_nr in range(sequencer_head + 1, int(integrity_head.value) + 1):
 
@@ -1278,7 +1289,8 @@ class PolkascanHarvesterService(BaseService):
             )
 
     def deeper_test(self, block_hash):
-        print("DEEPER--->>> deeper_test")
+        if settings.DEEPER_DEBUG:
+            print("DEEPER--->>> deeper_test")
         substrate = SubstrateInterface(
             url='wss://mainnet-deeper-chain.deeper.network/',
             type_registry_preset='core',
@@ -1287,9 +1299,11 @@ class PolkascanHarvesterService(BaseService):
 
         if block_hash:
             extrinsics = substrate.get_block(block_hash=block_hash)['extrinsics']
-            print('Extrinsincs:', json.dumps([e.value for e in extrinsics], indent=4))
+            if settings.DEBUG:
+                print('Extrinsincs:', json.dumps([e.value for e in extrinsics], indent=4))
             events = substrate.get_events(block_hash)
-            print("Events:", json.dumps([e.value for e in events], indent=4))
+            if settings.DEBUG:
+                print("Events:", json.dumps([e.value for e in events], indent=4))
 
 
         account_info_data = substrate.query(
@@ -1299,7 +1313,8 @@ class PolkascanHarvesterService(BaseService):
             block_hash='0xd626b0d19aae002015a508b1716dc63e7f4c8ea5aca5eb035c9bb714f7cc84cb' # err
             #block_hash='0xa20de815ad9e73e7b905598fce729584cf100a6c79c6fc390962364d60ecb3d1' # ok
         )
-        print("account_info_data: {}".format(account_info_data))
+        if settings.DEBUG:
+            print("account_info_data: {}".format(account_info_data))
 
-
-        print("DEEPER--->>> deeper_test finished")
+        if settings.DEEPER_DEBUG:
+            print("DEEPER--->>> deeper_test finished")
