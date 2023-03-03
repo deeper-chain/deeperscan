@@ -253,6 +253,8 @@ class AccountBlockProcessor(BlockProcessor):
                     created_at_block=self.block.id,
                     updated_at_block=self.block.id
                 )
+                
+                print("account_audit.account_id: ", account_audit.account_id);
 
                 # Retrieve index in corresponding account
                 account_index = AccountIndex.query(db_session).filter_by(account_id=account.id).first()
@@ -303,6 +305,8 @@ class AccountBlockProcessor(BlockProcessor):
                 created_at_block=self.block.id,
                 updated_at_block=self.block.id
             )
+            
+            print("search_index.account_id: ", search_index.account_id);
 
             account_info_data = self.substrate.query(
                 module='System',

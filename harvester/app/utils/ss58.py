@@ -103,6 +103,8 @@ def ss58_encode_account_index(account_index, address_type=42):
         account_idx_encoder = U64()
     else:
         raise ValueError("Value too large for an account index")
+    
+    print("ss58_encode_account_index: ", account_idx_encoder.encode(account_index).data)
 
     return ss58_encode(account_idx_encoder.encode(account_index).data, address_type)
 
