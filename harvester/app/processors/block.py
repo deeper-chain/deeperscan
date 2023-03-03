@@ -243,18 +243,17 @@ class AccountBlockProcessor(BlockProcessor):
                 account.updated_at_block = self.block.id
 
             except NoResultFound:
+                decoded_account_id = ss58_decode(account_audit.account_id, settings.SUBSTRATE_ADDRESS_TYPE)
                 account = Account(
-                    id=account_audit.account_id,
-                    address=ss58_encode(account_audit.account_id, settings.SUBSTRATE_ADDRESS_TYPE),
-                    hash_blake2b=blake2_256(binascii.unhexlify(account_audit.account_id)),
+                    id=decoded_account_id,
+                    address=ss58_encode(decoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE),
+                    hash_blake2b=blake2_256(binascii.unhexlify(decoded_account_id)),
                     is_treasury=(account_audit.data or {}).get('is_treasury', False),
                     is_sudo=(account_audit.data or {}).get('is_sudo', False),
                     was_sudo=(account_audit.data or {}).get('is_sudo', False),
                     created_at_block=self.block.id,
                     updated_at_block=self.block.id
                 )
-                
-                print("account_audit.account_id: ", account_audit.account_id);
 
                 # Retrieve index in corresponding account
                 account_index = AccountIndex.query(db_session).filter_by(account_id=account.id).first()
@@ -306,8 +305,6 @@ class AccountBlockProcessor(BlockProcessor):
                 created_at_block=self.block.id,
                 updated_at_block=self.block.id
             )
-            
-            print("search_index.account_id: ", search_index.account_id);
 
             account_info_data = self.substrate.query(
                 module='System',
