@@ -67,6 +67,8 @@ def ss58_decode(address, valid_address_type=42):
 
 def ss58_encode(address, address_type=42):
     checksum_prefix = b'SS58PRE'
+    
+    print("address(ss58_encode)", address)
 
     if type(address) is bytes or type(address) is bytearray:
         address_bytes = address
