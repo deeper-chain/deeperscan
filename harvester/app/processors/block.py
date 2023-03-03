@@ -31,7 +31,7 @@ from substrateinterface.utils.hasher import blake2_256
 from app.models.data import Log, AccountAudit, Account, AccountIndexAudit, AccountIndex, \
     SessionValidator, IdentityAudit, IdentityJudgementAudit, IdentityJudgement, SearchIndex, AccountInfoSnapshot
 
-from app.utils.ss58 import ss58_encode, ss58_encode_account_index
+from app.utils.ss58 import ss58_encode, ss58_decode, ss58_encode_account_index
 from scalecodec.base import ScaleBytes, RuntimeConfiguration
 
 from app.processors.base import BlockProcessor
@@ -299,7 +299,7 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
             account = Account(
-                id=ss58_encode(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE),
+                id=ss58_decode(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE),
                 address=search_index.account_id,
                 hash_blake2b=blake2_256(binascii.unhexlify(search_index.account_id)),
                 created_at_block=self.block.id,
