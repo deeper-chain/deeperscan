@@ -1630,7 +1630,7 @@ class TransactionResource2(BaseResource):
         if sum_option:
             resp.media = {'count': sum_amount}
         elif limit_option:
-            resp.media = {'count': 600}
+            resp.media = {'limit': 600}
         else:
             resp.media = {'data': data}
         
