@@ -596,6 +596,9 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
         return Event.query(self.session).get(item_id.split('-'))
 
     def serialize_item(self, item):
+        print("item: ", item)
+        print("item.attributes[0]: ", item.attributes[0])
+        print("item.attributes[0]['value']: ", item.attributes[0]['value'])
 
         sender = Account.query(self.session).get(item.attributes[0]['value'].replace('0x', ''))
 
