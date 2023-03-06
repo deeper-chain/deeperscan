@@ -638,7 +638,7 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
                 'event_idx': '{}-{}'.format(item.block_id, item.event_idx),
                 'sender': sender_data,
                 'destination': destination_data,
-                'value': item.attributes[2]['value'],
+                'value': item.attributes[2],
                 'fee': fee
             }
         }
