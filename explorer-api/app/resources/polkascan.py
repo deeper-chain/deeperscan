@@ -597,8 +597,7 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
 
     def serialize_item(self, item):
         print("item: ", item)
-        print("item.attributes[1]: ", item.attributes[1])
-        print("item.attributes[2]: ", item.attributes[2])
+        print("item.attributes[3]: ", item.attributes[3])
 
         sender = Account.query(self.session).get(item.attributes[0].replace('0x', ''))
 
@@ -614,17 +613,17 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
                 }
             }
 
-        destination = Account.query(self.session).get(item.attributes[1]['value'].replace('0x', ''))
+        destination = Account.query(self.session).get(item.attributes[1].replace('0x', ''))
 
         if destination:
             destination_data = destination.serialize()
         else:
             destination_data = {
                 'type': 'account',
-                'id': item.attributes[1]['value'].replace('0x', ''),
+                'id': item.attributes[1].replace('0x', ''),
                 'attributes': {
-                    'id': item.attributes[1]['value'].replace('0x', ''),
-                    'address': ss58_encode(item.attributes[1]['value'].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                    'id': item.attributes[1].replace('0x', ''),
+                    'address': ss58_encode(item.attributes[1].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
                 }
             }
 
