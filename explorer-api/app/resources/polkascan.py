@@ -1480,59 +1480,55 @@ class TransactionResource2(BaseResource):
         start_time = req.get_param('start_time', None)
         end_time = req.get_param('end_time', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
-        total_option = str(req.get_param('count')).lower() == 'true'
+        limit_option = str(req.get_param('limit')).lower() == 'true'
         
 
         # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
         sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
-        sql_total = 'SELECT count(*) FROM data_account_search_index WHERE'
         params = {}
         
-        if addr:
-            assert ' ' not in addr
-            range_condition = ' (account_id = :from OR account_id = :to)'
-            decoded_addr = addr.replace('0x', '') if addr.startswith('0x') else ss58_decode(addr)
-            params['from'] = decoded_addr
-            params['to'] = decoded_addr
+        if limit_option == False:
+            if addr:
+                assert ' ' not in addr
+                range_condition = ' (account_id = :from OR account_id = :to)'
+                decoded_addr = addr.replace('0x', '') if addr.startswith('0x') else ss58_decode(addr)
+                params['from'] = decoded_addr
+                params['to'] = decoded_addr
 
-        elif from_addr:
-            assert ' ' not in from_addr
-            range_condition = ' account_id = :from'
-            decoded_from_addr = from_addr.replace('0x', '') if from_addr.startswith('0x') else ss58_decode(from_addr)
-            params['from'] = decoded_from_addr
+            elif from_addr:
+                assert ' ' not in from_addr
+                range_condition = ' account_id = :from'
+                decoded_from_addr = from_addr.replace('0x', '') if from_addr.startswith('0x') else ss58_decode(from_addr)
+                params['from'] = decoded_from_addr
 
-        elif to_addr:
-            assert ' ' not in to_addr
-            range_condition = ' account_id = :to'
-            decoded_to_addr = to_addr.replace('0x', '') if to_addr.startswith('0x') else ss58_decode(to_addr)
-            params['to'] = decoded_to_addr
-        else:
-            pass # wrong param, at least addr or from or to
-        
-        sql_index += range_condition
-        sql_total += range_condition
+            elif to_addr:
+                assert ' ' not in to_addr
+                range_condition = ' account_id = :to'
+                decoded_to_addr = to_addr.replace('0x', '') if to_addr.startswith('0x') else ss58_decode(to_addr)
+                params['to'] = decoded_to_addr
+            else:
+                pass # wrong param, at least addr or from or to
+            
+            sql_index += range_condition
 
-        module_id = req.get_param('module_id', None)
-        event_id = req.get_param('event_id', None)
-        if module_id and event_id:
-            assert ' ' not in module_id
-            assert ' ' not in event_id
+            module_id = req.get_param('module_id', None)
+            event_id = req.get_param('event_id', None)
+            if module_id and event_id:
+                assert ' ' not in module_id
+                assert ' ' not in event_id
 
-            index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-            type_condition = ' AND index_type_id = :index_type_id'
-            sql_index += type_condition
-            params['index_type_id'] = index_type_id
+                index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
+                type_condition = ' AND index_type_id = :index_type_id'
+                sql_index += type_condition
+                params['index_type_id'] = index_type_id
 
-        data = []
-        sum_amount = 0
-        sql_index += ' ORDER BY block_id DESC limit 600'    
-        
-        index_result = self.session.execute(sql_index, params)        
-        total_result = self.session.execute(sql_total, params).fetchone()
-        
-        total = int(total_result[0]) if total_result is not None else 0  # set count to zero if the result is None
+            data = []
+            sum_amount = 0
+            sql_index += ' ORDER BY block_id DESC limit 600'    
+            
+            index_result = self.session.execute(sql_index, params)        
 
-        if total_option == False:
+
             conditions = []
             for row in index_result:
                 # print("result:", row)
@@ -1633,8 +1629,8 @@ class TransactionResource2(BaseResource):
 
         if sum_option:
             resp.media = {'count': sum_amount}
-        elif total_option:
-            resp.media = {'count': total}
+        elif limit_option:
+            resp.media = {'count': 600}
         else:
             resp.media = {'data': data}
         
