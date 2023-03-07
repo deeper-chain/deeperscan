@@ -361,6 +361,9 @@ class Extrinsic(BaseModel):
         if obj_dict['attributes'].get('params', []):
             for item in obj_dict['attributes'].get('params', []):
                 # SS58 format Addresses public keys
+                print("item: ", item)
+                print("item['value']: ", item['value'])
+                
                 if item['type'] in ['Address', 'AccountId'] and item['value']:
                     self.format_address(item)
                 elif item['type'] in ['Vec<Address>', 'Vec<AccountId>', 'Vec<<Lookup as StaticLookup>::Source>'] and item['value']:
