@@ -24,7 +24,7 @@ from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.dialects.mysql import LONGTEXT
 
 from app.models.base import BaseModel
-from app.utils.ss58 import ss58_encode, ss58_encode_account_index
+from app.utils.ss58 import ss58_encode, ss58_decode, ss58_encode_account_index
 from app.settings import LOG_TYPE_AUTHORITIESCHANGE, SUBSTRATE_ADDRESS_TYPE
 
 
@@ -360,11 +360,9 @@ class Extrinsic(BaseModel):
 
         if obj_dict['attributes'].get('params', []):
             for item in obj_dict['attributes'].get('params', []):
-                # SS58 format Addresses public keys
-                print("item: ", item)
-                print("item['value']: ", item['value'])
-                
+                # SS58 format Addresses public keys              
                 if item['type'] in ['Address', 'AccountId'] and item['value']:
+                    item['value'] = '0x' + ss58_decode(item['value'], SUBSTRATE_ADDRESS_TYPE) # item['value']:  5GBh2U2hyrazmpKMXxqKTRAsKui9CYcMPSSPQaKxXjJHniN5
                     self.format_address(item)
                 elif item['type'] in ['Vec<Address>', 'Vec<AccountId>', 'Vec<<Lookup as StaticLookup>::Source>'] and item['value']:
                     for idx, vec_item in enumerate(item['value']):
