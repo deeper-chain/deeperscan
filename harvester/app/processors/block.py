@@ -243,7 +243,7 @@ class AccountBlockProcessor(BlockProcessor):
                 account.updated_at_block = self.block.id
 
             except NoResultFound:
-                decoded_account_id = ss58_decode(account_audit.account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+                decoded_account_id = account_audit.account_id
                 account = Account(
                     id=decoded_account_id,
                     address=ss58_encode(decoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE),
