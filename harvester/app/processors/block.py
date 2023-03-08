@@ -297,7 +297,7 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.block_id == self.block.id,
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
-            decoded_account_id = ss58_decode(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+            decoded_account_id = search_index.account_id
             account = Account(
                 id=decoded_account_id,
                 address=ss58_encode(decoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE),
