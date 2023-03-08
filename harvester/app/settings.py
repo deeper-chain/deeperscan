@@ -51,7 +51,7 @@ FINALIZATION_ONLY = int(os.environ.get("FINALIZATION_ONLY", 0))
 
 DEBUG = bool(os.environ.get("DEBUG", False))
 
-DEEPER_DEBUG = bool(os.environ.get("DEEPER_DEBUG", False))
+DEEPER_DEBUG = bool(os.environ.get("DEEPER_DEBUG", True))
 
 BALANCE_FULL_SNAPSHOT_INTERVAL = 10000
 CELERY_RUNNING = True
