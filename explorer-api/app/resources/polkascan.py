@@ -41,6 +41,11 @@ from scalecodec.base import RuntimeConfiguration
 from substrateinterface import SubstrateInterface
 import requests
 
+class HealthCheckResource(JSONAPIResource):
+    def on_get(self, req, resp):
+        resp.status = falcon.HTTP_200
+        resp.media = {'status': 'OK'}
+
 class BlockDetailsResource(JSONAPIDetailResource):
 
     def get_item_url_name(self):
@@ -1481,12 +1486,12 @@ class TransactionResource2(BaseResource):
         end_time = req.get_param('end_time', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
         limit_option = str(req.get_param('limit')).lower() == 'true'
-        
+
 
         # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
         sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
         params = {}
-        
+
         if limit_option == False:
             if addr:
                 assert ' ' not in addr
@@ -1508,7 +1513,7 @@ class TransactionResource2(BaseResource):
                 params['to'] = decoded_to_addr
             else:
                 pass # wrong param, at least addr or from or to
-            
+
             sql_index += range_condition
 
             module_id = req.get_param('module_id', None)
@@ -1524,9 +1529,9 @@ class TransactionResource2(BaseResource):
 
             data = []
             sum_amount = 0
-            sql_index += ' ORDER BY block_id DESC limit 600'    
-            
-            index_result = self.session.execute(sql_index, params)        
+            sql_index += ' ORDER BY block_id DESC limit 600'
+
+            index_result = self.session.execute(sql_index, params)
 
 
             conditions = []
@@ -1633,7 +1638,7 @@ class TransactionResource2(BaseResource):
             resp.media = {'limit': 600}
         else:
             resp.media = {'data': data}
-        
+
 '''
 const processArg = require('./processArg');
 const config = require('../config/config');
