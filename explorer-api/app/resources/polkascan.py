@@ -1529,7 +1529,7 @@ class TransactionResource2(BaseResource):
 
             data = []
             sum_amount = 0
-            sql_index += ' ORDER BY block_id DESC limit 6000'
+            sql_index += ' ORDER BY block_id DESC limit 1000'
 
             index_result = self.session.execute(sql_index, params)
 
@@ -1635,7 +1635,7 @@ class TransactionResource2(BaseResource):
         if sum_option:
             resp.media = {'count': sum_amount}
         elif limit_option:
-            resp.media = {'limit': 6000}
+            resp.media = {'limit': 1000}
         else:
             resp.media = {'data': data}
 
