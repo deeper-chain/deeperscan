@@ -1546,22 +1546,22 @@ class TransactionResource2(BaseResource):
             if conditions:
                 sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
 
-            if start_time:
-                assert type(int(start_time)) is int
-                start_time_condition = ' AND block_datetime >= :start_time'
-                sql += start_time_condition
-                params['start_time'] = datetime.fromtimestamp(int(start_time))
+                if start_time:
+                    assert type(int(start_time)) is int
+                    start_time_condition = ' AND block_datetime >= :start_time'
+                    sql += start_time_condition
+                    params['start_time'] = datetime.fromtimestamp(int(start_time))
 
-            if end_time:
-                assert type(int(end_time)) is int
-                end_time_condition = ' AND block_datetime < :end_time'
-                sql += end_time_condition
-                params['end_time'] = datetime.fromtimestamp(int(end_time))
+                if end_time:
+                    assert type(int(end_time)) is int
+                    end_time_condition = ' AND block_datetime < :end_time'
+                    sql += end_time_condition
+                    params['end_time'] = datetime.fromtimestamp(int(end_time))
 
-            # print(sql)
-            result = self.session.execute(sql, params)
+                # print(sql)
+                result = self.session.execute(sql, params)
 
-            for row in result:
+                for row in result:
                 row = list(row)
                 module_id = row[2]
                 event_id = row[3]
@@ -1631,11 +1631,15 @@ class TransactionResource2(BaseResource):
 
                 data.append(row_dict)
                 sum_amount += int(amount)
-
+            else:
+                empty_flag = True
+                
         if sum_option:
             resp.media = {'count': sum_amount}
         elif limit_option:
             resp.media = {'limit': 1000}
+        elif empty_flag:
+            resp.media = {'empty': 0}
         else:
             resp.media = {'data': data}
 
