@@ -1486,6 +1486,7 @@ class TransactionResource2(BaseResource):
         end_time = req.get_param('end_time', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
         limit_option = str(req.get_param('limit')).lower() == 'true'
+        empty_flag = False
 
 
         # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
