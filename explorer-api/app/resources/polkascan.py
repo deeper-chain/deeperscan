@@ -1562,75 +1562,75 @@ class TransactionResource2(BaseResource):
                 result = self.session.execute(sql, params)
 
                 for row in result:
-                row = list(row)
-                module_id = row[2]
-                event_id = row[3]
-                index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-                # print('index_type_id', index_type_id, module_id, event_id)
-                if index_type_id == settings.SEARCH_INDEX_STAKING_REWARD:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    try:
-                        _to = json_data[0]['value']
-                        amount = json_data[1]['value']
-                    except:
+                    row = list(row)
+                    module_id = row[2]
+                    event_id = row[3]
+                    index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
+                    # print('index_type_id', index_type_id, module_id, event_id)
+                    if index_type_id == settings.SEARCH_INDEX_STAKING_REWARD:
+                        json_data = json.loads(row[4])
+                        _from = None
+                        try:
+                            _to = json_data[0]['value']
+                            amount = json_data[1]['value']
+                        except:
+                            _to = json_data[0]
+                            amount = json_data[1]
+
+                    elif index_type_id == settings.SEARCH_INDEX_BALANCETRANSFER:
+                        json_data = json.loads(row[4])
+                        try:
+                            _from = json_data[0]['value']
+                            _to = json_data[1]['value']
+                            amount = json_data[2]['value']
+                        except:
+                            _from = json_data[0]
+                            _to = json_data[1]
+                            amount = json_data[2]
+
+                    elif index_type_id == settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
+                        json_data = json.loads(row[4])
+                        try:
+                            _from = json_data[0]['value']
+                            _to = json_data[1]['value']
+                            amount = json_data[2]['value']
+                        except:
+                            _from = json_data[0]
+                            _to = json_data[1]
+                            amount = json_data[2]
+
+                    elif index_type_id == settings.SEARCH_INDEX_RELEASE_REWARD:
+                        json_data = json.loads(row[4])
+                        _from = None
                         _to = json_data[0]
                         amount = json_data[1]
 
-                elif index_type_id == settings.SEARCH_INDEX_BALANCETRANSFER:
-                    json_data = json.loads(row[4])
-                    try:
-                        _from = json_data[0]['value']
-                        _to = json_data[1]['value']
-                        amount = json_data[2]['value']
-                    except:
-                        _from = json_data[0]
-                        _to = json_data[1]
-                        amount = json_data[2]
+                    elif index_type_id == settings.SEARCH_INDEX_UNIQUES_TRANSFERRED:
+                        json_data = json.loads(row[4])
+                        _from = json_data[2]
+                        _to = json_data[3]
+                        amount = '{},{}'.format(json_data[0], json_data[1]) # class, instance
+                    elif index_type_id == settings.SEARCH_INDEX_NPOW_MINT:
+                        json_data = json.loads(row[4])
+                        _from = None
+                        _to = json_data[0]
+                        amount = json_data[1]
+                    else:
+                        continue
 
-                elif index_type_id == settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
-                    json_data = json.loads(row[4])
-                    try:
-                        _from = json_data[0]['value']
-                        _to = json_data[1]['value']
-                        amount = json_data[2]['value']
-                    except:
-                        _from = json_data[0]
-                        _to = json_data[1]
-                        amount = json_data[2]
+                    row_dict = {
+                        'block_id': row[0],
+                        'event_idx': row[1],
+                        'module_id': module_id,
+                        'event_id': event_id,
+                        '_from': _from,
+                        '_to': _to,
+                        'amount': str(amount),
+                        'timestamp': int(row[5].timestamp())
+                    }
 
-                elif index_type_id == settings.SEARCH_INDEX_RELEASE_REWARD:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    _to = json_data[0]
-                    amount = json_data[1]
-
-                elif index_type_id == settings.SEARCH_INDEX_UNIQUES_TRANSFERRED:
-                    json_data = json.loads(row[4])
-                    _from = json_data[2]
-                    _to = json_data[3]
-                    amount = '{},{}'.format(json_data[0], json_data[1]) # class, instance
-                elif index_type_id == settings.SEARCH_INDEX_NPOW_MINT:
-                    json_data = json.loads(row[4])
-                    _from = None
-                    _to = json_data[0]
-                    amount = json_data[1]
-                else:
-                    continue
-
-                row_dict = {
-                    'block_id': row[0],
-                    'event_idx': row[1],
-                    'module_id': module_id,
-                    'event_id': event_id,
-                    '_from': _from,
-                    '_to': _to,
-                    'amount': str(amount),
-                    'timestamp': int(row[5].timestamp())
-                }
-
-                data.append(row_dict)
-                sum_amount += int(amount)
+                    data.append(row_dict)
+                    sum_amount += int(amount)
             else:
                 empty_flag = True
                 
