@@ -1513,26 +1513,27 @@ class TransactionResource2(BaseResource):
                 decoded_to_addr = to_addr.replace('0x', '') if to_addr.startswith('0x') else ss58_decode(to_addr)
                 params['to'] = decoded_to_addr
             else:
-                pass # wrong param, at least addr or from or to
+                empty_flag = True
 
-            sql_index += range_condition
+            if empty_flag == False:
+                sql_index += range_condition
 
-            module_id = req.get_param('module_id', None)
-            event_id = req.get_param('event_id', None)
-            if module_id and event_id:
-                assert ' ' not in module_id
-                assert ' ' not in event_id
+                module_id = req.get_param('module_id', None)
+                event_id = req.get_param('event_id', None)
+                if module_id and event_id:
+                    assert ' ' not in module_id
+                    assert ' ' not in event_id
 
-                index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-                type_condition = ' AND index_type_id = :index_type_id'
-                sql_index += type_condition
-                params['index_type_id'] = index_type_id
+                    index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
+                    type_condition = ' AND index_type_id = :index_type_id'
+                    sql_index += type_condition
+                    params['index_type_id'] = index_type_id
 
-            data = []
-            sum_amount = 0
-            sql_index += ' ORDER BY block_id DESC limit 1000'
+                data = []
+                sum_amount = 0
+                sql_index += ' ORDER BY block_id DESC limit 1000'
 
-            index_result = self.session.execute(sql_index, params)
+                index_result = self.session.execute(sql_index, params)
 
 
             conditions = []
