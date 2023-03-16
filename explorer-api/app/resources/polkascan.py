@@ -1537,13 +1537,14 @@ class TransactionResource2(BaseResource):
 
 
             conditions = []
-            for row in index_result:
-                # print("result:", row)
-                row = list(row)
-                block_id = row[0]
-                event_idx = row[1]
-                if block_id is not None and event_idx is not None:
-                    conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
+            if limit_option == False:
+                for row in index_result:
+                    # print("result:", row)
+                    row = list(row)
+                    block_id = row[0]
+                    event_idx = row[1]
+                    if block_id is not None and event_idx is not None:
+                        conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
 
             if conditions:
                 sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
