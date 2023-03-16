@@ -1494,6 +1494,8 @@ class TransactionResource2(BaseResource):
         params = {}
 
         if limit_option == False:
+            index_result = []
+            
             if addr:
                 assert ' ' not in addr
                 range_condition = ' (account_id = :from OR account_id = :to)'
