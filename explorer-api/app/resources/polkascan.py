@@ -1494,8 +1494,6 @@ class TransactionResource2(BaseResource):
         params = {}
 
         if limit_option == False:
-            index_result = []
-            
             if addr:
                 assert ' ' not in addr
                 range_condition = ' (account_id = :from OR account_id = :to)'
@@ -1515,38 +1513,36 @@ class TransactionResource2(BaseResource):
                 decoded_to_addr = to_addr.replace('0x', '') if to_addr.startswith('0x') else ss58_decode(to_addr)
                 params['to'] = decoded_to_addr
             else:
-                empty_flag = True
+                pass # wrong param, at least addr or from or to
 
-            if empty_flag == False:
-                sql_index += range_condition
+            sql_index += range_condition
 
-                module_id = req.get_param('module_id', None)
-                event_id = req.get_param('event_id', None)
-                if module_id and event_id:
-                    assert ' ' not in module_id
-                    assert ' ' not in event_id
+            module_id = req.get_param('module_id', None)
+            event_id = req.get_param('event_id', None)
+            if module_id and event_id:
+                assert ' ' not in module_id
+                assert ' ' not in event_id
 
-                    index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-                    type_condition = ' AND index_type_id = :index_type_id'
-                    sql_index += type_condition
-                    params['index_type_id'] = index_type_id
+                index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
+                type_condition = ' AND index_type_id = :index_type_id'
+                sql_index += type_condition
+                params['index_type_id'] = index_type_id
 
-                data = []
-                sum_amount = 0
-                sql_index += ' ORDER BY block_id DESC limit 1000'
+            data = []
+            sum_amount = 0
+            sql_index += ' ORDER BY block_id DESC limit 1000'
 
-                index_result = self.session.execute(sql_index, params)
+            index_result = self.session.execute(sql_index, params)
 
 
             conditions = []
-            if limit_option == False:
-                for row in index_result:
-                    # print("result:", row)
-                    row = list(row)
-                    block_id = row[0]
-                    event_idx = row[1]
-                    if block_id is not None and event_idx is not None:
-                        conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
+            for row in index_result:
+                # print("result:", row)
+                row = list(row)
+                block_id = row[0]
+                event_idx = row[1]
+                if block_id is not None and event_idx is not None:
+                    conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
 
             if conditions:
                 sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
