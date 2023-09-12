@@ -227,14 +227,19 @@ class AccountBlockProcessor(BlockProcessor):
         if settings.DEEPER_DEBUG:
             print("DEEPER--->>> AccountBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
 
+        search_index = None
+        
         for account_audit in AccountAudit.query(db_session).filter_by(block_id=self.block.id).order_by('event_idx'):
             if settings.DEEPER_DEBUG:
                 print("DEEPER--->>> AccountBlockProcessor sequencing_hook account_audit.account_id = {}".format(account_audit.account_id))
 
             try:
-                account = Account.query(db_session).filter_by(id=account_audit.account_id).one()
+                account = Account.query(db_session).filter_by(id=account_audit.account_id).one_or_none()
 
-                if account_audit.type_id == settings.ACCOUNT_AUDIT_TYPE_REAPED:
+                if account is None:
+                    return
+                
+                elif account_audit.type_id == settings.ACCOUNT_AUDIT_TYPE_REAPED:
                     account.count_reaped += 1
                     account.is_reaped = True
 
