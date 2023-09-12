@@ -249,12 +249,6 @@ class AccountBlockProcessor(BlockProcessor):
                 account.updated_at_block = self.block.id
 
             except NoResultFound:             
-                """
-                encoded_account_id = search_index.account_id
-                logging.info(f"Address print(NoResultFound) encoded_account_id: {encoded_account_id}") # Debug
-                decoded_account_id = ss58_decode(encoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE)
-                logging.info(f"Address print(NoResultFound) decoded_account_id: {decoded_account_id}") # Debug
-                """
                 decoded_account_id = search_index.account_id
                 account = Account(
                     id=decoded_account_id,
@@ -309,12 +303,6 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.block_id == self.block.id,
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
-            """
-            encoded_account_id = search_index.account_id
-            logging.info(f"Address print(normal) encoded_account_id: {encoded_account_id}") # Debug
-            decoded_account_id = ss58_decode(encoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE)
-            logging.info(f"Address print(normal) decoded_account_id: {decoded_account_id}") # Debug
-            """
             decoded_account_id = search_index.account_id
             account = Account(
                 id=decoded_account_id,
