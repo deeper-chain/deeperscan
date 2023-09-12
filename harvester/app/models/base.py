@@ -20,6 +20,7 @@
 
 from dictalchemy import DictableModel
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import IntegrityError
 
 
 class BaseModelObj(DictableModel):
@@ -27,8 +28,12 @@ class BaseModelObj(DictableModel):
     serialize_exclude = None
 
     def save(self, session):
-        session.add(self)
-        session.flush()
+        try:
+            session.merge(self)
+            session.flush()
+        except IntegrityError as e:
+            session.rollback()
+            raise
 
     @property
     def serialize_type(self):
