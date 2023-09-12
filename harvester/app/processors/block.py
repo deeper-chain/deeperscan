@@ -20,6 +20,7 @@
 #
 import binascii
 import dateutil
+import logging
 from sqlalchemy import distinct
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -244,6 +245,7 @@ class AccountBlockProcessor(BlockProcessor):
 
             except NoResultFound:
                 decoded_account_id = account_audit.account_id
+                logging.info(f"Address print(NoResultFound): {decoded_account_id}") #Debug
                 account = Account(
                     id=decoded_account_id,
                     address=ss58_encode(decoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE),
@@ -298,6 +300,7 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
             decoded_account_id = search_index.account_id
+            logging.info(f"Address print(normal): {decoded_account_id}") # Debug
             account = Account(
                 id=decoded_account_id,
                 address=ss58_encode(decoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE),
