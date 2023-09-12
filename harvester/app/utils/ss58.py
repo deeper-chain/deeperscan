@@ -23,6 +23,7 @@
 
 """
 import base58
+import logging # debug
 from hashlib import blake2b
 
 from scalecodec import ScaleBytes
@@ -74,6 +75,7 @@ def ss58_encode(address, address_type=42):
         if "0x" in address:
             address_bytes = bytes.fromhex(address[2:])
         else:
+            logging.info(f"Address before conversion: {address}")
             address_bytes = bytes.fromhex(address)
             
     if len(address_bytes) == 32:

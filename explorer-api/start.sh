@@ -18,5 +18,5 @@ if [ "$ENVIRONMENT" = "dev" ]; then
 fi
 
 if [ "$ENVIRONMENT" = "prod" ]; then
-    gunicorn -b 0.0.0.0:8000 --workers=5 app.main:app --worker-class="egg:meinheld#gunicorn_worker"
+    gunicorn -b 0.0.0.0:8000 --workers=5 app.main:app --worker-class=gevent --worker-connections=1000 --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %({x-forwarded-for}i)s %(L)s' --access-logfile - --error-logfile -
 fi
