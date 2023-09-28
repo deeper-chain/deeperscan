@@ -497,7 +497,12 @@ class NewSessionEventProcessor(EventProcessor):
                 )
 
                 session_nominator.save(db_session)
-
+                
+        if current_era is not None:
+            era = current_era.value
+        else:
+            era = None
+            
         # Store session
         session = Session(
             id=session_id,
