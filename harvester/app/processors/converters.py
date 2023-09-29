@@ -333,13 +333,14 @@ class PolkascanHarvesterService(BaseService):
                             )
                             runtime_call.save(self.db_session)
 
-                            for arg in call.args:
-                                runtime_call_param = RuntimeCallParam(
-                                    runtime_call_id=runtime_call.id,
-                                    name=arg.name,
-                                    type=arg.type
-                                )
-                                runtime_call_param.save(self.db_session)
+                            if runtime_call.id is not None:
+                                for arg in call.args:
+                                    runtime_call_param = RuntimeCallParam(
+                                        runtime_call_id=runtime_call.id,
+                                        name=arg.name,
+                                        type=arg.type
+                                    )
+                                    runtime_call_param.save(self.db_session)
 
                     if len(module.events or []) > 0:
                         for event_index, event in enumerate(module.events):
@@ -471,7 +472,7 @@ class PolkascanHarvesterService(BaseService):
                 # Put in local store
                 self.metadata_store[spec_version] = metadata_decoder
                 self.substrate.metadata_cache[spec_version] = metadata_decoder
-            except SQLAlchemyError:
+            except SQLAlchemyError as e:
                 self.db_session.rollback()
                 print(f"An exception occurred: {e}")
 
