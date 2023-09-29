@@ -233,7 +233,12 @@ class PolkascanHarvesterService(BaseService):
             if spec_version in self.substrate.metadata_cache:
                 self.metadata_store[spec_version] = self.substrate.metadata_cache[spec_version]
             else:
-                self.metadata_store[spec_version] = self.substrate.get_block_metadata(block_hash=block_hash)
+                fetched_metadata = self.substrate.get_block_metadata(block_hash=block_hash)
+                if fetched_metadata is not None:  # Validate fetched metadata
+                    self.metadata_store[spec_version] = fetched_metadata
+                    self.substrate.metadata_cache[spec_version] = fetched_metadata  # Update the cache
+                else:
+                    raise Exception("Failed to fetch metadata from the blockchain")
 
         else:
             print(f'Metadata: CACHE MISS for spec_version: {spec_version}, block_hash: {block_hash}')
