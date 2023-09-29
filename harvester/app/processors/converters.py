@@ -470,8 +470,10 @@ class PolkascanHarvesterService(BaseService):
 
                 # Put in local store
                 self.metadata_store[spec_version] = metadata_decoder
+                self.substrate.metadata_cache[spec_version] = metadata_decoder
             except SQLAlchemyError:
                 self.db_session.rollback()
+                print(f"An exception occurred: {e}")
 
     def add_block(self, block_hash):
 
