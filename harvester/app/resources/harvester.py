@@ -379,6 +379,7 @@ class StartIntegrityResource(BaseResource):
             result = harvester.integrity_checks()
         except BlockIntegrityError as e:
             result = str(e)
+            print(f"PolkascanHarvesterService BlockIntegrityError: {e}")
 
         resp.media = {
             'result': result
