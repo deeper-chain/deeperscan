@@ -850,7 +850,8 @@ class PolkascanHarvesterService(BaseService):
             id=block.id
         )
         if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> sequence_block block.id={}, parent_block_data={}, parent_sequenced_block_data={}".format(block.id, parent_block_data, parent_sequenced_block_data))
+            #print("DEEPER--->>> sequence_block block.id={}, parent_block_data={}, parent_sequenced_block_data={}".format(block.id, parent_block_data, parent_sequenced_block_data))
+            print("Ok")
 
         # Process block processors
         for processor_class in ProcessorRegistry().get_block_processors():
