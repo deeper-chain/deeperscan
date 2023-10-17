@@ -225,7 +225,8 @@ class ExtrinsicDetailResource(JSONAPIDetailResource):
         return 'extrinsic_id'
 
     def get_item(self, item_id):
-
+        if item_id == "5CFghqocyACzAZ85tatFb3UYsJWncEos2JLpKZcHVtB9X6p6":
+            return None
         if item_id[0:2] == '0x':
             extrinsic = Extrinsic.query(self.session).filter_by(extrinsic_hash=item_id[2:]).first()
         else:
@@ -723,6 +724,9 @@ class AccountDetailResource(JSONAPIDetailResource):
         super(AccountDetailResource, self).__init__()
 
     def get_item(self, item_id):
+        if item_id == "5CFghqocyACzAZ85tatFb3UYsJWncEos2JLpKZcHVtB9X6p6":
+            return None
+        
         return Account.query(self.session).filter(or_(Account.address == item_id, Account.index_address == item_id)).first()
 
     def get_relationships(self, include_list, item):
