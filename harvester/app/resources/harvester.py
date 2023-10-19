@@ -408,7 +408,7 @@ class RebuildSearchIndexResource(BaseResource):
         resp.media = {
             'status': 'Search index rebuild task created',
             'data': data
-        }
+        } 
 
 
 class RebuildAccountInfoResource(BaseResource):
