@@ -62,7 +62,7 @@ class BaseTask(celery.Task):
         self.metadata_store = {}
 
     def __call__(self, *args, **kwargs):
-        self.engine = create_engine(DB_CONNECTION, echo=DEBUG, isolation_level="READ_UNCOMMITTED", pool_pre_ping=True)
+        self.engine = create_engine(DB_CONNECTION, echo=DEBUG, isolation_level="READ_UNCOMMITTED", pool_pre_ping=True, pool_size=30)
         session_factory = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
         self.session = scoped_session(session_factory)
 
