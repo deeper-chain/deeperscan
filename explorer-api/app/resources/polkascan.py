@@ -139,7 +139,8 @@ class BlockTotalListResource(JSONAPIListResource):
 
         return query
 
-# Debug
+
+class ExtrinsicListResource(JSONAPIListResource):
 
     exclude_params = True
 
@@ -216,45 +217,7 @@ class BlockTotalListResource(JSONAPIListResource):
                 query = query.filter_by(address=account_id)
 
         return query
-class ExtrinsicListResource(JSONAPIListResource):
-    
-    def get_query(self):
-        # 只加载必要的字段，减少数据量
-        return Extrinsic.query(self.session).options(
-            defer('params'),  # 如果params字段很大，可以考虑继续推迟加载
-            load_only('id', 'block_id', 'account_id', 'module_id', 'call_id')  # 仅加载必要的字段
-        ).order_by(Extrinsic.block_id.desc())
 
-    def serialize_item(self, item):
-        # 简化序列化过程
-        data = item.serialize(exclude=['params'])  # 假设排除params已经足够
-        if item.account:
-            data['attributes']['account'] = item.account.serialize()  # 假设账户信息是必要的
-        return data
-
-    def apply_filters(self, query, params):
-        # 简化过滤器逻辑
-        if 'filter[address]' in params:
-            account_id = self.get_account_id(params['filter[address]'])
-            if account_id:
-                query = query.filter(Extrinsic.account_id == account_id)
-
-        if 'filter[module_id]' in params:
-            query = query.filter(Extrinsic.module_id == params['filter[module_id]'])
-
-        if 'filter[call_id]' in params:
-            query = query.filter(Extrinsic.call_id == params['filter[call_id]'])
-
-        return query
-
-    def get_account_id(self, address):
-        # 根据地址获取账户ID的辅助函数
-        if len(address) == 64:
-            return address
-        try:
-            return ss58_decode(address, settings.SUBSTRATE_ADDRESS_TYPE)
-        except ValueError:
-            return None
 
 class ExtrinsicDetailResource(JSONAPIDetailResource):
 
