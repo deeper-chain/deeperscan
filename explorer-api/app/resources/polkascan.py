@@ -169,6 +169,10 @@ class ExtrinsicListResource(JSONAPIListResource):
 
     def apply_filters(self, query, params):
 
+        address_filter = params.get('filter[address]')
+        if not address_filter:
+            return query
+
         if params.get('filter[address]'):
 
             if len(params.get('filter[address]')) == 64:
