@@ -169,10 +169,6 @@ class ExtrinsicListResource(JSONAPIListResource):
 
     def apply_filters(self, query, params):
 
-        address_filter = params.get('filter[address]')
-        if not address_filter:
-            return query
-
         if params.get('filter[address]'):
 
             if len(params.get('filter[address]')) == 64:
@@ -183,10 +179,7 @@ class ExtrinsicListResource(JSONAPIListResource):
                 except ValueError:
                     return query.filter(False)
         else:
-            # Return a query that matches nothing if 'filter[address]' parameter is empty or not present
-            # This ensures that no database queries are executed when there is no valid address filter condition
-            return query.filter(False)
-            # account_id = None
+            account_id = None
 
         if params.get('filter[search_index]'):
 
