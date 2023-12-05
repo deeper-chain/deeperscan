@@ -168,7 +168,15 @@ class ExtrinsicListResource(JSONAPIListResource):
     #     return [item.account.serialize() for item in items if item.account]
 
     def apply_filters(self, query, params):
-
+        
+        if 'filter[address]' not in params:
+            # 返回空查询或抛出异常
+            raise ValueError("filter[address] parameter is required") 
+        
+        account_id = self.get_account_id(params['filter[address]'])
+        if account_id is None:
+            return query.filter(False)
+        
         if params.get('filter[address]'):
 
             if len(params.get('filter[address]')) == 64:
