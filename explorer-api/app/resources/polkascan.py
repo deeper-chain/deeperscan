@@ -40,6 +40,7 @@ from app.utils.ss58 import ss58_decode, ss58_encode
 from scalecodec.base import RuntimeConfiguration
 from substrateinterface import SubstrateInterface
 import requests
+import logging
 
 class HealthCheckResource(JSONAPIResource):
     def on_get(self, req, resp):
@@ -180,6 +181,15 @@ class ExtrinsicListResource(JSONAPIListResource):
                     return query.filter(False)
         else:
             account_id = None
+
+        # FIXME: It might cause a sql that cost too much time if account_id is None
+        if account_id is None:
+            # log what happened
+            logging.warning("account_id is None, params: {}".format(params))
+            raise falcon.HTTPBadRequest(
+                title='Invalid address',
+                description='Invalid address'
+            )
 
         if params.get('filter[search_index]'):
 
