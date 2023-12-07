@@ -1625,6 +1625,10 @@ class TransactionResource2(BaseResource):
 
                     # https://github.com/deeper-chain/deeperscan/issues/60
                     # AttributeError: 'NoneType' object has no attribute 'timestamp'
+                    if row[5] is None:
+                        # print entire row for debug
+                        print("ERROR: FIXME: row[5] is None")
+                        print(row)
                     row_dict = {
                         'block_id': row[0],
                         'event_idx': row[1],
