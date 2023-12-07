@@ -726,7 +726,7 @@ class AccountDetailResource(JSONAPIDetailResource):
     def get_item(self, item_id):
         if item_id == "5CFghqocyACzAZ85tatFb3UYsJWncEos2JLpKZcHVtB9X6p6":
             return None
-        
+
         return Account.query(self.session).filter(or_(Account.address == item_id, Account.index_address == item_id)).first()
 
     def get_relationships(self, include_list, item):
@@ -1623,6 +1623,8 @@ class TransactionResource2(BaseResource):
                     else:
                         continue
 
+                    # https://github.com/deeper-chain/deeperscan/issues/60
+                    # AttributeError: 'NoneType' object has no attribute 'timestamp'
                     row_dict = {
                         'block_id': row[0],
                         'event_idx': row[1],
@@ -1631,14 +1633,14 @@ class TransactionResource2(BaseResource):
                         '_from': _from,
                         '_to': _to,
                         'amount': str(amount),
-                        'timestamp': int(row[5].timestamp())
+                        'timestamp': 0 if row[5] is None else int(row[5].timestamp()),
                     }
 
                     data.append(row_dict)
                     sum_amount += int(amount)
             else:
                 empty_flag = True
-                
+
         if sum_option:
             resp.media = {'count': sum_amount}
         elif limit_option:
