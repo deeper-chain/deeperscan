@@ -169,6 +169,15 @@ class ExtrinsicListResource(JSONAPIListResource):
     #     return [item.account.serialize() for item in items if item.account]
 
     def apply_filters(self, query, params):
+        # FIXME: It might cause a sql that cost too much time if no filter is provided
+        # if there is no keys that starts with filter, raise an error
+        if not any(key.startswith('filter') for key in params.keys()):
+            # log what happened
+            logging.warning("account_id is None, params: {}".format(params))
+            raise falcon.HTTPBadRequest(
+                title='Invalid address',
+                description='Invalid address'
+            )
 
         if params.get('filter[address]'):
 
@@ -181,15 +190,6 @@ class ExtrinsicListResource(JSONAPIListResource):
                     return query.filter(False)
         else:
             account_id = None
-
-        # FIXME: It might cause a sql that cost too much time if account_id is None
-        if account_id is None:
-            # log what happened
-            logging.warning("account_id is None, params: {}".format(params))
-            raise falcon.HTTPBadRequest(
-                title='Invalid address',
-                description='Invalid address'
-            )
 
         if params.get('filter[search_index]'):
 
