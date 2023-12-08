@@ -228,7 +228,7 @@ class AccountBlockProcessor(BlockProcessor):
             print("DEEPER--->>> AccountBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
 
         search_index = None
-        
+
         for account_audit in AccountAudit.query(db_session).filter_by(block_id=self.block.id).order_by('event_idx'):
             if settings.DEEPER_DEBUG:
                 print("DEEPER--->>> AccountBlockProcessor sequencing_hook account_audit.account_id = {}".format(account_audit.account_id))
@@ -238,7 +238,7 @@ class AccountBlockProcessor(BlockProcessor):
 
                 if account is None:
                     return
-                
+
                 elif account_audit.type_id == settings.ACCOUNT_AUDIT_TYPE_REAPED:
                     account.count_reaped += 1
                     account.is_reaped = True
@@ -248,7 +248,7 @@ class AccountBlockProcessor(BlockProcessor):
 
                 account.updated_at_block = self.block.id
 
-            except NoResultFound:             
+            except NoResultFound:
                 decoded_account_id = search_index.account_id
                 account = Account(
                     id=decoded_account_id,
@@ -268,25 +268,23 @@ class AccountBlockProcessor(BlockProcessor):
 
                     account.index_address = account_index.short_address
 
-                if settings.DEEPER_DEBUG:
-                    print("DEEPER--->>> AccountBlockProcessor sequencing_hook NoResultFound account.id=0x{} address={} hash={}".format(account.id, account.address, self.block.hash))
-
-                # Retrieve and set initial balance
-                account_info_data = self.substrate.query(
-                    module='System',
-                    storage_function='Account',
-                    params=['0x{}'.format(account.id)],
-                    block_hash=self.block.hash
-                )
-
                 try:
+                    logging.debug("AccountBlockProcessor sequencing_hook NoResultFound account.id=0x{} address={} hash={}".format(account.id, account.address, self.block.hash))
+                     # Retrieve and set initial balance
+                    account_info_data = self.substrate.query(
+                        module='System',
+                        storage_function='Account',
+                        params=['0x{}'.format(account.id)],
+                        block_hash=self.block.hash
+                    )
                     if account_info_data:
                         account.balance_free = account_info_data["data"]["free"].decode()
                         account.balance_reserved = account_info_data["data"]["reserved"].decode()
                         account.balance_total = account.balance_free + account.balance_reserved
                         account.nonce = account_info_data["nonce"].decode()
 
-                except ValueError:
+                except Exception as e:
+                    logging.error(e)
                     pass
 
                 # # If reaped but does not exist, create new account for now

@@ -18,8 +18,8 @@
 #
 #  main.py
 
-from app.settings import DB_CONNECTION, DEBUG
-
+from app.settings import DB_CONNECTION, DEBUG, LOG_LEVEL, LOG_FORMAT
+import logging
 import falcon
 
 from sqlalchemy import create_engine
@@ -34,6 +34,8 @@ from app.resources.harvester import PolkascanStartHarvesterResource, PolkascanSt
     RebuildSearchIndexResource, ProcessGenesisBlockResource, PolkascanHarvesterQueueResource, RebuildAccountInfoResource
 from app.resources.tools import ExtractMetadataResource, ExtractExtrinsicsResource, \
     HealthCheckResource, ExtractEventsResource, CreateSnapshotResource
+
+logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
 
 # Database connection
 engine = create_engine(DB_CONNECTION, echo=DEBUG, isolation_level="READ_UNCOMMITTED", pool_pre_ping=True)

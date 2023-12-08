@@ -26,6 +26,8 @@ DB_PORT = os.environ.get("DB_PORT", 3306)
 DB_USERNAME = os.environ.get("DB_USERNAME", "root")
 DB_PASSWORD = os.environ.get("DB_PASSWORD", "root")
 
+START_AT_BLOCK_ID = int(os.environ.get("START_AT_BLOCK_ID", 1))
+
 DB_CONNECTION = os.environ.get("DB_CONNECTION", "mysql+mysqlconnector://{}:{}@{}:{}/{}?charset=utf8mb4".format(
     DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
 ))
@@ -50,9 +52,10 @@ FINALIZATION_BY_BLOCK_CONFIRMATIONS = int(os.environ.get("FINALIZATION_BY_BLOCK_
 FINALIZATION_ONLY = int(os.environ.get("FINALIZATION_ONLY", 0))
 
 DEBUG = bool(os.environ.get("DEBUG", False))
-DEEPER_INTEGRITY_DEBUG = bool(os.environ.get("DEEPER_INTEGRITY_DEBUG", True))
-DEEPER_DEBUG = bool(os.environ.get("DEEPER_DEBUG", True))
-
+DEEPER_INTEGRITY_DEBUG = bool(os.environ.get("DEEPER_INTEGRITY_DEBUG", False))
+DEEPER_DEBUG = bool(os.environ.get("DEEPER_DEBUG", False))
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG').upper()
+LOG_FORMAT = '%(asctime)s %(filename)s->%(funcName)s:%(lineno)d %(levelname)s %(message)s'
 BALANCE_FULL_SNAPSHOT_INTERVAL = 10000
 CELERY_RUNNING = True
 

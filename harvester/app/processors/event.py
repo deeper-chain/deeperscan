@@ -18,6 +18,7 @@
 #
 #  event.py
 #
+import logging
 from packaging import version
 from scalecodec.base import RuntimeConfiguration
 
@@ -241,7 +242,8 @@ class NewSessionEventProcessor(EventProcessor):
                     # hasher=storage_call.type_hasher,
                     # metadata_version=SUBSTRATE_METADATA_VERSION
                 )
-            except RemainingScaleBytesNotEmptyException:
+            except RemainingScaleBytesNotEmptyException as e:
+                logging.error(e)
                 pass
 
         # Retrieve validators for new session from storage
@@ -262,7 +264,20 @@ class NewSessionEventProcessor(EventProcessor):
                     # hasher=storage_call.type_hasher,
                     # metadata_version=SUBSTRATE_METADATA_VERSION
                 ) or []
-            except RemainingScaleBytesNotEmptyException:
+            except RemainingScaleBytesNotEmptyException as e:
+                logging.error(e)
+                pass
+
+        # current_era could be None if start block id is not 0
+        if current_era is None:
+            # get current era
+            try:
+                current_era = substrate.query(
+                    module="Staking",
+                    storage_function="CurrentEra",
+                )
+            except Exception as e:
+                logging.error(e)
                 pass
 
         # Retrieve all sessions in one call

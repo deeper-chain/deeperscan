@@ -38,7 +38,7 @@ from scalecodec.utils.ss58 import ss58_decode, is_valid_ss58_address
 
 from app.processors.base import BaseService, ProcessorRegistry
 from scalecodec.type_registry import load_type_registry_file
-from substrateinterface import SubstrateInterface, logger
+from substrateinterface import SubstrateInterface
 from substrateinterface.exceptions import SubstrateRequestException
 from substrateinterface.utils.hasher import xxh128
 
@@ -47,12 +47,7 @@ from app.models.data import Extrinsic, Block, Event, Runtime, RuntimeModule, Run
     AccountIndexAudit, ReorgBlock, ReorgExtrinsic, ReorgEvent, ReorgLog, RuntimeErrorMessage, Account, \
     AccountInfoSnapshot, SearchIndex
 
-
-if settings.DEBUG:
-    # Set Logger level to Debug
-    logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    logger.addHandler(ch)
+logger = logging.getLogger(__name__)
 
 
 class HarvesterCouldNotAddBlock(Exception):
@@ -184,9 +179,7 @@ class PolkascanHarvesterService(BaseService):
             )
 
             account_audit.save(self.db_session)
-
-            if settings.DEEPER_DEBUG:
-                print("DEEPER--->>> PolkascanHarvesterService SUBSTRATE_TREASURY_ACCOUNTS account_id={}".format(account_audit.account_id))
+            logger.debug('Treasury account found in genesis block {} {}'.format(account_audit.account_id, block.hash))
 
         # Check for sudo accounts
         try:
@@ -205,12 +198,10 @@ class PolkascanHarvesterService(BaseService):
                 data={'is_sudo': True},
                 type_id=settings.ACCOUNT_AUDIT_TYPE_NEW
             )
-
-            if settings.DEEPER_DEBUG:
-                print("DEEPER--->>> PolkascanHarvesterService Sudo account_id={}".format(account_audit.account_id))
-
+            logger.debug('Sudo account found in genesis block {} {}'.format(account_audit.account_id, block.hash))
             account_audit.save(self.db_session)
-        except ValueError:
+        except Exception as e:
+            logger.warning('Sudo account not found in genesis block')
             pass
 
         # Create initial session
@@ -236,7 +227,7 @@ class PolkascanHarvesterService(BaseService):
                 self.metadata_store[spec_version] = self.substrate.get_block_metadata(block_hash=block_hash)
 
         else:
-            print('Metadata: CACHE MISS', spec_version)
+            logger.debug('Metadata: CACHE MISS {}'.format(spec_version))
 
             runtime_version_data = self.substrate.get_block_runtime_version(block_hash)
 
@@ -920,14 +911,14 @@ class PolkascanHarvesterService(BaseService):
 
         if not integrity_head.value:
             # Only continue if block #1 exists
-            if Block.query(self.db_session).filter_by(id=1).count() == 0:
+            if Block.query(self.db_session).filter_by(id=settings.START_AT_BLOCK_ID+1).count() == 0:
                 raise BlockIntegrityError('Chain not at genesis')
 
-            integrity_head.value = 0
+            integrity_head.value = settings.START_AT_BLOCK_ID
         else:
             integrity_head.value = int(integrity_head.value)
 
-        start_block_id = max(integrity_head.value - 1, 0)
+        start_block_id = max(integrity_head.value - 1, settings.START_AT_BLOCK_ID)
         end_block_id = finalized_block_number
         chunk_size = 1000
         parent_block = None
@@ -1026,18 +1017,16 @@ class PolkascanHarvesterService(BaseService):
         sequencer_head = self.db_session.query(func.max(BlockTotal.id)).one()[0]
 
         if sequencer_head is None:
-            sequencer_head = -1
+            sequencer_head = settings.START_AT_BLOCK_ID-1
 
         # Start sequencing process
 
         sequencer_parent_block = BlockTotal.query(self.db_session).filter_by(id=sequencer_head).first()
         parent_block = Block.query(self.db_session).filter_by(id=sequencer_head).first()
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> start_sequencer sequencer_head={},  sequencer_parent_block={}, parent_block={}".format(sequencer_head, sequencer_parent_block, parent_block))
-
+        logger.info('start_sequencer sequencing_head={} sequencer_parent_block={} parent_block={}'.format(sequencer_head, sequencer_parent_block, parent_block))
         for block_nr in range(sequencer_head + 1, int(integrity_head.value) + 1):
 
-            if block_nr == 0:
+            if block_nr == settings.START_AT_BLOCK_ID:
                 # No block ever sequenced, check if chain is at genesis state
                 assert (not sequencer_parent_block)
 
@@ -1045,15 +1034,15 @@ class PolkascanHarvesterService(BaseService):
 
                 if not block:
                     self.db_session.commit()
-                    return {'error': 'Chain not at genesis'}
+                    return {'error': 'Chain not at genesis, block is missing'}
 
-                if block.id == 1:
+                if block.id == settings.START_AT_BLOCK_ID+1: # 1
                     # Add genesis block
                     block = self.add_block(block.parent_hash)
 
-                if block.id != 0:
+                if block.id != settings.START_AT_BLOCK_ID: # 0
                     self.db_session.commit()
-                    return {'error': 'Chain not at genesis'}
+                    return {'error': 'Chain not at genesis block.id=%d' % (block.id )}
 
                 self.process_genesis(block)
 
