@@ -227,7 +227,7 @@ class PolkascanHarvesterService(BaseService):
                 self.metadata_store[spec_version] = self.substrate.get_block_metadata(block_hash=block_hash)
 
         else:
-            logger.debug('missing runtime version {} in db'.format(spec_version))
+            logger.info('missing runtime version {} in db'.format(spec_version))
 
             runtime_version_data = self.substrate.get_block_runtime_version(block_hash)
 
@@ -317,10 +317,8 @@ class PolkascanHarvesterService(BaseService):
                                 documentation='\n'.join(call.docs),
                                 count_params=len(call.args)
                             )
-                            runtime_call.save(self.db_session)
-                            if runtime_call.id is None:
-                                self.db_session.flush()
-                                logger.debug('after flush runtime call, id={}'.format(runtime_call.id))
+                            self.db_session.add(runtime_call)
+                            self.db_session.flush()
                             logger.debug('save runtime call, id={}, spec_version={}, module_id={}, call_id={}'.format(runtime_call.id, spec_version, module_id, call.name))
 
                             for arg in call.args:
@@ -343,7 +341,9 @@ class PolkascanHarvesterService(BaseService):
                                 documentation='\n'.join(event.docs),
                                 count_attributes=len(event.args)
                             )
-                            runtime_event.save(self.db_session)
+                            self.db_session.add(runtime_event)
+                            self.db_session.flush()
+                            logger.debug('save runtime event, id={}, spec_version={}, module_id={}, event_id={}'.format(runtime_event.id, spec_version, module_id, event.name))
 
                             for arg_index, arg in enumerate(event.args):
                                 # print(type(arg), arg)
@@ -462,7 +462,7 @@ class PolkascanHarvesterService(BaseService):
                 self.metadata_store[spec_version] = metadata_decoder
             except SQLAlchemyError:
                 self.db_session.rollback()
-                logger.error('Could not store runtime version {} to db'.format(spec_version))
+                logger.error('Could not store runtime version {} to db'.format(spec_version), exc_info=True)
 
     def add_block(self, block_hash):
 
