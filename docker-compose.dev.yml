@@ -1,13 +1,12 @@
-version: '3.2'
+version: "3.2"
 
 services:
-
   explorer-api:
     build: explorer-api/.
     image: polkascan/pre-explorer-api:latest
     hostname: explorer-api
     volumes:
-      - './explorer-api:/usr/src/app'
+      - "./explorer-api:/usr/src/app"
     command: ./start.sh
     environment:
       - PYTHONPATH=/usr/src/app
@@ -30,7 +29,7 @@ services:
     image: polkascan/pre-harvester:latest
     hostname: harvester-api
     volumes:
-      - './harvester:/usr/src/app'
+      - "./harvester:/usr/src/app"
     command: ./start.sh
     environment: &env
       - CELERY_BROKER=redis://redis:6379/0
@@ -49,7 +48,6 @@ services:
       - SUBSTRATE_STORAGE_BALANCE=Account
       - SUBSTRATE_STORAGE_INDICES=Accounts
       - FINALIZATION_ONLY=1
-      - DEEPER_DEBUG=True
     depends_on:
       - redis
       - mysql
@@ -58,7 +56,7 @@ services:
     build: harvester/.
     image: polkascan/pre-harvester:latest
     volumes:
-      - './harvester:/usr/src/app'
+      - "./harvester:/usr/src/app"
     command: celery -A app.tasks worker --loglevel=INFO
     environment: *env
     depends_on:
@@ -69,8 +67,8 @@ services:
     build: harvester/.
     image: polkascan/pre-harvester:latest
     volumes:
-      - './harvester:/usr/src/app'
-      - '/usr/src/app/data'
+      - "./harvester:/usr/src/app"
+      - "/usr/src/app/data"
     command: celery -A app.tasks beat --loglevel=INFO  --schedule="data/celerybeat-schedule" --pidfile="data/celerybeat.pid"
     environment: *env
     depends_on:
@@ -81,7 +79,7 @@ services:
     build: harvester/.
     image: polkascan/pre-harvester:latest
     ports:
-      - '5555:5555'
+      - "5555:5555"
     command: flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
       - redis
@@ -97,9 +95,9 @@ services:
     cap_add:
       - SYS_NICE
     volumes:
-      - 'db-data:/var/lib/mysql'
+      - "db-data:/var/lib/mysql"
     ports:
-      - '33061:3306'
+      - "33061:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=polkascan
@@ -119,7 +117,7 @@ services:
         API_URL: http://voyager-ubuntu:8080/api/v1
         ENV_CONFIG: docker
     ports:
-      - '8080:80'
+      - "8080:80"
     depends_on:
       - harvester-api
       - explorer-api
@@ -127,7 +125,7 @@ services:
   api-sidecar:
     image: parity/substrate-api-sidecar:v11.3.15
     volumes:
-      - './harvester/app/type_registry/custom_types.json:/tmp/custom_types.json'
+      - "./harvester/app/type_registry/custom_types.json:/tmp/custom_types.json"
     environment:
       - SAS_SUBSTRATE_WS_URL=ws://172.17.0.1:9955
       - SAS_SUBSTRATE_TYPES=/tmp/custom_types.json

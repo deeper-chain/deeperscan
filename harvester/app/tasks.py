@@ -39,9 +39,10 @@ from app.processors.converters import PolkascanHarvesterService, HarvesterCouldN
 
 from substrateinterface import SubstrateInterface
 
-from app.settings import DB_CONNECTION, DEBUG, SUBSTRATE_RPC_URL, TYPE_REGISTRY, FINALIZATION_ONLY, TYPE_REGISTRY_FILE, DEEPER_DEBUG, LOG_LEVEL, LOG_FORMAT
+from app.settings import DB_CONNECTION, DEBUG, SUBSTRATE_RPC_URL, TYPE_REGISTRY, FINALIZATION_ONLY, TYPE_REGISTRY_FILE, LOG_LEVEL, LOG_FORMAT
 import logging
 logging.basicConfig(stream=sys.stdout, level=LOG_LEVEL, format=LOG_FORMAT)
+logger = logging.getLogger(__name__)
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
@@ -79,7 +80,7 @@ class BaseTask(celery.Task):
 
 @capp.task(base=BaseTask, bind=True)
 def accumulate_block_recursive(self, block_hash, end_block_hash=None):
-    logging.debug('accumulate_block_recursive: start: {}, end: {}'.format(block_hash, end_block_hash))
+    logger.debug('accumulate_block_recursive: start: {}, end: {}'.format(block_hash, end_block_hash))
 
     harvester = PolkascanHarvesterService(
         db_session=self.session,
@@ -122,7 +123,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
                 self.session.commit()
 
                 add_count += 1
-                logging.debug('accumulate_block_recursive: added block: {}, {}'.format(block_hash, block.id))
+                logger.debug('accumulate_block_recursive: added block: {}, {}'.format(block_hash, block.id))
 
                 # Break loop if targeted end block hash is reached
                 if block_hash == end_block_hash or block.id == 0:
@@ -138,11 +139,11 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
             accumulate_block_recursive.delay(block.parent_hash, end_block_hash)
 
     except BlockAlreadyAdded as e:
-        logging.warning('accumulate_block_recursive: block already added: {}'.format(block_hash))
+        logger.warning('accumulate_block_recursive: block already added: {}'.format(block_hash))
     # except IntegrityError as e:
     #     print('. Skipped duplicate {} '.format(block_hash))
     except Exception as exc:
-        logging.error('accumulate_block_recursive: error adding block: {}, {}'.format(block_hash, exc))
+        logger.error('accumulate_block_recursive: error adding block: {}, {}'.format(block_hash, exc))
         raise HarvesterCouldNotAddBlock(block_hash) from exc
 
     return {
@@ -155,23 +156,23 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
 @capp.task(base=BaseTask, bind=True)
 def start_sequencer(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
-    logging.debug('start_sequencer task {}'.format(sequencer_task.value))
+    logger.debug('start_sequencer task {}'.format(sequencer_task.value))
     if sequencer_task.value:
         task_result = AsyncResult(sequencer_task.value)
         try:
             task_ready = task_result.ready()
         except TypeError as e:
-            logging.warning('start_sequencer TypeError: {}'.format(e))
+            logger.warning('start_sequencer TypeError: {}'.format(e))
             task_ready = True
         if not task_result or task_ready:
-            logging.debug('start_sequencer task_ready {}'.format(task_ready))
+            logger.debug('start_sequencer task_ready {}'.format(task_ready))
             sequencer_task.value = None
             sequencer_task.save(self.session)
             self.session.commit()
 
     if sequencer_task.value is None:
         sequencer_task.value = self.request.id
-        logging.debug('start_sequencer none to value: {}'.format(self.request.id))
+        logger.debug('start_sequencer none to value: {}'.format(self.request.id))
         sequencer_task.save(self.session)
 
         harvester = PolkascanHarvesterService(
@@ -180,11 +181,11 @@ def start_sequencer(self):
             type_registry_file=TYPE_REGISTRY_FILE
         )
         try:
-            logging.debug('start_sequencer outer')
+            logger.debug('start_sequencer outer')
             result = harvester.start_sequencer()
         except BlockIntegrityError as e:
             result = {'result': str(e)}
-            logging.warning('start_sequencer value to none: {}, {}'.format(sequencer_task.value, e))
+            logger.warning('start_sequencer value to none: {}, {}'.format(sequencer_task.value, e))
         sequencer_task.value = None
         sequencer_task.save(self.session)
 
@@ -195,7 +196,7 @@ def start_sequencer(self):
 
         return result
     else:
-        logging.debug('start_sequencer not none {}'.format(sequencer_task.value))
+        logger.debug('start_sequencer not none {}'.format(sequencer_task.value))
         return {'result': 'Sequencer already running'}
 
 
@@ -230,18 +231,13 @@ def start_harvester(self, check_gaps=False):
     if check_gaps:
         # Check for gaps between already harvested blocks and try to fill them first
         remaining_sets_result = Block.get_missing_block_ids(self.session)
-
+        logger.info('check gaps remaining_sets_result: {}'.format(remaining_sets_result))
         for block_set in remaining_sets_result:
-
             # Get start and end block hash
             end_block_hash = substrate.get_block_hash(int(block_set['block_from']))
             start_block_hash = substrate.get_block_hash(int(block_set['block_to']))
-
             # Start processing task
             accumulate_block_recursive.delay(start_block_hash, end_block_hash)
-            if DEBUG:
-                print('accumulate_block_recursive--->>> before ', start_block_hash, end_block_hash)
-
             block_sets.append({
                 'start_block_hash': start_block_hash,
                 'end_block_hash': end_block_hash
@@ -259,7 +255,7 @@ def start_harvester(self, check_gaps=False):
     end_block_hash = None
 
     accumulate_block_recursive.delay(start_block_hash, end_block_hash)
-    logging.debug('accumulate_block_recursive--->>> after', start_block_hash, end_block_hash)
+    logger.debug('accumulate_block_recursive--->>> after', start_block_hash, end_block_hash)
 
     block_sets.append({
         'start_block_hash': start_block_hash,
@@ -376,8 +372,7 @@ def balance_snapshot(self, account_id=None, block_start=1, block_end=None, block
                 type_registry_preset=app.settings.TYPE_REGISTRY
             )
             block_end = substrate.get_block_number(substrate.get_chain_finalised_head())
-            if DEEPER_DEBUG:
-                print('DEEPER--->>>  balance_snapshot substrate.close')
+            logger.debug('DEEPER--->>>  balance_snapshot substrate.close')
             substrate.close()
 
         block_range = range(block_start, block_end + 1)
@@ -416,6 +411,6 @@ def update_balances_in_block(self, block_id):
 @capp.task(base=BaseTask, bind=True)
 def clean_up_SEQUENCER_TASK_ID(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
-    logging.debug('clean_up_SEQUENCER_TASK_ID task {}'.format(sequencer_task.value))
+    logger.debug('clean_up_SEQUENCER_TASK_ID task {}'.format(sequencer_task.value))
     sequencer_task.value = None
     sequencer_task.save(self.session)

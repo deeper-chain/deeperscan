@@ -37,7 +37,7 @@ from scalecodec.base import ScaleBytes, RuntimeConfiguration
 
 from app.processors.base import BlockProcessor
 from scalecodec.types import LogDigest
-
+logger = logging.getLogger(__name__)
 
 class LogBlockProcessor(BlockProcessor):
 
@@ -46,8 +46,7 @@ class LogBlockProcessor(BlockProcessor):
 
         if log_digest_cls is None:
             raise NotImplementedError("No decoding class found for 'DigestItem'")
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> LogBlockProcessor accumulation_hook")
+        logger.debug("DEEPER--->>> LogBlockProcessor accumulation_hook")
 
         self.block.count_log = len(self.block.logs)
 
@@ -143,8 +142,7 @@ class LogBlockProcessor(BlockProcessor):
 class BlockTotalProcessor(BlockProcessor):
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> BlockTotalProcessor sequencing_hook")
+        logger.debug("DEEPER--->>> BlockTotalProcessor sequencing_hook")
 
         if not parent_sequenced_block_data:
             parent_sequenced_block_data = {}
@@ -216,22 +214,19 @@ class BlockTotalProcessor(BlockProcessor):
 class AccountBlockProcessor(BlockProcessor):
 
     def accumulation_hook(self, db_session):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> AccountBlockProcessor accumulation_hook")
+        logger.debug("DEEPER--->>> AccountBlockProcessor accumulation_hook")
         self.block.count_accounts_new += len(set(self.block._accounts_new))
         self.block.count_accounts_reaped += len(set(self.block._accounts_reaped))
 
         self.block.count_accounts = self.block.count_accounts_new - self.block.count_accounts_reaped
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> AccountBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
+        logger.debug("DEEPER--->>> AccountBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
 
         search_index = None
 
         for account_audit in AccountAudit.query(db_session).filter_by(block_id=self.block.id).order_by('event_idx'):
-            if settings.DEEPER_DEBUG:
-                print("DEEPER--->>> AccountBlockProcessor sequencing_hook account_audit.account_id = {}".format(account_audit.account_id))
+            logger.debug("DEEPER--->>> AccountBlockProcessor sequencing_hook account_audit.account_id = {}".format(account_audit.account_id))
 
             try:
                 account = Account.query(db_session).filter_by(id=account_audit.account_id).one_or_none()
@@ -324,20 +319,16 @@ class AccountBlockProcessor(BlockProcessor):
                     account.balance_total = account.balance_free + account.balance_reserved
                     account.nonce = account_info_data["nonce"].decode()
             except ValueError as e:
-                print('!FIXIT ---> ValueError')
-                print(e)
+                logging.error(e, exec_info=True)
                 pass
-            if settings.DEBUG:
-                print('!DEBUG ---> account')
-                print(vars(account))
+            logger.debug("DEEPER--->>> AccountBlockProcessor sequencing_hook account.id=0x{} address={} hash={}".format(account.id, account.address, self.block.hash))
             account.save(db_session)
 
 
 class AccountIndexBlockProcessor(BlockProcessor):
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> AccountIndexBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
+        logger.debug("DEEPER--->>> AccountIndexBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
         for account_index_audit in AccountIndexAudit.query(db_session).filter_by(
                 block_id=self.block.id
         ).order_by('event_idx'):
@@ -394,8 +385,7 @@ class AccountIndexBlockProcessor(BlockProcessor):
 class IdentityBlockProcessor(BlockProcessor):
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> IdentityBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
+        logger.debug("DEEPER--->>> IdentityBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
 
         for identity_audit in IdentityAudit.query(db_session).filter_by(block_id=self.block.id).order_by('event_idx'):
 
@@ -514,8 +504,7 @@ class IdentityBlockProcessor(BlockProcessor):
 class IdentityJudgementBlockProcessor(BlockProcessor):
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> IdentityJudgementBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
+        logger.debug("DEEPER--->>> IdentityJudgementBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
 
         for identity_audit in IdentityJudgementAudit.query(db_session).filter_by(block_id=self.block.id).order_by('event_idx'):
 
@@ -585,8 +574,7 @@ class AccountInfoBlockProcessor(BlockProcessor):
 
     def sequencing_hook(self, db_session, parent_block, parent_sequenced_block):
         # Update Account according to AccountInfoSnapshot
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> AccountInfoBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
+        logger.debug("DEEPER--->>> AccountInfoBlockProcessor sequencing_hook self.block.id = {}".format(self.block.id))
 
         for account_info in AccountInfoSnapshot.query(db_session).filter_by(block_id=self.block.id):
             account = Account.query(db_session).get(account_info.account_id)

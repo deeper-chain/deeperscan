@@ -52,8 +52,6 @@ FINALIZATION_BY_BLOCK_CONFIRMATIONS = int(os.environ.get("FINALIZATION_BY_BLOCK_
 FINALIZATION_ONLY = int(os.environ.get("FINALIZATION_ONLY", 0))
 
 DEBUG = bool(os.environ.get("DEBUG", False))
-DEEPER_INTEGRITY_DEBUG = bool(os.environ.get("DEEPER_INTEGRITY_DEBUG", False))
-DEEPER_DEBUG = bool(os.environ.get("DEEPER_DEBUG", False))
 LOG_LEVEL = os.environ.get('LOG_LEVEL', 'DEBUG').upper()
 LOG_FORMAT = '%(asctime)s %(filename)s->%(funcName)s:%(lineno)d %(levelname)s %(message)s'
 BALANCE_FULL_SNAPSHOT_INTERVAL = 10000

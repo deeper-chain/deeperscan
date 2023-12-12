@@ -51,8 +51,7 @@ DOGPILE_CACHE_SETTINGS = {
     'db': os.environ.get("DOGPILE_CACHE_DB", 10)
 }
 
-
-DEBUG = False
+DEBUG = bool(os.environ.get("DEBUG", False))
 
 MAX_RESOURCE_PAGE_SIZE = 100
 LOG_TYPE_AUTHORITIESCHANGE = 1

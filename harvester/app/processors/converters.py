@@ -81,8 +81,7 @@ class PolkascanHarvesterService(BaseService):
         self.metadata_store = {}
 
     def process_genesis(self, block):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> PolkascanHarvesterService process_genesis block.hash={}".format(block.hash))
+        logger.debug("DEEPER--->>> PolkascanHarvesterService process_genesis block.hash={}".format(block.hash))
 
         # Set block time of parent block
         child_block = Block.query(self.db_session).filter_by(parent_hash=block.hash).first()
@@ -793,10 +792,6 @@ class PolkascanHarvesterService(BaseService):
             block_processor = processor_class(block, substrate=self.substrate, harvester=self)
             block_processor.accumulation_hook(self.db_session)
 
-        # Debug info
-        if settings.DEBUG:
-            block.debug_info = json_block
-
         # ==== Save data block ==================================
         if not exist_block:
             try:
@@ -807,8 +802,7 @@ class PolkascanHarvesterService(BaseService):
         return block
 
     def remove_block(self, block_hash):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> remove_block")
+        logger.debug("DEEPER--->>> remove_block")
 
         # Retrieve block
         block = Block.query(self.db_session).filter_by(hash=block_hash).first()
@@ -845,9 +839,7 @@ class PolkascanHarvesterService(BaseService):
         sequenced_block = BlockTotal(
             id=block.id
         )
-        if settings.DEEPER_DEBUG:
-            #print("DEEPER--->>> sequence_block block.id={}, parent_block_data={}, parent_sequenced_block_data={}".format(block.id, parent_block_data, parent_sequenced_block_data))
-            print("Ok")
+        logger.debug("DEEPER--->>> PolkascanHarvesterService sequence_block block.id={}".format(block.id))
 
         # Process block processors
         for processor_class in ProcessorRegistry().get_block_processors():
@@ -927,27 +919,20 @@ class PolkascanHarvesterService(BaseService):
         end_block_id = finalized_block_number
         chunk_size = 1000
         parent_block = None
-        if settings.DEEPER_INTEGRITY_DEBUG:
-            print('start_sequencer integrity_checks start: {}, end: {}'.format(start_block_id, end_block_id))
+        logger.debug("DEEPER--->>> PolkascanHarvesterService integrity_checks start_block_id={} end_block_id={}".format(start_block_id, end_block_id))
         if start_block_id < end_block_id:
             # Continue integrity check
-            if settings.DEEPER_INTEGRITY_DEBUG:
-                print('== Start integrity_checks from {} to {} =='.format(start_block_id, end_block_id))
-
+            logger.debug('DEEPER--->>> start integrity_checks from {} to {}'.format(start_block_id, end_block_id))
             for block_nr in range(start_block_id, end_block_id, chunk_size):
                 # TODO replace limit with filter_by block range
                 block_range = Block.query(self.db_session).order_by(Block.id.asc()).filter(Block.id >= block_nr).limit(chunk_size).all()
-                if settings.DEEPER_INTEGRITY_DEBUG:
-                    print('integrity_checks in outer for loop block_nr: {}, l: {}'.format(block_nr, len(block_range)))
+                logger.debug('DEEPER--->>> integrity_checks in outer for loop block_nr: {}, l: {}'.format(block_nr, len(block_range)))
                 # print('{}',block_range);
                 for block in block_range:
-                    if settings.DEEPER_INTEGRITY_DEBUG:
-                        print('integrity_checks for1 block {}'.format(block.id))
+                    logger.debug('DEEPER--->>> integrity_checks in inner for loop block.id: {}'.format(block.id))
                     if parent_block:
                         if block.id != parent_block.id + 1:
-                            if settings.DEEPER_INTEGRITY_DEBUG:
-                                print('integrity_checks if1 left {}, right {}'.format(block.id, parent_block.id + 1))
-
+                            logger.debug('DEEPER--->>> integrity_checks if1 left {}, right {}'.format(block.id, parent_block.id + 1))
                             # Save integrity head if block hash of parent matches with hash in node
                             if parent_block.hash == substrate.get_block_hash(integrity_head.value):
                                 integrity_head.save(self.db_session)
@@ -955,8 +940,7 @@ class PolkascanHarvesterService(BaseService):
 
                             raise BlockIntegrityError('Block #{} is missing.. stopping check '.format(parent_block.id + 1))
                         elif block.parent_hash != parent_block.hash:
-                            if settings.DEEPER_INTEGRITY_DEBUG:
-                                print('integrity_checks if2 left {}, right {}'.format(block.parent_hash, parent_block.hash))
+                            logger.debug('DEEPER--->>> integrity_checks if2 left {}, right {}'.format(block.parent_hash, parent_block.hash))
 
                             self.process_reorg_block(parent_block)
                             self.process_reorg_block(block)
@@ -973,31 +957,25 @@ class PolkascanHarvesterService(BaseService):
 
                             # Save integrity head if block hash of parent matches with hash in node
                             #if parent_block.parent_hash == substrate.get_block_hash(integrity_head.value):
-                            if settings.DEEPER_INTEGRITY_DEBUG:
-                                print('integrity_checks before save 1')
+                            logger.debug('DEEPER--->>> integrity_checks before save 1')
                             integrity_head.save(self.db_session)
                             self.db_session.commit()
 
                             raise BlockIntegrityError('Block #{} failed integrity checks, Re-adding #{}.. '.format(parent_block.id, block.id))
                         else:
-                            if settings.DEEPER_INTEGRITY_DEBUG:
-                                print('integrity_checks if3 {}'.format(block.id))
+                            logger.debug('DEEPER--->>> integrity_checks if3 {}'.format(block.id))
                             integrity_head.value = block.id
 
                     parent_block = block
 
                     if block.id == end_block_id:
-                        if settings.DEEPER_INTEGRITY_DEBUG:
-                            print('integrity_checks if4 {}'.format(block.id))
+                        logger.debug('DEEPER--->>> integrity_checks if4 {}'.format(block.id))
                         break
-            if settings.DEEPER_INTEGRITY_DEBUG:
-                print('integrity_checks after outer for loop')
+            logger.debug('DEEPER--->>> integrity_checks after outer for loop')
             if parent_block:
-                if settings.DEEPER_INTEGRITY_DEBUG:
-                    print('integrity_checks if parent_block')
+                logger.debug('integrity_checks if parent_block')
                 if parent_block.hash == substrate.get_block_hash(int(integrity_head.value)):
-                    if settings.DEEPER_INTEGRITY_DEBUG:
-                        print('integrity_checks if parent_block equals {}'.format(parent_block.hash))
+                    logger.debug('integrity_checks if parent_block equals {}'.format(parent_block.hash))
                     integrity_head.save(self.db_session)
                     self.db_session.commit()
 
@@ -1151,8 +1129,7 @@ class PolkascanHarvesterService(BaseService):
             self.db_session.commit()
 
     def create_full_balance_snaphot(self, block_id):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> create_full_balance_snaphot block_id={}".format(block_id))
+        logger.debug("DEEPER--->>> create_full_balance_snaphot block_id={}".format(block_id))
 
         block_hash = self.substrate.get_block_hash(block_id)
 
@@ -1252,8 +1229,7 @@ class PolkascanHarvesterService(BaseService):
             pass
 
     def update_account_balances(self):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> update_account_balances")
+        logger.debug("DEEPER--->>> update_account_balances")
         # set balances according to most recent snapshot
         account_info = self.db_session.execute("""
                         select
@@ -1284,8 +1260,7 @@ class PolkascanHarvesterService(BaseService):
             )
 
     def deeper_test(self, block_hash):
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> deeper_test")
+        logger.debug("DEEPER--->>> deeper_test")
         substrate = SubstrateInterface(
             url='wss://mainnet-deeper-chain.deeper.network/',
             type_registry_preset='core',
@@ -1311,5 +1286,4 @@ class PolkascanHarvesterService(BaseService):
         if settings.DEBUG:
             print("account_info_data: {}".format(account_info_data))
 
-        if settings.DEEPER_DEBUG:
-            print("DEEPER--->>> deeper_test finished")
+        logger.debug("DEEPER--->>> deeper_test finished")
