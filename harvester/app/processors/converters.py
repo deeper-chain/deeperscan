@@ -982,11 +982,9 @@ class PolkascanHarvesterService(BaseService):
         return {'integrity_head': integrity_head.value}
 
     def start_sequencer(self):
-        if settings.DEBUG:
-            print('start_sequencer before integrity_checks')
+        logger.debug('start_sequencer before integrity_checks')
         self.integrity_checks()
-        if settings.DEBUG:
-            print('start_sequencer after integrity_checks after')
+        logger.debug('start_sequencer after integrity_checks after')
         self.db_session.commit()
 
         block_nr = None
@@ -1269,11 +1267,9 @@ class PolkascanHarvesterService(BaseService):
 
         if block_hash:
             extrinsics = substrate.get_block(block_hash=block_hash)['extrinsics']
-            if settings.DEBUG:
-                print('Extrinsincs:', json.dumps([e.value for e in extrinsics], indent=4))
+            logger.debug('Extrinsincs:', json.dumps([e.value for e in extrinsics], indent=4))
             events = substrate.get_events(block_hash)
-            if settings.DEBUG:
-                print("Events:", json.dumps([e.value for e in events], indent=4))
+            logger.debug("Events:", json.dumps([e.value for e in events], indent=4))
 
 
         account_info_data = substrate.query(
@@ -1283,7 +1279,6 @@ class PolkascanHarvesterService(BaseService):
             block_hash='0xd626b0d19aae002015a508b1716dc63e7f4c8ea5aca5eb035c9bb714f7cc84cb' # err
             #block_hash='0xa20de815ad9e73e7b905598fce729584cf100a6c79c6fc390962364d60ecb3d1' # ok
         )
-        if settings.DEBUG:
-            print("account_info_data: {}".format(account_info_data))
+        logger.debug("account_info_data: {}".format(account_info_data))
 
         logger.debug("DEEPER--->>> deeper_test finished")

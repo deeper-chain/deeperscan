@@ -19,7 +19,7 @@
 #  harvester.py
 
 import datetime
-import uuid
+import logging
 
 import falcon
 import pytz
@@ -38,6 +38,7 @@ from substrateinterface import SubstrateInterface
 from app.tasks import accumulate_block_recursive, start_harvester, rebuild_search_index, rebuild_account_info_snapshot
 from app.settings import SUBSTRATE_RPC_URL, TYPE_REGISTRY, TYPE_REGISTRY_FILE
 
+logger = logging.getLogger(__name__)
 
 class PolkascanBlockHarvesterResource(BaseResource):
     #@validate(load_schema('start_harvester'))
@@ -204,30 +205,26 @@ class PolkascanProcessBlockResource(BaseResource):
             resp.media = {'errors': ['Either block_hash or block_id should be supplied']}
 
         if block_hash:
-            if settings.DEBUG:
-                print('Processing {} ...'.format(block_hash))
+            logger.debug('Processing {} ...'.format(block_hash))
             harvester = PolkascanHarvesterService(
                 db_session=self.session,
                 type_registry=TYPE_REGISTRY,
                 type_registry_file=TYPE_REGISTRY_FILE
             )
-            if settings.DEBUG:
-                print('Processing xxxxxx  {} - {} ...'.format(TYPE_REGISTRY, TYPE_REGISTRY_FILE))
+            logger.debug('Processing xxxxxx  {} - {} ...'.format(TYPE_REGISTRY, TYPE_REGISTRY_FILE))
 
 
             block = Block.query(self.session).filter(Block.hash == block_hash).first()
 
             # Delete the block and add it again
             if block:
-                if settings.DEBUG:
-                    print('Processing delete {} - {} ...'.format(req.media.get('block_id'), block_hash))
+                logger.debug('Processing delete {} - {} ...'.format(req.media.get('block_id'), block_hash))
                 harvester.remove_block(block_hash);
                 harvester.db_session.commit()
 
 
             amount = req.media.get('amount', 1)
-            if settings.DEBUG:
-                print('Processing amont {} ...'.format(amount))
+            logger.debug('Processing amont {} ...'.format(amount))
 
             for nr in range(0, amount):
                 try:
@@ -266,8 +263,7 @@ class SequenceBlockResource(BaseResource):
             resp.media = {'errors': ['Either block_hash or block_id should be supplied']}
 
         if block:
-            if settings.DEBUG:
-                print('Sequencing #{} ...'.format(block.id))
+            logger.debug('Sequencing #{} ...'.format(block.id))
 
             harvester = PolkascanHarvesterService(
                 db_session=self.session,
