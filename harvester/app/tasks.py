@@ -409,8 +409,8 @@ def update_balances_in_block(self, block_id):
 
 
 @capp.task(base=BaseTask, bind=True)
-def clean_up_SEQUENCER_TASK_ID(self):
+def clean_up_sequence_task_id(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
-    logger.debug('clean_up_SEQUENCER_TASK_ID task {}'.format(sequencer_task.value))
+    logger.info('clean_up_sequence_task_id: {}'.format(sequencer_task.value))
     sequencer_task.value = None
     sequencer_task.save(self.session)
