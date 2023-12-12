@@ -219,8 +219,8 @@ class PolkascanHarvesterService(BaseService):
         runtime = Runtime.query(self.db_session).get(spec_version)
 
         if runtime:
-
-            if spec_version in self.substrate.metadata_cache:
+            # Check if metadata_cache is attached to substrate
+            if hasattr(self.substrate, 'metadata_cache') and spec_version in self.substrate.metadata_cache:
                 self.metadata_store[spec_version] = self.substrate.metadata_cache[spec_version]
             else:
                 self.metadata_store[spec_version] = self.substrate.get_block_metadata(block_hash=block_hash)
