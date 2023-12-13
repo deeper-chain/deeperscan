@@ -801,8 +801,8 @@ class PolkascanHarvesterService(BaseService):
 
         return block
 
-    def remove_block(self, block_hash):
-        logger.info('Removing block {}'.format(block_hash))
+    def remove_block(self, block_hash, all_related=False):
+        logger.debug('Removing block {}'.format(block_hash))
 
         # Retrieve block
         block = Block.query(self.db_session).filter_by(hash=block_hash).first()
@@ -830,6 +830,20 @@ class PolkascanHarvesterService(BaseService):
         # Delete extrinsics
         for item in Extrinsic.query(self.db_session).filter_by(block_id=block.id):
             self.db_session.delete(item)
+
+        if all_related:
+            # Delete Data logs
+            for item in Log.query(self.db_session).filter_by(block_id=block.id):
+                self.db_session.delete(item)
+            # Delete account search index
+            for item in SearchIndex.query(self.db_session).filter_by(block_id=block.id):
+                self.db_session.delete(item)
+            # Delete account info snapshots
+            for item in AccountInfoSnapshot.query(self.db_session).filter_by(block_id=block.id):
+                self.db_session.delete(item)
+            # Delete BlockTotal
+            for item in BlockTotal.query(self.db_session).filter_by(id=block.id):
+                self.db_session.delete(item)
 
         # Delete block
         self.db_session.delete(block)

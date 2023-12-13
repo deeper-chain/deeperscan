@@ -55,6 +55,11 @@ capp.conf.beat_schedule = {
         'schedule': 10.0,
         'args': ()
     },
+    'clean-up-blocks': {
+        'task': 'app.tasks.clean_up_blocks',
+        'schedule': 30.0,
+        'args': ()
+    },
     'check-missing-block': {
         'task': 'app.tasks.start_harvester',
         'schedule': 1800.0,
@@ -62,7 +67,7 @@ capp.conf.beat_schedule = {
     },
     'update-start-block-id': {
         'task': 'app.tasks.update_start_block_id',
-        'schedule': 1800,
+        'schedule': 1800.0,
         'args': ()
     },
 }
@@ -75,7 +80,7 @@ def at_start(sender, **kwargs):
     with sender.app.connection() as conn:
         sender.app.send_task("app.tasks.update_start_block_id", connection=conn)
         sender.app.send_task("app.tasks.start_harvester", connection=conn, kwargs={'check_gaps': True})
-        sender.app.send_task("app.tasks.clean_up", connection=conn)
+        sender.app.send_task("app.tasks.clean_up_status", connection=conn)
 
 
 
@@ -429,7 +434,7 @@ def update_balances_in_block(self, block_id):
 
 
 @capp.task(base=BaseTask, bind=True)
-def clean_up(self):
+def clean_up_status(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
     logger.info('clean up sequencer_task: {}'.format(sequencer_task.value))
     sequencer_task.value = None
@@ -462,3 +467,23 @@ def update_start_block_id(self):
     self.session.commit()
 
     return {'result': 'OK'}
+
+@capp.task(base=BaseTask, bind=True)
+def clean_up_blocks(self):
+    start_block_id = Status.get_status(self.session, 'START_BLOCK_ID')
+    if start_block_id.value is None:
+        return {'result': 'Waiting for start block id'}
+    start_block_id = int(start_block_id.value)
+    deleting_blocks = self.session.query(Block.hash).filter(Block.id < start_block_id).limit(100)
+    total_blocks = deleting_blocks.count()
+    logger.info('clean_up_blocks, start block id: {}, going to delete {} blocks'.format(start_block_id, total_blocks))
+    harvester = PolkascanHarvesterService(
+        db_session=self.session,
+        type_registry=TYPE_REGISTRY,
+        type_registry_file=TYPE_REGISTRY_FILE
+        )
+    for block in deleting_blocks:
+        harvester.remove_block(block.hash, True)
+        self.session.commit()
+    logger.info('clean_up_blocks, finished. deleted {} blocks'.format(total_blocks))
+    return {'result': 'OK', 'total_blocks': total_blocks}
