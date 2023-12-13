@@ -474,7 +474,7 @@ def clean_up_blocks(self):
     if start_block_id.value is None:
         return {'result': 'Waiting for start block id'}
     start_block_id = int(start_block_id.value)
-    deleting_blocks = self.session.query(Block.hash).filter(Block.id < start_block_id).limit(100)
+    deleting_blocks = self.session.query(Block.hash).filter(Block.id < start_block_id).limit(app.settings.CLEAN_UP_BLOCKS_PER_RUN)
     total_blocks = deleting_blocks.count()
     logger.info('clean_up_blocks, start block id: {}, going to delete {} blocks'.format(start_block_id, total_blocks))
     harvester = PolkascanHarvesterService(
