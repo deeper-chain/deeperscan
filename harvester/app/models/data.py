@@ -24,7 +24,6 @@ from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
-from app.settings import START_AT_BLOCK_ID
 
 class Block(BaseModel):
     __tablename__ = 'data_block'
@@ -97,7 +96,7 @@ class Block(BaseModel):
         return model
 
     @classmethod
-    def get_missing_block_ids(cls, session):
+    def get_missing_block_ids(cls, session, start_at_block_id=1):
         return session.execute(text("""
 SELECT
     z.expected as block_from, z.got-1 as block_to
@@ -106,13 +105,13 @@ FROM (
     @rownum:=@rownum+1 AS expected,
     IF(@rownum=id, 0, @rownum:=id) AS got
     FROM
-    (SELECT @rownum:= %d) AS a
-    JOIN data_block WHERE id > %d
+    (SELECT @rownum:= :block_id) AS a
+    JOIN data_block WHERE id > :block_id
     ORDER BY id
     ) AS z
 WHERE z.got!=0
 ORDER BY block_from ASC
-""".strip() % (START_AT_BLOCK_ID, START_AT_BLOCK_ID)))
+"""), {'block_id': int(start_at_block_id)})
 
 class BlockMissing(BaseModel):
     __tablename__ = 'data_block_missing'

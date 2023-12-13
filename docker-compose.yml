@@ -4,7 +4,7 @@ x-env: &env
   CELERY_BROKER: redis://redis:6379/0
   CELERY_BACKEND: redis://redis:6379/0
   PYTHONPATH: /usr/src/app:/usr/src/app/py-substrate-interface/:/usr/src/app/py-scale-codec/
-  ENVIRONMENT: prod
+  ENVIRONMENT: dev
   DB_HOST: "mysql"
   DB_PORT: "3306"
   DB_USERNAME: "${DB_USERNAME}"
@@ -19,7 +19,7 @@ x-env: &env
   SUBSTRATE_STORAGE_INDICES: Accounts
   FINALIZATION_ONLY: 1
   SIDECAR_API_URL: "${SIDECAR_API_URL}"
-  START_AT_BLOCK_ID: "${START_AT_BLOCK_ID}"
+  BLOCK_HISTORY_PERIOD: "${BLOCK_HISTORY_PERIOD}"
   LOG_LEVEL: INFO
   DEBUG:
 

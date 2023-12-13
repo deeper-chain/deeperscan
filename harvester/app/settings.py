@@ -26,7 +26,7 @@ DB_PORT = os.environ.get("DB_PORT", 3306)
 DB_USERNAME = os.environ.get("DB_USERNAME", "root")
 DB_PASSWORD = os.environ.get("DB_PASSWORD", "root")
 
-START_AT_BLOCK_ID = int(os.environ.get("START_AT_BLOCK_ID", 1))
+BLOCK_HISTORY_PERIOD = os.environ.get("BLOCK_HISTORY_PERIOD", '180d')
 
 DB_CONNECTION = os.environ.get("DB_CONNECTION", "mysql+mysqlconnector://{}:{}@{}:{}/{}?charset=utf8mb4".format(
     DB_USERNAME, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME

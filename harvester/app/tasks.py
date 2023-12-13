@@ -55,9 +55,29 @@ capp.conf.beat_schedule = {
         'schedule': 10.0,
         'args': ()
     },
+    'check-missing-block': {
+        'task': 'app.tasks.start_harvester',
+        'schedule': 1800.0,
+        'args': (True,)
+    },
+    'update-start-block-id': {
+        'task': 'app.tasks.update_start_block_id',
+        'schedule': 1800,
+        'args': ()
+    },
 }
 
 capp.conf.timezone = 'UTC'
+
+@celery.signals.worker_ready.connect
+def at_start(sender, **kwargs):
+    logger.info('worker ready')
+    with sender.app.connection() as conn:
+        sender.app.send_task("app.tasks.update_start_block_id", connection=conn)
+        sender.app.send_task("app.tasks.start_harvester", connection=conn, kwargs={'check_gaps': True})
+        sender.app.send_task("app.tasks.clean_up", connection=conn)
+
+
 
 class BaseTask(celery.Task):
 
@@ -227,11 +247,10 @@ def start_harvester(self, check_gaps=False):
     )
 
     block_sets = []
-
-    if check_gaps:
+    start_block_id = Status.get_status(self.session, 'START_BLOCK_ID')
+    if check_gaps and start_block_id.value is not None:
         # Check for gaps between already harvested blocks and try to fill them first
-        remaining_sets_result = Block.get_missing_block_ids(self.session)
-        logger.info('check gaps remaining_sets_result: {}'.format(remaining_sets_result))
+        remaining_sets_result = Block.get_missing_block_ids(self.session, start_block_id.value)
         for block_set in remaining_sets_result:
             # Get start and end block hash
             end_block_hash = substrate.get_block_hash(int(block_set['block_from']))
@@ -242,6 +261,7 @@ def start_harvester(self, check_gaps=False):
                 'start_block_hash': start_block_hash,
                 'end_block_hash': end_block_hash
             })
+            logger.info('check gaps start_block_hash: {}, end_block_hash: {}, block_from: {}, block_to: {}'.format(start_block_hash, end_block_hash, block_set['block_from'], block_set['block_to']))
 
     # Start sequencer
     sequencer_task = start_sequencer.delay()
@@ -409,8 +429,36 @@ def update_balances_in_block(self, block_id):
 
 
 @capp.task(base=BaseTask, bind=True)
-def clean_up_sequence_task_id(self):
+def clean_up(self):
     sequencer_task = Status.get_status(self.session, 'SEQUENCER_TASK_ID')
-    logger.info('clean_up_sequence_task_id: {}'.format(sequencer_task.value))
+    logger.info('clean up sequencer_task: {}'.format(sequencer_task.value))
     sequencer_task.value = None
     sequencer_task.save(self.session)
+    # reset INTEGRITY_HEAD
+    integrity_head = Status.get_status(self.session, 'INTEGRITY_HEAD')
+    logger.info('clean up integrity_head: {}'.format(integrity_head.value))
+    integrity_head.value = None
+    integrity_head.save(self.session)
+    self.session.commit()
+    return {'result': 'OK'}
+
+@capp.task(base=BaseTask, bind=True)
+def update_start_block_id(self):
+    substrate = SubstrateInterface(
+                url=SUBSTRATE_RPC_URL,
+                runtime_config=RuntimeConfiguration(),
+                type_registry_preset=app.settings.TYPE_REGISTRY
+            )
+    block_id = substrate.get_block_number(substrate.get_chain_head())
+    seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
+    days_ago_in_seconds = int(app.settings.BLOCK_HISTORY_PERIOD[:-1]) * seconds_per_unit[app.settings.BLOCK_HISTORY_PERIOD[-1]]
+    if days_ago_in_seconds <= 0:
+        raise Exception('Invalid block history period: {}'.format(app.settings.BLOCK_HISTORY_PERIOD))
+    days_ago_block_id = max(int(block_id - days_ago_in_seconds / 5), 1)
+    logger.info('update_start_block_id, period: {}, head block id: {}, days ago block id: {}, total blocks: {}'.format(app.settings.BLOCK_HISTORY_PERIOD, block_id, days_ago_block_id, block_id - days_ago_block_id))
+    start_block_id = Status.get_status(self.session, 'START_BLOCK_ID')
+    start_block_id.value = days_ago_block_id
+    start_block_id.save(self.session)
+    self.session.commit()
+
+    return {'result': 'OK'}

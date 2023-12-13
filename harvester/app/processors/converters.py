@@ -802,7 +802,7 @@ class PolkascanHarvesterService(BaseService):
         return block
 
     def remove_block(self, block_hash):
-        logger.debug("DEEPER--->>> remove_block")
+        logger.info('Removing block {}'.format(block_hash))
 
         # Retrieve block
         block = Block.query(self.db_session).filter_by(hash=block_hash).first()
@@ -903,19 +903,26 @@ class PolkascanHarvesterService(BaseService):
             finalized_block_hash = substrate.get_chain_finalised_head()
             finalized_block_number = substrate.get_block_number(finalized_block_hash)
 
+        # get start at block id
+        start_block_id = Status.get_status(self.db_session, 'START_BLOCK_ID')
+        if not start_block_id.value:
+            raise BlockIntegrityError('Start block id not set')
+        else:
+            start_block_id.value = int(start_block_id.value)
+
         # 2. Check integrity head
         integrity_head = Status.get_status(self.db_session, 'INTEGRITY_HEAD')
 
         if not integrity_head.value:
             # Only continue if block #1 exists
-            if Block.query(self.db_session).filter_by(id=settings.START_AT_BLOCK_ID+1).count() == 0:
+            if Block.query(self.db_session).filter_by(id=start_block_id.value+1).count() == 0:
                 raise BlockIntegrityError('Chain not at genesis')
 
-            integrity_head.value = settings.START_AT_BLOCK_ID
+            integrity_head.value = start_block_id.value
         else:
             integrity_head.value = int(integrity_head.value)
 
-        start_block_id = max(integrity_head.value - 1, settings.START_AT_BLOCK_ID)
+        start_block_id = max(integrity_head.value - 1, start_block_id.value)
         end_block_id = finalized_block_number
         chunk_size = 1000
         parent_block = None
@@ -989,42 +996,50 @@ class PolkascanHarvesterService(BaseService):
 
         block_nr = None
 
+        # get start at block id
+        start_block_id = Status.get_status(self.db_session, 'START_BLOCK_ID')
+        if not start_block_id.value:
+            raise BlockIntegrityError('Start block id not set')
+        start_block_id.value = int(start_block_id.value)
+
         integrity_head = Status.get_status(self.db_session, 'INTEGRITY_HEAD')
 
         if not integrity_head.value:
-            integrity_head.value = 0
+            integrity_head.value = start_block_id.value - 1
 
         # 3. Check sequence head
         sequencer_head = self.db_session.query(func.max(BlockTotal.id)).one()[0]
 
-        if sequencer_head is None:
-            sequencer_head = settings.START_AT_BLOCK_ID-1
-
+        if sequencer_head is None or sequencer_head < start_block_id.value:
+            sequencer_head = start_block_id.value - 2 # -1
         # Start sequencing process
 
         sequencer_parent_block = BlockTotal.query(self.db_session).filter_by(id=sequencer_head).first()
         parent_block = Block.query(self.db_session).filter_by(id=sequencer_head).first()
-        logger.info('start_sequencer sequencing_head={} sequencer_parent_block={} parent_block={}'.format(sequencer_head, sequencer_parent_block, parent_block))
+        logger.info('start_sequencer sequencing_head={}, integrity_head={}, sequencer_parent_block is None={}, parent_block is None={}'.format(sequencer_head, integrity_head.value, sequencer_parent_block is None, parent_block is None))
         for block_nr in range(sequencer_head + 1, int(integrity_head.value) + 1):
 
-            if block_nr == settings.START_AT_BLOCK_ID:
+            if block_nr == int(start_block_id.value) - 1: # == 0
                 # No block ever sequenced, check if chain is at genesis state
                 assert (not sequencer_parent_block)
 
-                block = Block.query(self.db_session).order_by('id').first()
+                # first block is genesis block
+                block = Block.query(self.db_session).filter(Block.id > start_block_id.value - 2).order_by('id').first()
 
                 if not block:
                     self.db_session.commit()
                     return {'error': 'Chain not at genesis, block is missing'}
 
-                if block.id == settings.START_AT_BLOCK_ID+1: # 1
+                if block.id == start_block_id.value: # == 1
+                    logger.info('start_sequencer block.id == start_block_id.value, add genesis block')
                     # Add genesis block
                     block = self.add_block(block.parent_hash)
 
-                if block.id != settings.START_AT_BLOCK_ID: # 0
+                if block.id != start_block_id.value-1: # != 0
                     self.db_session.commit()
                     return {'error': 'Chain not at genesis block.id=%d' % (block.id )}
 
+                logger.info('start_sequencer process_genesis block.id={}'.format(block.id))
                 self.process_genesis(block)
 
                 sequencer_parent_block_data = None
@@ -1038,7 +1053,9 @@ class PolkascanHarvesterService(BaseService):
 
                 if not block:
                     self.db_session.commit()
-                    return {'result': 'Finished at #{}'.format(sequencer_parent_block.id)}
+                    # block_hash = self.substrate.get_block_hash(block_nr)
+                    # self.remove_block(block_hash)
+                    return {'result': 'Finished at #{}, block_nr={}, delete it might help'.format(block_nr, block_nr)}
 
                 sequencer_parent_block_data = sequencer_parent_block.asdict()
                 parent_block_data = parent_block.asdict()
@@ -1049,7 +1066,7 @@ class PolkascanHarvesterService(BaseService):
             sequencer_parent_block = sequenced_block
 
         if block_nr is None:
-            return {'result': 'Finished at #{}'.format(block_nr)}
+            return {'result': 'Finished (block_nr is None) at #{}'.format(block_nr)}
         else:
             return {'result': 'Nothing to sequence'}
 

@@ -114,8 +114,9 @@ class PolkascanHarvesterQueueResource(BaseResource):
     def on_get(self, req, resp):
 
         last_known_block = Block.query(self.session).order_by(Block.id.desc()).first()
+        start_block_id = Status.get_status(self.session, 'START_BLOCK_ID')
 
-        if not last_known_block:
+        if not last_known_block or start_block_id.value is None:
             resp.media = {
                 'status': 'success',
                 'data': {
@@ -124,7 +125,7 @@ class PolkascanHarvesterQueueResource(BaseResource):
             }
         else:
 
-            remaining_sets_result = Block.get_missing_block_ids(self.session)
+            remaining_sets_result = Block.get_missing_block_ids(self.session, start_block_id.value)
 
             resp.status = falcon.HTTP_200
 
@@ -180,7 +181,6 @@ class PolkascanHarvesterStatusResource(BaseResource):
 class PolkascanProcessBlockResource(BaseResource):
 
     def on_post(self, req, resp):
-
         block_hash = None
 
         if req.media.get('block_id'):
