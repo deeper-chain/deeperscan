@@ -2196,7 +2196,7 @@ class DataEventResource(BaseResource):
                 'from_address': row[1], 
                 'to_address': row[2], 
                 'amount': row[3], 
-                'block_datetime': row[4].isoformat() if row[4] else None
+                'block_datetime': row[4].strftime('%Y-%m-%d %H:%M:%S') if row[4] else None
             } 
             for row in rows
         ]
