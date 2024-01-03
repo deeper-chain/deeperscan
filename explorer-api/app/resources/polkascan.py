@@ -2161,23 +2161,19 @@ class DataEventResource(BaseResource):
         sql = """
             SELECT 
                 a.block_id,
-                jt.from_address,
-                jt.to_address,
-                jt.amount,
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) AS from_address,
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[3]')) AS amount,
                 a.block_datetime
             FROM 
-                data_event AS a
-                CROSS JOIN JSON_TABLE(
-                    a.attributes,
-                    '$' COLUMNS(
-                        from_address VARCHAR(255) PATH '$[1]',
-                        to_address VARCHAR(255) PATH '$[2]',
-                        amount VARCHAR(255) PATH '$[3]'
-                    )
-                ) AS jt
-            WHERE 
-                a.module_id = 'assets' AND a.event_id = 'Transferred' AND
-                (jt.from_address = :decoded_addr OR jt.to_address = :decoded_addr);
+                (SELECT block_id, attributes, block_datetime
+                 FROM data_event 
+                 WHERE module_id = 'assets' AND event_id = 'Transferred'
+                ) AS a
+            WHERE
+                (JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) = :decoded_addr 
+                OR 
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) = :decoded_addr)
         """
 
         # 添加时间过滤条件和分页逻辑
