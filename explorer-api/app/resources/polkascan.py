@@ -2141,8 +2141,8 @@ class DataEventResource(BaseResource):
         addr = req.get_param('address', None)
         start_timestamp = req.get_param('start_time', None)
         end_timestamp = req.get_param('end_time', None)
-        page = int(req.get_param('page', '1'))  # 默认为第一页
-        limit = int(req.get_param('limit', '10'))  # 默认每页10条记录
+        page = req.get_param('page', None)
+        limit = req.get_param('limit', None)
         
         decoded_addr = addr if addr.startswith('0x') else '0x' + ss58_decode(addr)
         
@@ -2187,10 +2187,12 @@ class DataEventResource(BaseResource):
 
         sql += " ORDER BY a.block_datetime DESC;"
         
-        # 添加分页逻辑
-        offset = (page - 1) * limit
-        sql += " ORDER BY a.block_datetime DESC LIMIT :limit OFFSET :offset;"
-        params.update({'limit': limit, 'offset': offset})
+        # 分页逻辑
+        params = {'decoded_addr': decoded_addr}
+        if page is not None and limit is not None:
+            offset = (int(page) - 1) * int(limit)
+            sql += " LIMIT :limit OFFSET :offset"
+            params.update({'limit': int(limit), 'offset': offset})
 
         # 执行查询
         result = self.session.execute(sql, params)
