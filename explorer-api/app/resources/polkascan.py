@@ -626,7 +626,7 @@ class ADSCBalanceTransferListResource(JSONAPIListResource):
 
             search_index = SearchIndex.query(self.session).filter(
                 SearchIndex.index_type_id.in_([
-                    settings.SEARCH_INDEX_BALANCETRANSFER
+                    settings.SEARCH_INDEX_ADSCBALANCETRANSFER
                 ]),
                 SearchIndex.account_id == account_id
             ).order_by(SearchIndex.block_id.desc()).limit(1000) # to avoid too many results
