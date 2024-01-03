@@ -2185,14 +2185,13 @@ class DataEventResource(BaseResource):
             sql += " AND a.block_datetime <= :end_time"
             params['end_time'] = end_time
 
-        sql += " ORDER BY a.block_datetime DESC;"
-        
-        # 分页逻辑
-        params = {'decoded_addr': decoded_addr}
+        # 添加分页逻辑
         if page is not None and limit is not None:
             offset = (int(page) - 1) * int(limit)
             sql += " LIMIT :limit OFFSET :offset"
             params.update({'limit': int(limit), 'offset': offset})
+            
+        sql += " ORDER BY a.block_datetime DESC;"
 
         # 执行查询
         result = self.session.execute(sql, params)
