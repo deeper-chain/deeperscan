@@ -2140,7 +2140,7 @@ class DataEventResource(BaseResource):
         # 获取请求参数
         addr = req.get_param('address', None)
         
-        decoded_addr = addr if addr.startswith('0x') else ss58_decode(addr)
+        decoded_addr = addr if addr.startswith('0x') else '0x' + ss58_decode(addr)
         
         print('addr: ', addr,' decoded_addr: ', decoded_addr)
         
