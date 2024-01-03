@@ -34,19 +34,29 @@
 
 ### 请求示例
 
-1. **基本查询**
+1. **基本查询特定地址（SS58地址）**
    ```
-   GET /api/v1/deeper/adsc_transfer?address=5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY
-   ```
-
-2. **带时间范围和分页的查询**
-   ```
-   GET /api/v1/deeper/adsc_transfer?address=5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY&start_time=1704067200&end_time=1704326399&page=1&limit=5
+   GET https://www.deeperscan.io/api/v1/deeper/adsc_transfer?address=5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY
    ```
 
-3. **查询特定地址的第二页数据**
+2. **基本查询特定地址（公钥地址）**
    ```
-   GET /api/v1/deeper/adsc_transfer?address=0x78dd6eecd6e6b3fbc87b54d3e8c7d58296a4beb9ccf66ba923b637b324b7e41d&page=2&limit=10
+   GET https://www.deeperscan.io/api/v1/deeper/adsc_transfer?address=0x78dd6eecd6e6b3fbc87b54d3e8c7d58296a4beb9ccf66ba923b637b324b7e41d
+   ```
+
+3. **带时间范围的查询**
+   ```
+   GET https://www.deeperscan.io/api/v1/deeper/adsc_transfer?address=5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY&start_time=1704067200&end_time=1704326399
+   ```
+
+4. **特定地址的分页查询**
+   ```
+   GET https://www.deeperscan.io/api/v1/deeper/adsc_transfer?address=0x78dd6eecd6e6b3fbc87b54d3e8c7d58296a4beb9ccf66ba923b637b324b7e41d&page=1&limit=5
+   ```
+
+5. **带时间范围和分页的复合查询**
+   ```
+   GET https://www.deeperscan.io/api/v1/deeper/adsc_transfer?address=0x78dd6eecd6e6b3fbc87b54d3e8c7d58296a4beb9ccf66ba923b637b324b7e41d&start_time=1704067200&end_time=1704326399&page=1&limit=2
    ```
 
 ### 响应示例
@@ -66,7 +76,12 @@
 
 ### 注意事项
 
-- 确保请求的 `address` 参数符合预期格式。
-- 时间戳参数（`start_time` 和 `end_time`）应为有效的 Unix 时间戳。
-- 如果未提供时间范围参数，将返回该地址的所有交易记录。
-- 分页参数 `page` 和 `limit` 用于控制分页行为，默认值分别为 `1`（第一页）和 `10`（每页10条记录）。
+1. **参数格式和有效性**：确保所有传递的参数，特别是 `address`，遵循预期的格式和数据类型。无效或格式不正确的参数可能导致查询失败或返回不正确的数据。
+
+2. **时间戳处理**：时间戳参数 `start_time` 和 `end_time` 应为有效的 Unix 时间戳。请确认提供的时间戳正确地反映了所需的查询时间范围，并考虑时区转换（如果适用）。
+
+3. **无时间范围时的默认行为**：如果未提供时间范围参数（即 `start_time` 和 `end_time`），接口将返回指定地址的所有交易记录。请注意，这可能涉及大量数据，因此请谨慎使用。
+
+4. **分页逻辑**：分页参数 `page` 和 `limit` 用于控制分页行为。如果这些参数没有被提供，默认值分别为 `1`（第一页）和 `10`（每页10条记录）。请注意，请求页数超过实际页数时，将返回空数据。
+
+5. **数据完整性和延迟**：由于区块链数据的性质，最新的交易记录可能会有一定的上链和处理延迟。因此，最近的交易可能不会立即出现在查询结果中。
