@@ -2139,12 +2139,21 @@ class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
         addr = req.get_param('address', None)
-        start_time = req.get_param('start_time', None)
-        end_time = req.get_param('end_time', None)
+        start_timestamp = req.get_param('start_time', None)
+        end_timestamp = req.get_param('end_time', None)
         
         decoded_addr = addr if addr.startswith('0x') else '0x' + ss58_decode(addr)
         
-        print('addr: ', addr,' decoded_addr: ', decoded_addr)
+        # 将Unix时间戳转换为日期时间格式
+        if start_timestamp:
+            start_time = datetime.utcfromtimestamp(int(start_timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            start_time = None
+
+        if end_timestamp:
+            end_time = datetime.utcfromtimestamp(int(end_timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            end_time = None
 
         # 构建基础 SQL 查询
         sql = """
