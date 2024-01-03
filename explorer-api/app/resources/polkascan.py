@@ -2134,3 +2134,44 @@ class NpowResource(BaseResource):
         sum_result = self.session.execute(sql, {'eth_addr': addr, 'day': day})
         sum_row = sum_result.fetchone()
         resp.media = {'addr': addr, 'ezc': int(sum_row[0]), 'dpr': int(sum_row[1])}
+
+class DataEventResource(BaseResource):
+    def on_get(self, req, resp):
+        from_addr = req.get_param('from', None)
+        to_addr = req.get_param('to', None)
+
+        sql = """
+            SELECT 
+                a.block_id,
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) AS from_address,
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[3]')) AS amount,
+                a.block_datetime
+            FROM 
+                (SELECT block_id, attributes, block_datetime
+                 FROM data_event 
+                 WHERE module_id = 'assets' AND event_id = 'Transferred'
+                ) AS a
+            WHERE
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) = %s
+                OR 
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) = %s
+            ORDER BY 
+                a.block_datetime DESC;
+        """
+
+        result = self.session.execute(sql, (from_addr, to_addr))
+
+        rows = result.fetchall()
+        data = [
+            {
+                'block_id': row[0], 
+                'from_address': row[1], 
+                'to_address': row[2], 
+                'amount': row[3], 
+                'block_datetime': row[4].isoformat() if row[4] else None
+            } 
+            for row in rows
+        ]
+
+        resp.media = data
