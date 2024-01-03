@@ -2139,10 +2139,10 @@ class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
         user_address = req.get_param('user', None)
-        from_addr = req.get_param('from', user_address)
-        to_addr = req.get_param('to', user_address)
+        # from_addr = req.get_param('from', user_address)
+        # to_addr = req.get_param('to', user_address)
         
-        print('from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', user_address);
+        print('from_addr: ', user_address, ' to_addr: ', user_address, 'addr: ', user_address);
 
         # 构建 SQL 查询
         sql = """
@@ -2166,9 +2166,9 @@ class DataEventResource(BaseResource):
         """
 
         # 执行查询
-        result = self.session.execute(sql, {'from_addr': from_addr, 'to_addr': to_addr})
+        result = self.session.execute(sql, {'from_addr': user_address, 'to_addr': user_address})
         
-        print('result: sql', sql, 'from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', user_address);
+        print('result: sql', sql, 'from_addr: ', user_address, ' to_addr: ', user_address, 'addr: ', user_address);
 
         # 处理结果
         rows = result.fetchall()
