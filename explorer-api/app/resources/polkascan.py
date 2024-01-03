@@ -2142,6 +2142,8 @@ class DataEventResource(BaseResource):
         
         decoded_addr = addr if addr.startswith('0x') else ss58_decode(addr)
         
+        print('addr: ', addr,' decoded_addr: ', decoded_addr)
+        
         # 构建 SQL 查询
         sql = """
             SELECT 
