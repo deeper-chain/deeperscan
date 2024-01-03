@@ -2,7 +2,7 @@
 
 ### 概述
 
-`DataEventResource` 接口提供了查询特定地址下的交易记录的功能。支持基本查询以及带时间范围的查询。
+`DataEventResource` 接口提供了查询特定地址下的交易记录的功能。它支持基本查询、带时间范围的查询以及分页功能。
 
 ### 基本信息
 
@@ -12,11 +12,13 @@
 
 ### 请求参数
 
-| 参数名       | 类型   | 描述                        | 必须 | 示例值                                          |
-|-------------|-------|----------------------------|------|-------------------------------------------------|
-| `address`   | 字符串 | 查询交易的地址。          | 是   | `5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY` |
-| `start_time`| 整数   | 查询时间范围的开始（Unix时间戳） | 否   | `1704067200`（对应于 2024-01-01 00:00:00 UTC）  |
-| `end_time`  | 整数   | 查询时间范围的结束（Unix时间戳） | 否   | `1704326399`（对应于 2024-01-03 23:59:59 UTC）  |
+| 参数名       | 类型   | 描述                              | 必须 | 示例值                                          |
+|-------------|-------|----------------------------------|------|-------------------------------------------------|
+| `address`   | 字符串 | 查询交易的地址。                | 是   | `5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY` |
+| `start_time`| 整数   | 查询时间范围的开始（Unix时间戳）   | 否   | `1704067200`（对应于 2024-01-01 00:00:00 UTC）  |
+| `end_time`  | 整数   | 查询时间范围的结束（Unix时间戳）   | 否   | `1704326399`（对应于 2024-01-03 23:59:59 UTC）  |
+| `page`      | 整数   | 请求的页码数，用于分页。         | 否   | `2`                                             |
+| `limit`     | 整数   | 每页显示的记录数。              | 否   | `10`                                            |
 
 ### 响应结构
 
@@ -37,14 +39,14 @@
    GET /api/v1/deeper/adsc_transfer?address=5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY
    ```
 
-2. **带时间范围的查询**
+2. **带时间范围和分页的查询**
    ```
-   GET /api/v1/deeper/adsc_transfer?address=5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY&start_time=1704067200&end_time=1704326399
+   GET /api/v1/deeper/adsc_transfer?address=5EoBP9qottfQVbcicWUR9uvTiaeYJKkcQrRgeEL8Q1nysEWY&start_time=1704067200&end_time=1704326399&page=1&limit=5
    ```
 
-3. **查询另一个地址**
+3. **查询特定地址的第二页数据**
    ```
-   GET /api/v1/deeper/adsc_transfer?address=0x78dd6eecd6e6b3fbc87b54d3e8c7d58296a4beb9ccf66ba923b637b324b7e41d
+   GET /api/v1/deeper/adsc_transfer?address=0x78dd6eecd6e6b3fbc87b54d3e8c7d58296a4beb9ccf66ba923b637b324b7e41d&page=2&limit=10
    ```
 
 ### 响应示例
@@ -67,3 +69,4 @@
 - 确保请求的 `address` 参数符合预期格式。
 - 时间戳参数（`start_time` 和 `end_time`）应为有效的 Unix 时间戳。
 - 如果未提供时间范围参数，将返回该地址的所有交易记录。
+- 分页参数 `page` 和 `limit` 用于控制分页行为，默认值分别为 `1`（第一页）和 `10`（每页10条记录）。
