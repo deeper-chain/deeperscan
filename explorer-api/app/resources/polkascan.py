@@ -2138,7 +2138,9 @@ class NpowResource(BaseResource):
 class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
-        user_address = req.get_param('address', None)
+        addr = req.get_param('address', None)
+        
+        decoded_addr = addr if addr.startswith('0x') else ss58_decode(addr)
         
         # 构建 SQL 查询
         sql = """
@@ -2162,7 +2164,7 @@ class DataEventResource(BaseResource):
         """
 
         # 执行查询
-        result = self.session.execute(sql, {'from_addr': user_address, 'to_addr': user_address})
+        result = self.session.execute(sql, {'from_addr': decoded_addr, 'to_addr': decoded_addr})
 
         # 处理结果
         rows = result.fetchall()
