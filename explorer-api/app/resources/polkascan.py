@@ -2137,9 +2137,11 @@ class NpowResource(BaseResource):
 
 class DataEventResource(BaseResource):
     def on_get(self, req, resp):
+        # 获取请求参数
         from_addr = req.get_param('from', None)
         to_addr = req.get_param('to', None)
 
+        # 构建 SQL 查询
         sql = """
             SELECT 
                 a.block_id,
@@ -2153,15 +2155,17 @@ class DataEventResource(BaseResource):
                  WHERE module_id = 'assets' AND event_id = 'Transferred'
                 ) AS a
             WHERE
-                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) = %s
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) = :from_addr 
                 OR 
-                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) = %s
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) = :to_addr
             ORDER BY 
                 a.block_datetime DESC;
         """
 
-        result = self.session.execute(sql, (from_addr, to_addr))
+        # 执行查询
+        result = self.session.execute(sql, {'from_addr': from_addr, 'to_addr': to_addr})
 
+        # 处理结果
         rows = result.fetchall()
         data = [
             {
@@ -2174,4 +2178,5 @@ class DataEventResource(BaseResource):
             for row in rows
         ]
 
+        # 设置响应
         resp.media = data
