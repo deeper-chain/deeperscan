@@ -2187,9 +2187,20 @@ class DataEventResource(BaseResource):
 
         # 添加分页逻辑
         if page is not None and limit is not None:
-            offset = (int(page) - 1) * int(limit)
-            sql += " LIMIT :limit OFFSET :offset"
-            params.update({'limit': int(limit), 'offset': offset})
+            try:
+                page_num = int(page)
+                limit_num = int(limit)
+                if page_num < 1 or limit_num < 1:
+                    raise ValueError("Page and limit must be positive integers.")
+                
+                offset = (page_num - 1) * limit_num
+                sql += " LIMIT :limit OFFSET :offset"
+                params.update({'limit': limit_num, 'offset': offset})
+            except ValueError as e:
+                # 如果页码或限制不是有效的整数，记录错误或返回错误响应
+                resp.status = falcon.HTTP_400  # 设置HTTP状态为400 Bad Request
+                resp.media = {'error': 'Invalid page or limit parameters'}
+                return  # 终止请求处理，返回错误信息
             
         sql += " ORDER BY a.block_datetime DESC;"
 
