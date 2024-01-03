@@ -2141,10 +2141,8 @@ class DataEventResource(BaseResource):
         addr = req.get_param('addr', None)
         from_addr = req.get_param('from', addr)
         to_addr = req.get_param('to', addr)
-
-        # 如果未提供任何地址参数，则设置默认值
-        if not from_addr and not to_addr and addr:
-            from_addr = to_addr = addr
+        
+        print('from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', addr);
 
         # 构建 SQL 查询
         sql = """
@@ -2169,6 +2167,8 @@ class DataEventResource(BaseResource):
 
         # 执行查询
         result = self.session.execute(sql, {'from_addr': from_addr, 'to_addr': to_addr})
+        
+        print('result: sql', sql, 'from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', addr);
 
         # 处理结果
         rows = result.fetchall()
@@ -2185,4 +2185,3 @@ class DataEventResource(BaseResource):
 
         # 设置响应
         resp.media = data
-
