@@ -2176,7 +2176,7 @@ class DataEventResource(BaseResource):
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) = :decoded_addr)
         """
 
-        # 添加时间过滤条件
+        # 添加时间过滤条件和分页逻辑
         params = {'decoded_addr': decoded_addr}
         if start_time:
             sql += " AND a.block_datetime >= :start_time"
@@ -2185,22 +2185,10 @@ class DataEventResource(BaseResource):
             sql += " AND a.block_datetime <= :end_time"
             params['end_time'] = end_time
 
-        # 添加分页逻辑
         if page is not None and limit is not None:
-            try:
-                page_num = int(page)
-                limit_num = int(limit)
-                if page_num < 1 or limit_num < 1:
-                    raise ValueError("Page and limit must be positive integers.")
-                
-                offset = (page_num - 1) * limit_num
-                sql += " LIMIT :limit OFFSET :offset"
-                params.update({'limit': limit_num, 'offset': offset})
-            except ValueError as e:
-                # 如果页码或限制不是有效的整数，记录错误或返回错误响应
-                resp.status = falcon.HTTP_400  # 设置HTTP状态为400 Bad Request
-                resp.media = {'error': 'Invalid page or limit parameters'}
-                return  # 终止请求处理，返回错误信息
+            offset = (int(page) - 1) * int(limit)
+            sql += " LIMIT :limit OFFSET :offset"
+            params.update({'limit': int(limit), 'offset': offset})
             
         sql += " ORDER BY a.block_datetime DESC;"
 
