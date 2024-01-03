@@ -1,8 +1,8 @@
-## 接口文档：DataEventResource
+## 接口文档：ADSCAddressTransferHistoryResource
 
 ### 概述
 
-`DataEventResource` 接口提供了查询特定地址下的交易记录的功能。它支持基本查询、带时间范围的查询以及分页功能。
+`ADSCAddressTransferHistoryResource` 接口提供了查询特定地址下的交易记录的功能。它支持基本查询、带时间范围的查询以及分页功能。
 
 ### 基本信息
 
