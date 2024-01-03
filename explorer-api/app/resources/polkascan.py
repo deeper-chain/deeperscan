@@ -2138,11 +2138,11 @@ class NpowResource(BaseResource):
 class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
-        addr = req.get_param('addr', None)
-        from_addr = req.get_param('from', addr)
-        to_addr = req.get_param('to', addr)
+        user_address = req.get_param('user', None)
+        from_addr = req.get_param('from', user_address)
+        to_addr = req.get_param('to', user_address)
         
-        print('from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', addr);
+        print('from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', user_address);
 
         # 构建 SQL 查询
         sql = """
@@ -2168,7 +2168,7 @@ class DataEventResource(BaseResource):
         # 执行查询
         result = self.session.execute(sql, {'from_addr': from_addr, 'to_addr': to_addr})
         
-        print('result: sql', sql, 'from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', addr);
+        print('result: sql', sql, 'from_addr: ', from_addr, ' to_addr: ', to_addr, 'addr: ', user_address);
 
         # 处理结果
         rows = result.fetchall()
