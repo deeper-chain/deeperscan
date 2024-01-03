@@ -2135,7 +2135,7 @@ class NpowResource(BaseResource):
         sum_row = sum_result.fetchone()
         resp.media = {'addr': addr, 'ezc': int(sum_row[0]), 'dpr': int(sum_row[1])}
 
-class ADSCAddressTransferHistoryResource(BaseResource):
+class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
         addr = req.get_param('address', None)
