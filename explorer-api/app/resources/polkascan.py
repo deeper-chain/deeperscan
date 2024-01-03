@@ -2138,8 +2138,13 @@ class NpowResource(BaseResource):
 class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
-        from_addr = req.get_param('from', None)
-        to_addr = req.get_param('to', None)
+        addr = req.get_param('addr', None)
+        from_addr = req.get_param('from', addr)
+        to_addr = req.get_param('to', addr)
+
+        # 如果未提供任何地址参数，则设置默认值
+        if not from_addr and not to_addr and addr:
+            from_addr = to_addr = addr
 
         # 构建 SQL 查询
         sql = """
