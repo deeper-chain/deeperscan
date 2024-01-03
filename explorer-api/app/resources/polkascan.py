@@ -2138,32 +2138,47 @@ class NpowResource(BaseResource):
 class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
-        from_addr = req.get_param('from', None)
-        to_addr = req.get_param('to', None)
+        addr = req.get_param('addr', None)
+        from_addr = req.get_param('from', addr)
+        to_addr = req.get_param('to', addr)
+        start_time = req.get_param('start_time', None)
+        end_time = req.get_param('end_time', None)
 
-        # 构建 SQL 查询
+        # 构建基础 SQL 查询
         sql = """
             SELECT 
                 a.block_id,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[3]')) AS amount,
-                a.block_datetime
+                DATE_FORMAT(a.block_datetime, '%Y-%m-%d %H:%i:%s') as block_datetime
             FROM 
                 (SELECT block_id, attributes, block_datetime
                  FROM data_event 
                  WHERE module_id = 'assets' AND event_id = 'Transferred'
                 ) AS a
             WHERE
-                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) = :from_addr 
+                (JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) = :from_addr 
                 OR 
-                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) = :to_addr
-            ORDER BY 
-                a.block_datetime DESC;
+                JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) = :to_addr)
         """
 
+        # 添加时间过滤条件
+        time_conditions = []
+        params = {'from_addr': from_addr, 'to_addr': to_addr}
+        if start_time:
+            time_conditions.append("a.block_datetime >= :start_time")
+            params['start_time'] = start_time
+        if end_time:
+            time_conditions.append("a.block_datetime <= :end_time")
+            params['end_time'] = end_time
+        if time_conditions:
+            sql += " AND " + " AND ".join(time_conditions)
+
+        sql += " ORDER BY a.block_datetime DESC;"
+
         # 执行查询
-        result = self.session.execute(sql, {'from_addr': from_addr, 'to_addr': to_addr})
+        result = self.session.execute(sql, params)
 
         # 处理结果
         rows = result.fetchall()
@@ -2173,7 +2188,7 @@ class DataEventResource(BaseResource):
                 'from_address': row[1], 
                 'to_address': row[2], 
                 'amount': row[3], 
-                'block_datetime': row[4].isoformat() if row[4] else None
+                'block_datetime': row[4]
             } 
             for row in rows
         ]
