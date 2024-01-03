@@ -604,6 +604,122 @@ class BalanceTransferListResource(JSONAPIListResource):
                 'fee': fee
             }
         }
+        
+
+class ADSCBalanceTransferListResource(JSONAPIListResource):
+    
+    def get_query(self):
+        return Event.query(self.session).filter(
+            Event.module_id == 'balances', Event.event_id == 'Transfer'
+        ).order_by(Event.block_id.desc())
+
+    def apply_filters(self, query, params):
+        if params.get('filter[address]'):
+
+            if len(params.get('filter[address]')) == 64:
+                account_id = params.get('filter[address]')
+            else:
+                try:
+                    account_id = ss58_decode(params.get('filter[address]'), settings.SUBSTRATE_ADDRESS_TYPE)
+                except ValueError:
+                    return query.filter(False)
+
+            search_index = SearchIndex.query(self.session).filter(
+                SearchIndex.index_type_id.in_([
+                    # settings.SEARCH_INDEX_CLAIMS_CLAIMED,
+                    # settings.SEARCH_INDEX_STAKING_REWARD,
+                    settings.SEARCH_INDEX_BALANCES_DEPOSIT,
+                    settings.SEARCH_INDEX_BALANCETRANSFER
+                ]),
+                SearchIndex.account_id == account_id
+            ).order_by(SearchIndex.block_id.desc()).limit(1000) # to avoid too many results
+
+            query = Event.query(self.session).filter(tuple_(Event.block_id, Event.event_idx).in_(
+                [[s.block_id, s.event_idx] for s in search_index]
+            )).order_by(Event.block_id.desc())
+
+
+        return query
+
+    def serialize_item(self, item):
+        if item.event_id == 'Transfer':
+            sender_id = 'unknown'
+            if type(item.attributes[0]) == str:
+                sender_id = item.attributes[0].replace('0x', '')
+            elif item.attributes[0] and 'value' in item.attributes[0] and type(item.attributes[0]['value']) == str:
+                sender_id = item.attributes[0]['value'].replace('0x', '')
+            sender = Account.query(self.session).get(sender_id)
+            if sender:
+                sender_data = sender.serialize()
+            else:
+                sender_data = {
+                    'type': 'account',
+                    'id': sender_id,
+                    'attributes': {
+                        'id': sender_id,
+                        'address': ss58_encode(sender_id, settings.SUBSTRATE_ADDRESS_TYPE)
+                    }
+                }
+
+            destination_id = 'unknown'
+            if type(item.attributes[1]) == str:
+                destination_id = item.attributes[1].replace('0x', '')
+            elif item.attributes[1] and 'value' in item.attributes[1] and type(item.attributes[1]['value']) == str:
+                destination_id = item.attributes[1]['value'].replace('0x', '')
+            destination = Account.query(self.session).get(destination_id)
+            if destination:
+                destination_data = destination.serialize()
+            else:
+                destination_data = {
+                    'type': 'account',
+                    'id': destination_id,
+                    'attributes': {
+                        'id': destination_id,
+                        'address': ss58_encode(destination_id, settings.SUBSTRATE_ADDRESS_TYPE)
+                    }
+                }
+
+            # Some networks don't have fees
+            if len(item.attributes) == 4:
+                fee = item.attributes[3]
+            else:
+                fee = 0
+
+            try:
+                value = item.attributes[2]['value']
+            except:
+                value = item.attributes[2]
+
+        elif item.event_id == 'Deposit':
+
+            fee = 0
+            sender_data = {'name': 'Deposit'}
+            destination_data = {}
+            value = 0
+            if type(item.attributes[1]) == int or type(item.attributes[1]) == float or type(item.attributes[1]) == str:
+                value = item.attributes[1]
+            elif item.attributes[1] and 'value' in item.attributes[1]:
+                value = item.attributes[1]['value']
+
+        else:
+            sender_data = {}
+            fee = 0
+            destination_data = {}
+            value = None
+
+        return {
+            'type': 'balancetransfer',
+            'id': '{}-{}'.format(item.block_id, item.event_idx),
+            'attributes': {
+                'block_id': item.block_id,
+                'event_id': item.event_id,
+                'event_idx': '{}-{}'.format(item.block_id, item.event_idx),
+                'sender': sender_data,
+                'destination': destination_data,
+                'value': value,
+                'fee': fee
+            }
+        }
 
 
 class BalanceTransferDetailResource(JSONAPIDetailResource):
