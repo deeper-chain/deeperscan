@@ -29,10 +29,10 @@ class BaseModelObj(DictableModel):
 
     def save(self, session):
         try:
-            # session.add(self)
-            session.merge(self)
+            session.add(self)
+            # session.merge(self)
             session.flush()
-            # session.commit()
+            session.commit()
         except IntegrityError as e:
             session.rollback()
             raise
