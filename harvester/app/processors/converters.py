@@ -466,8 +466,9 @@ class PolkascanHarvesterService(BaseService):
     def add_block(self, block_hash):
 
         # Check if block is already process
-        if Block.query(self.db_session).filter_by(hash=block_hash).count() > 0:
-            raise BlockAlreadyAdded(block_hash)
+        block = Block.query(self.db_session).filter_by(hash=block_hash).first()
+        if block is not None:
+            raise BlockAlreadyAdded('Block id {}, hash {} already added'.format(block.id, block_hash))
 
         if settings.SUBSTRATE_MOCK_EXTRINSICS:
             self.substrate.mock_extrinsics = settings.SUBSTRATE_MOCK_EXTRINSICS

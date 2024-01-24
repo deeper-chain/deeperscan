@@ -138,7 +138,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
     block = None
     max_sequenced_block_id = False
 
-    add_count = 0
+    added_blocks = []
 
     try:
         for nr in range(0, 20):
@@ -147,8 +147,8 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
                 block = harvester.add_block(block_hash)
                 self.session.commit()
 
-                add_count += 1
                 logger.debug('accumulate_block_recursive: added block: {}, {}'.format(block_hash, block.id))
+                added_blocks.append(block.id)
 
                 # Break loop if targeted end block hash is reached
                 if block_hash == end_block_hash or block.id == 0:
@@ -164,7 +164,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
             accumulate_block_recursive.delay(block.parent_hash, end_block_hash)
 
     except BlockAlreadyAdded as e:
-        logger.warning('accumulate_block_recursive: block already added: {}'.format(block_hash))
+        logger.warning('accumulate_block_recursive: block already added: {}'.format(e))
     # except IntegrityError as e:
     #     print('. Skipped duplicate {} '.format(block_hash))
     except Exception as exc:
@@ -172,7 +172,7 @@ def accumulate_block_recursive(self, block_hash, end_block_hash=None):
         raise HarvesterCouldNotAddBlock(block_hash) from exc
 
     return {
-        'result': '{} blocks added'.format(add_count),
+        'result': '{} blocks added, blocks: {}'.format(len(added_blocks), ', '.join(map(str, added_blocks))),
         'lastAddedBlockHash': block_hash,
         'sequencerStartedFrom': max_sequenced_block_id
     }

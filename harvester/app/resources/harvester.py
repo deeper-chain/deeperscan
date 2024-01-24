@@ -230,7 +230,7 @@ class PolkascanProcessBlockResource(BaseResource):
                 try:
                     block = harvester.add_block(block_hash)
                 except BlockAlreadyAdded as e:
-                    print('Skipping {}'.format(block_hash))
+                    logger.warning(e)
                 block_hash = block.parent_hash
                 if block.id == 0:
                     break
