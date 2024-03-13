@@ -461,6 +461,12 @@ def update_start_block_id(self):
         raise Exception('Invalid block history period: {}'.format(app.settings.BLOCK_HISTORY_PERIOD))
     days_ago_block_id = max(int(block_id - days_ago_in_seconds / 5), 1)
     logger.info('update_start_block_id, period: {}, head block id: {}, days ago block id: {}, total blocks: {}'.format(app.settings.BLOCK_HISTORY_PERIOD, block_id, days_ago_block_id, block_id - days_ago_block_id))
+    lowest_block_id = self.session.query(func.min(Block.id)).one()[0]
+    if (lowest_block_id - days_ago_block_id) > app.settings.CATCH_UP_BLOCKS_PER_RUN:
+        days_ago_block_id = lowest_block_id - app.settings.CATCH_UP_BLOCKS_PER_RUN
+        logger.info('update_start_block_id, days ago block id adjusted to lowest block id({}) - blocks_in_1_hour: {}'.format(lowest_block_id, days_ago_block_id))
+    else:
+        logger.info('update_start_block_id, days ago block id not adjusted, lowest block id({}) - days ago block id: {}'.format(lowest_block_id, days_ago_block_id))
     start_block_id = Status.get_status(self.session, 'START_BLOCK_ID')
     start_block_id.value = days_ago_block_id
     start_block_id.save(self.session)

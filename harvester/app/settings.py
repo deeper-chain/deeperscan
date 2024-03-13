@@ -27,6 +27,7 @@ DB_USERNAME = os.environ.get("DB_USERNAME", "root")
 DB_PASSWORD = os.environ.get("DB_PASSWORD", "root")
 
 BLOCK_HISTORY_PERIOD = os.environ.get("BLOCK_HISTORY_PERIOD", '180d')
+CATCH_UP_BLOCKS_PER_RUN = int(os.environ.get("CATCH_UP_BLOCKS_PER_RUN", 500))
 CLEAN_UP_BLOCKS_PER_RUN = int(os.environ.get("CLEAN_UP_BLOCKS_PER_RUN", 10))
 
 DB_CONNECTION = os.environ.get("DB_CONNECTION", "mysql+mysqlconnector://{}:{}@{}:{}/{}?charset=utf8mb4".format(
