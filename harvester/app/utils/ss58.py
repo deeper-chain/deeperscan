@@ -77,7 +77,7 @@ def ss58_encode(address, address_type=42):
         else:
             logging.info(f"Address before conversion: {address}")
             address_bytes = bytes.fromhex(address)
-            
+
     if len(address_bytes) == 32:
         # Checksum size is 2 bytes for public key
         checksum_length = 2
@@ -105,7 +105,7 @@ def ss58_encode_account_index(account_index, address_type=42):
         account_idx_encoder = U64()
     else:
         raise ValueError("Value too large for an account index")
-    
+
     print("ss58_encode_account_index: ", account_idx_encoder.encode(account_index).data)
 
     return ss58_encode(account_idx_encoder.encode(account_index).data, address_type)
@@ -126,3 +126,10 @@ def ss58_decode_account_index(address, valid_address_type=42):
     else:
         raise ValueError("Invalid account index length")
 
+
+def is_ss58_address(address):
+    try:
+        ss58_decode(address)
+        return True
+    except ValueError:
+        return False
