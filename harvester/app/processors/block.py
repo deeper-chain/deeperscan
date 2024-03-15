@@ -32,7 +32,7 @@ from substrateinterface.utils.hasher import blake2_256
 from app.models.data import Log, AccountAudit, Account, AccountIndexAudit, AccountIndex, \
     SessionValidator, IdentityAudit, IdentityJudgementAudit, IdentityJudgement, SearchIndex, AccountInfoSnapshot
 
-from app.utils.ss58 import ss58_encode, ss58_decode, ss58_encode_account_index
+from app.utils.ss58 import ss58_encode, ss58_decode, ss58_encode_account_index, is_ss58_address
 from scalecodec.base import ScaleBytes, RuntimeConfiguration
 
 from app.processors.base import BlockProcessor
@@ -296,11 +296,13 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.block_id == self.block.id,
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
-            decoded_account_id = search_index.account_id
+            ss58_encoded_account_id = search_index.account_id
+            if not is_ss58_address(ss58_encoded_account_id):
+                ss58_encoded_account_id = ss58_encode(ss58_encoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE)
             account = Account(
-                id=decoded_account_id,
-                address=ss58_encode(decoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE),
-                hash_blake2b=blake2_256(binascii.unhexlify(decoded_account_id)),
+                id=search_index.account_id,
+                address=ss58_encoded_account_id,
+                hash_blake2b=blake2_256(binascii.unhexlify(ss58_encoded_account_id)),
                 created_at_block=self.block.id,
                 updated_at_block=self.block.id
             )
