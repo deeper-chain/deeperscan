@@ -297,12 +297,15 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
             ss58_encoded_account_id = search_index.account_id
-            if not is_ss58_address(ss58_encoded_account_id):
+            ss58_decoded_account_id = search_index.account_id
+            if not is_ss58_address(search_index.account_id):
                 ss58_encoded_account_id = ss58_encode(ss58_encoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+            else:
+                ss58_decoded_account_id = ss58_decode(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE)
             account = Account(
                 id=search_index.account_id,
                 address=ss58_encoded_account_id,
-                hash_blake2b=blake2_256(binascii.unhexlify(ss58_encoded_account_id)),
+                hash_blake2b=blake2_256(binascii.unhexlify(ss58_decoded_account_id)),
                 created_at_block=self.block.id,
                 updated_at_block=self.block.id
             )
