@@ -108,3 +108,5 @@ app.add_route('/deeper/current_user_release_time', polkascan.CurrentUserReleaseT
 app.add_route('/deeper/oracle', polkascan.OracleResource())
 app.add_route('/deeper/user_npow', polkascan.NpowResource())
 app.add_route('/deeper/adsc_transfer', polkascan.DataEventResource())
+app.add_route('/deeper/cross_chain_requests', polkascan.WithdrawalRequestResource())
+app.add_route('/deeper/has_new_cross_chain', polkascan.NewEventCheckResource())

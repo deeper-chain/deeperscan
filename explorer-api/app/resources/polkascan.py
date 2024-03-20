@@ -2210,3 +2210,71 @@ class DataEventResource(BaseResource):
 
         # 设置响应
         resp.media = data
+
+class WithdrawalRequestResource(BaseResource):
+    def on_get(self, req, resp):
+        # 获取请求参数
+        block_id = req.get_param('block_id', required=True)
+        
+        # 构建SQL查询
+        sql = """
+            SELECT 
+                block_id,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) AS chain,
+                block_datetime
+            FROM data_event
+            WHERE 
+                block_id > :block_id 
+                AND module_id = 'operation' 
+                AND event_id = 'ApplyForBridgeTransfer'
+            ORDER BY block_datetime DESC
+        """
+
+        # 设置查询参数
+        params = {'block_id': block_id}
+        
+        # 执行查询
+        result = self.session.execute(sql, params)
+
+        # 处理查询结果
+        rows = result.fetchall()
+        data = [
+            {
+                'block_id': row['block_id'], 
+                'from_address': row['from_address'], 
+                'to_address': row['to_address'], 
+                'amount': row['amount'], 
+                'chain': row['chain'],
+                'block_datetime': row['block_datetime'].strftime('%Y-%m-%d %H:%M:%S') if row['block_datetime'] else None
+            } 
+            for row in rows
+        ]
+
+        # 设置响应
+        resp.media = data
+
+class NewEventCheckResource(BaseResource):
+    def on_get(self, req, resp):
+        # 获取请求参数
+        block_id = req.get_param('block_id', required=True)
+        
+        # 构建SQL查询来检查新的事件是否存在
+        sql = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM data_event
+                WHERE block_id > :block_id 
+                AND module_id = 'operation' 
+                AND event_id = 'ApplyForBridgeTransfer'
+            ) AS new_event_exists
+        """
+        
+        # 执行查询
+        result = self.session.execute(sql, {'block_id': block_id})
+        row = result.fetchone()
+        
+        # 设置响应
+        resp.media = {'new_event_exists': bool(row['new_event_exists'])}
