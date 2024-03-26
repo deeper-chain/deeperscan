@@ -2278,3 +2278,127 @@ class NewEventCheckResource(BaseResource):
         
         # 设置响应
         resp.media = {'new_event_exists': bool(row['new_event_exists'])}
+        
+class DeeperToOtherBlockchainResource(BaseResource):
+    def on_get(self, req, resp):
+        # 获取请求参数，如果参数不存在，则为None
+        block_id = req.get_param('block_id')
+        from_address = req.get_param('from_address')
+        to_address = req.get_param('to_address')
+        chain = req.get_param('chain')
+        
+        # 构建基础SQL查询语句
+        sql = """
+            SELECT 
+                block_id,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) AS chain,
+                block_datetime
+            FROM data_event
+            WHERE 
+                event_id = 'BridgeDeeperToOther'
+        """
+        
+        # 初始化查询参数字典
+        params = {}
+        
+        # 根据提供的参数动态添加WHERE条件
+        if block_id is not None:
+            sql += " AND block_id > :block_id"
+            params['block_id'] = block_id
+        if from_address is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) = :from_address"
+            params['from_address'] = from_address
+        if to_address is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) = :to_address"
+            params['to_address'] = to_address
+        if chain is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) = :chain"
+            params['chain'] = chain
+        
+        # 添加ORDER BY语句以按block_datetime降序排列结果
+        sql += " ORDER BY block_datetime DESC"
+
+        # 执行查询
+        result = self.session.execute(sql, params)
+
+        # 处理查询结果
+        rows = result.fetchall()
+        data = [
+            {
+                'block_id': row['block_id'], 
+                'from_address': row['from_address'], 
+                'to_address': row['to_address'], 
+                'amount': row['amount'], 
+                'chain': row['chain'],
+                'block_datetime': row['block_datetime'].strftime('%Y-%m-%d %H:%M:%S') if row['block_datetime'] else None
+            } 
+            for row in rows
+        ]
+
+        # 设置响应数据
+        resp.media = data
+
+class OtherToDeeperBlockchainResource(BaseResource):
+    def on_get(self, req, resp):
+        # 获取请求参数，如果参数不存在，则为None
+        block_id = req.get_param('block_id')
+        from_address = req.get_param('from_address')
+        to_address = req.get_param('to_address')
+        chain = req.get_param('chain')
+        
+        # 构建基础SQL查询语句
+        sql = """
+            SELECT 
+                block_id,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) AS chain,
+                block_datetime
+            FROM data_event
+            WHERE 
+                event_id = 'BridgeOtherToDeeper'
+        """
+        
+        # 初始化查询参数字典
+        params = {}
+        
+        # 根据提供的参数动态添加WHERE条件
+        if block_id is not None:
+            sql += " AND block_id > :block_id"
+            params['block_id'] = block_id
+        if from_address is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) = :from_address"
+            params['from_address'] = from_address
+        if to_address is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) = :to_address"
+            params['to_address'] = to_address
+        if chain is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) = :chain"
+            params['chain'] = chain
+        
+        # 添加ORDER BY语句以按block_datetime降序排列结果
+        sql += " ORDER BY block_datetime DESC"
+
+        # 执行查询
+        result = self.session.execute(sql, params)
+
+        # 处理查询结果
+        rows = result.fetchall()
+        data = [
+            {
+                'block_id': row['block_id'], 
+                'from_address': row['from_address'], 
+                'to_address': row['to_address'], 
+                'amount': row['amount'], 
+                'chain': row['chain'],
+                'block_datetime': row['block_datetime'].strftime('%Y-%m-%d %H:%M:%S') if row['block_datetime'] else None
+            } 
+            for row in rows
+        ]
+
+        # 设置响应数据
+        resp.media = data
