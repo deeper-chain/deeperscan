@@ -2220,6 +2220,7 @@ class WithdrawalRequestResource(BaseResource):
         sql = """
             SELECT 
                 block_id,
+                event_idx AS event_id,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
@@ -2244,6 +2245,7 @@ class WithdrawalRequestResource(BaseResource):
         data = [
             {
                 'block_id': row['block_id'], 
+                'event_id': row['event_id'], 
                 'from_address': row['from_address'], 
                 'to_address': row['to_address'], 
                 'amount': row['amount'], 
@@ -2291,6 +2293,7 @@ class DeeperToOtherBlockchainResource(BaseResource):
         sql = """
             SELECT 
                 block_id,
+                event_idx AS event_id,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
@@ -2329,6 +2332,7 @@ class DeeperToOtherBlockchainResource(BaseResource):
         data = [
             {
                 'block_id': row['block_id'], 
+                'event_id': row['event_id'], 
                 'from_address': row['from_address'], 
                 'to_address': row['to_address'], 
                 'amount': row['amount'], 
@@ -2353,6 +2357,7 @@ class OtherToDeeperBlockchainResource(BaseResource):
         sql = """
             SELECT 
                 block_id,
+                event_idx AS event_id,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
@@ -2391,6 +2396,7 @@ class OtherToDeeperBlockchainResource(BaseResource):
         data = [
             {
                 'block_id': row['block_id'], 
+                'event_id': row['event_id'], 
                 'from_address': row['from_address'], 
                 'to_address': row['to_address'], 
                 'amount': row['amount'], 
