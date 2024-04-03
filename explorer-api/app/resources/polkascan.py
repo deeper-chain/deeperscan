@@ -2281,7 +2281,7 @@ class NewEventCheckResource(BaseResource):
         # 设置响应
         resp.media = {'new_event_exists': bool(row['new_event_exists'])}
         
-class OtherToDeeperBlockchainResource(BaseResource):
+class DeeperToOtherBlockchainResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数，如果参数不存在，则为None
         block_id = req.get_param('block_id')
@@ -2294,8 +2294,8 @@ class OtherToDeeperBlockchainResource(BaseResource):
             SELECT 
                 block_id,
                 event_idx AS event_id,
-                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
-                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) AS chain,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[4]')) AS data,
@@ -2312,12 +2312,12 @@ class OtherToDeeperBlockchainResource(BaseResource):
         if block_id is not None:
             sql += " AND block_id > :block_id"
             params['block_id'] = block_id
-        if from_address is not None:
-            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) = :from_address"
-            params['from_address'] = from_address
         if to_address is not None:
-            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) = :to_address"
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) = :to_address"
             params['to_address'] = to_address
+        if from_address is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) = :from_address"
+            params['from_address'] = from_address
         if chain is not None:
             sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) = :chain"
             params['chain'] = chain
@@ -2347,7 +2347,7 @@ class OtherToDeeperBlockchainResource(BaseResource):
         # 设置响应数据
         resp.media = data
 
-class DeeperToOtherBlockchainResource(BaseResource):
+class OtherToDeeperBlockchainResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数，如果参数不存在，则为None
         block_id = req.get_param('block_id')
@@ -2360,8 +2360,8 @@ class DeeperToOtherBlockchainResource(BaseResource):
             SELECT 
                 block_id,
                 event_idx AS event_id,
-                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS from_address,
-                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) AS to_address,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) AS chain,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[4]')) AS data,
@@ -2378,12 +2378,12 @@ class DeeperToOtherBlockchainResource(BaseResource):
         if block_id is not None:
             sql += " AND block_id > :block_id"
             params['block_id'] = block_id
-        if from_address is not None:
-            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) = :from_address"
-            params['from_address'] = from_address
         if to_address is not None:
-            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) = :to_address"
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[0]')) = :to_address"
             params['to_address'] = to_address
+        if from_address is not None:
+            sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) = :from_address"
+            params['from_address'] = from_address
         if chain is not None:
             sql += " AND JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) = :chain"
             params['chain'] = chain
