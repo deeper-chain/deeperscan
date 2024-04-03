@@ -2298,6 +2298,7 @@ class OtherToDeeperBlockchainResource(BaseResource):
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) AS chain,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[4]')) AS data,
                 block_datetime
             FROM data_event
             WHERE 
@@ -2337,6 +2338,7 @@ class OtherToDeeperBlockchainResource(BaseResource):
                 'to_address': row['to_address'], 
                 'amount': row['amount'], 
                 'chain': row['chain'],
+                'data': row['data'],
                 'block_datetime': row['block_datetime'].strftime('%Y-%m-%d %H:%M:%S') if row['block_datetime'] else None
             } 
             for row in rows
@@ -2362,6 +2364,7 @@ class DeeperToOtherBlockchainResource(BaseResource):
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[1]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[2]')) AS amount,
                 JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[3]')) AS chain,
+                JSON_UNQUOTE(JSON_EXTRACT(attributes, '$[4]')) AS data,
                 block_datetime
             FROM data_event
             WHERE 
@@ -2401,6 +2404,7 @@ class DeeperToOtherBlockchainResource(BaseResource):
                 'to_address': row['to_address'], 
                 'amount': row['amount'], 
                 'chain': row['chain'],
+                'data': row['data'],
                 'block_datetime': row['block_datetime'].strftime('%Y-%m-%d %H:%M:%S') if row['block_datetime'] else None
             } 
             for row in rows
