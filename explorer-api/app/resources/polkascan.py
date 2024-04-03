@@ -2281,7 +2281,7 @@ class NewEventCheckResource(BaseResource):
         # 设置响应
         resp.media = {'new_event_exists': bool(row['new_event_exists'])}
         
-class DeeperToOtherBlockchainResource(BaseResource):
+class OtherToDeeperBlockchainResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数，如果参数不存在，则为None
         block_id = req.get_param('block_id')
@@ -2345,7 +2345,7 @@ class DeeperToOtherBlockchainResource(BaseResource):
         # 设置响应数据
         resp.media = data
 
-class OtherToDeeperBlockchainResource(BaseResource):
+class DeeperToOtherBlockchainResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数，如果参数不存在，则为None
         block_id = req.get_param('block_id')
