@@ -2161,7 +2161,6 @@ class DataEventResource(BaseResource):
         sql = """
             SELECT 
                 a.block_id,
-                a.event_idx,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[3]')) AS amount,
@@ -2201,11 +2200,10 @@ class DataEventResource(BaseResource):
         data = [
             {
                 'block_id': row[0], 
-                'event_idx': row[1], 
-                'from_address': row[2], 
-                'to_address': row[3], 
-                'amount': row[4], 
-                'block_datetime': row[5].strftime('%Y-%m-%d %H:%M:%S') if row[5] else None
+                'from_address': row[1], 
+                'to_address': row[2], 
+                'amount': row[3], 
+                'block_datetime': row[4].strftime('%Y-%m-%d %H:%M:%S') if row[4] else None
             } 
             for row in rows
         ]
