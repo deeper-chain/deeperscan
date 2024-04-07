@@ -2134,7 +2134,7 @@ class NpowResource(BaseResource):
         sum_result = self.session.execute(sql, {'eth_addr': addr, 'day': day})
         sum_row = sum_result.fetchone()
         resp.media = {'addr': addr, 'ezc': int(sum_row[0]), 'dpr': int(sum_row[1])}
-
+        
 class DataEventResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
@@ -2161,12 +2161,13 @@ class DataEventResource(BaseResource):
         sql = """
             SELECT 
                 a.block_id,
+                a.event_idx,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[1]')) AS from_address,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[2]')) AS to_address,
                 JSON_UNQUOTE(JSON_EXTRACT(a.attributes, '$[3]')) AS amount,
                 a.block_datetime
             FROM 
-                (SELECT block_id, attributes, block_datetime
+                (SELECT block_id, event_idx, attributes, block_datetime
                  FROM data_event 
                  WHERE module_id = 'assets' AND event_id = 'Transferred'
                 ) AS a
@@ -2199,18 +2200,19 @@ class DataEventResource(BaseResource):
         rows = result.fetchall()
         data = [
             {
-                'block_id': row[0], 
-                'from_address': row[1], 
-                'to_address': row[2], 
-                'amount': row[3], 
-                'block_datetime': row[4].strftime('%Y-%m-%d %H:%M:%S') if row[4] else None
+                'block_id': row[0],
+                'event_idx': row[1], 
+                'from_address': row[2], 
+                'to_address': row[3], 
+                'amount': row[4], 
+                'block_datetime': row[5].strftime('%Y-%m-%d %H:%M:%S') if row[5] else None
             } 
             for row in rows
         ]
 
         # 设置响应
         resp.media = data
-
+        
 class WithdrawalRequestResource(BaseResource):
     def on_get(self, req, resp):
         # 获取请求参数
