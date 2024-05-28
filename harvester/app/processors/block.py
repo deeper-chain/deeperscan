@@ -302,8 +302,9 @@ class AccountBlockProcessor(BlockProcessor):
                 ss58_encoded_account_id = ss58_encode(ss58_encoded_account_id, settings.SUBSTRATE_ADDRESS_TYPE)
             else:
                 ss58_decoded_account_id = ss58_decode(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+
             account = Account(
-                id=search_index.account_id,
+                id=ss58_decoded_account_id,
                 address=ss58_encoded_account_id,
                 hash_blake2b=blake2_256(binascii.unhexlify(ss58_decoded_account_id)),
                 created_at_block=self.block.id,
