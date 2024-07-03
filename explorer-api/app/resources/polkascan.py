@@ -1642,16 +1642,16 @@ class TransactionResource2(BaseResource):
                 sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
 
                 if start_time:
-                    assert type(int(start_time)) is int
+                    assert type(float(start_time)) is float
                     start_time_condition = ' AND block_datetime >= :start_time'
                     sql += start_time_condition
-                    params['start_time'] = datetime.fromtimestamp(int(start_time))
+                    params['start_time'] = datetime.fromtimestamp(float(start_time))
 
                 if end_time:
-                    assert type(int(end_time)) is int
+                    assert type(float(end_time)) is float
                     end_time_condition = ' AND block_datetime < :end_time'
                     sql += end_time_condition
-                    params['end_time'] = datetime.fromtimestamp(int(end_time))
+                    params['end_time'] = datetime.fromtimestamp(float(end_time))
 
                 # print(sql)
                 result = self.session.execute(sql, params)
