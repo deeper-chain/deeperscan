@@ -1573,6 +1573,8 @@ event_map = {
 
 class TransactionResource2(BaseResource):
     def on_get(self, req, resp, **kwargs):
+        # 打印输入参数
+        print("\n=== TransactionResource2 Request Parameters ===")
         addr = req.get_param('addr', None)
         from_addr = req.get_param('from', None)
         to_addr = req.get_param('to', None)
@@ -1580,32 +1582,40 @@ class TransactionResource2(BaseResource):
         end_time = req.get_param('end_time', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
         limit_option = str(req.get_param('limit')).lower() == 'true'
+        print(f"Input params: addr={addr}, from={from_addr}, to={to_addr}")
+        print(f"Time range: start={start_time}, end={end_time}")
+        print(f"Options: sum={sum_option}, limit={limit_option}")
+
         empty_flag = False
 
-
-        # sql = 'SELECT block_id, event_idx, module_id, event_id, _from, _to, amount, timestamp FROM transaction WHERE'
         sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
         params = {}
 
         if limit_option == False:
             if addr:
+                print(f"\n=== Processing address: {addr} ===")
                 assert ' ' not in addr
                 range_condition = ' (account_id = :from OR account_id = :to)'
                 decoded_addr = addr.replace('0x', '') if addr.startswith('0x') else ss58_decode(addr)
                 params['from'] = decoded_addr
                 params['to'] = decoded_addr
+                print(f"Decoded address: {decoded_addr}")
 
             elif from_addr:
+                print(f"\n=== Processing from_address: {from_addr} ===")
                 assert ' ' not in from_addr
                 range_condition = ' account_id = :from'
                 decoded_from_addr = from_addr.replace('0x', '') if from_addr.startswith('0x') else ss58_decode(from_addr)
                 params['from'] = decoded_from_addr
+                print(f"Decoded from_address: {decoded_from_addr}")
 
             elif to_addr:
+                print(f"\n=== Processing to_address: {to_addr} ===")
                 assert ' ' not in to_addr
                 range_condition = ' account_id = :to'
                 decoded_to_addr = to_addr.replace('0x', '') if to_addr.startswith('0x') else ss58_decode(to_addr)
                 params['to'] = decoded_to_addr
+                print(f"Decoded to_address: {decoded_to_addr}")
             else:
                 pass # wrong param, at least addr or from or to
 
@@ -1614,6 +1624,7 @@ class TransactionResource2(BaseResource):
             module_id = req.get_param('module_id', None)
             event_id = req.get_param('event_id', None)
             if module_id and event_id:
+                print(f"\n=== Processing event: {module_id}.{event_id} ===")
                 assert ' ' not in module_id
                 assert ' ' not in event_id
 
@@ -1621,22 +1632,26 @@ class TransactionResource2(BaseResource):
                 type_condition = ' AND index_type_id = :index_type_id'
                 sql_index += type_condition
                 params['index_type_id'] = index_type_id
+                print(f"Mapped index_type_id: {index_type_id}")
 
             data = []
             sum_amount = 0
             sql_index += ' ORDER BY block_id DESC limit 600'
-
+            
+            print("\n=== Executing first query ===")
+            print(f"SQL: {sql_index}")
+            print(f"Params: {params}")
             index_result = self.session.execute(sql_index, params)
-
 
             conditions = []
             for row in index_result:
-                # print("result:", row)
                 row = list(row)
                 block_id = row[0]
                 event_idx = row[1]
                 if block_id is not None and event_idx is not None:
                     conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
+            
+            print(f"\nFound {len(conditions)} matching conditions")
 
             if conditions:
                 sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
@@ -1653,7 +1668,9 @@ class TransactionResource2(BaseResource):
                     sql += end_time_condition
                     params['end_time'] = datetime.fromtimestamp(float(end_time))
 
-                # print(sql)
+                print("\n=== Executing second query ===")
+                print(f"SQL: {sql}")
+                print(f"Params: {params}")
                 result = self.session.execute(sql, params)
 
                 for row in result:
@@ -1661,7 +1678,7 @@ class TransactionResource2(BaseResource):
                     module_id = row[2]
                     event_id = row[3]
                     index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-                    # print('index_type_id', index_type_id, module_id, event_id)
+                    print(f"\nProcessing event: {module_id}.{event_id} (index_type_id: {index_type_id})")
                     if index_type_id == settings.SEARCH_INDEX_STAKING_REWARD:
                         json_data = json.loads(row[4])
                         _from = None
@@ -1713,10 +1730,7 @@ class TransactionResource2(BaseResource):
                     else:
                         continue
 
-                    # https://github.com/deeper-chain/deeperscan/issues/60
-                    # AttributeError: 'NoneType' object has no attribute 'timestamp'
                     if row[5] is None:
-                        # print entire row for debug
                         print("ERROR: FIXME: row[5] is None")
                         print(row)
                     row_dict = {
@@ -1732,16 +1746,22 @@ class TransactionResource2(BaseResource):
 
                     data.append(row_dict)
                     sum_amount += int(amount)
+                    print(f"Added row to data: block_id={row[0]}, event_idx={row[1]}")
             else:
                 empty_flag = True
+                print("\n=== No matching conditions found ===")
 
         if sum_option:
+            print(f"\n=== Returning sum: {sum_amount} ===")
             resp.media = {'count': sum_amount}
         elif limit_option:
+            print("\n=== Returning limit info ===")
             resp.media = {'limit': 600}
         elif empty_flag:
+            print("\n=== Returning empty flag ===")
             resp.media = {'empty': 0}
         else:
+            print(f"\n=== Returning {len(data)} transactions ===")
             resp.media = {'data': data}
 
 '''
