@@ -1574,7 +1574,6 @@ event_map = {
 class TransactionResource2(BaseResource):
     def on_get(self, req, resp, **kwargs):
         # 打印输入参数
-        print("\n=== TransactionResource2 Request Parameters ===")
         addr = req.get_param('addr', None)
         from_addr = req.get_param('from', None)
         to_addr = req.get_param('to', None)
@@ -1582,65 +1581,57 @@ class TransactionResource2(BaseResource):
         end_time = req.get_param('end_time', None)
         sum_option = str(req.get_param('sum')).lower() == 'true'
         limit_option = str(req.get_param('limit')).lower() == 'true'
-        print(f"Input params: addr={addr}, from={from_addr}, to={to_addr}")
-        print(f"Time range: start={start_time}, end={end_time}")
-        print(f"Options: sum={sum_option}, limit={limit_option}")
+        
+        logging.warning(f'TransactionResource2 input params: addr={addr}, from={from_addr}, to={to_addr}')
+        logging.warning(f'TransactionResource2 time range: start={start_time}, end={end_time}')
+        logging.warning(f'TransactionResource2 options: sum={sum_option}, limit={limit_option}')
 
         empty_flag = False
-
         sql_index = 'SELECT block_id, event_idx, account_id FROM data_account_search_index WHERE'
         params = {}
 
         if limit_option == False:
             if addr:
-                print(f"\n=== Processing address: {addr} ===")
-                assert ' ' not in addr
+                logging.warning(f'TransactionResource2 processing address: {addr}')
                 range_condition = ' (account_id = :from OR account_id = :to)'
                 decoded_addr = addr.replace('0x', '') if addr.startswith('0x') else ss58_decode(addr)
                 params['from'] = decoded_addr
                 params['to'] = decoded_addr
-                print(f"Decoded address: {decoded_addr}")
+                logging.warning(f'TransactionResource2 decoded address: {decoded_addr}')
 
             elif from_addr:
-                print(f"\n=== Processing from_address: {from_addr} ===")
-                assert ' ' not in from_addr
+                logging.warning(f'TransactionResource2 processing from_address: {from_addr}')
                 range_condition = ' account_id = :from'
                 decoded_from_addr = from_addr.replace('0x', '') if from_addr.startswith('0x') else ss58_decode(from_addr)
                 params['from'] = decoded_from_addr
-                print(f"Decoded from_address: {decoded_from_addr}")
+                logging.warning(f'TransactionResource2 decoded from_address: {decoded_from_addr}')
 
             elif to_addr:
-                print(f"\n=== Processing to_address: {to_addr} ===")
-                assert ' ' not in to_addr
+                logging.warning(f'TransactionResource2 processing to_address: {to_addr}')
                 range_condition = ' account_id = :to'
                 decoded_to_addr = to_addr.replace('0x', '') if to_addr.startswith('0x') else ss58_decode(to_addr)
                 params['to'] = decoded_to_addr
-                print(f"Decoded to_address: {decoded_to_addr}")
-            else:
-                pass # wrong param, at least addr or from or to
+                logging.warning(f'TransactionResource2 decoded to_address: {decoded_to_addr}')
 
             sql_index += range_condition
 
             module_id = req.get_param('module_id', None)
             event_id = req.get_param('event_id', None)
             if module_id and event_id:
-                print(f"\n=== Processing event: {module_id}.{event_id} ===")
-                assert ' ' not in module_id
-                assert ' ' not in event_id
-
+                logging.warning(f'TransactionResource2 processing event: {module_id}.{event_id}')
                 index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
                 type_condition = ' AND index_type_id = :index_type_id'
                 sql_index += type_condition
                 params['index_type_id'] = index_type_id
-                print(f"Mapped index_type_id: {index_type_id}")
+                logging.warning(f'TransactionResource2 mapped index_type_id: {index_type_id}')
 
             data = []
             sum_amount = 0
             sql_index += ' ORDER BY block_id DESC limit 600'
             
-            print("\n=== Executing first query ===")
-            print(f"SQL: {sql_index}")
-            print(f"Params: {params}")
+            logging.warning(f'TransactionResource2 first query: {sql_index}')
+            logging.warning(f'TransactionResource2 params: {params}')
+            
             index_result = self.session.execute(sql_index, params)
 
             conditions = []
@@ -1651,117 +1642,121 @@ class TransactionResource2(BaseResource):
                 if block_id is not None and event_idx is not None:
                     conditions.append(' (block_id = %s AND event_idx = %s) ' % (block_id, event_idx))
             
-            print(f"\nFound {len(conditions)} matching conditions")
+            logging.warning(f'TransactionResource2 found {len(conditions)} matching conditions')
 
             if conditions:
                 sql = 'SELECT block_id, event_idx, module_id, event_id, attributes, block_datetime FROM data_event WHERE (' + 'OR'.join(conditions) + ')'
 
                 if start_time:
-                    assert type(float(start_time)) is float
                     start_time_condition = ' AND block_datetime >= :start_time'
                     sql += start_time_condition
                     params['start_time'] = datetime.fromtimestamp(float(start_time))
+                    logging.warning(f'TransactionResource2 added start_time filter: {params["start_time"]}')
 
                 if end_time:
-                    assert type(float(end_time)) is float
                     end_time_condition = ' AND block_datetime < :end_time'
                     sql += end_time_condition
                     params['end_time'] = datetime.fromtimestamp(float(end_time))
+                    logging.warning(f'TransactionResource2 added end_time filter: {params["end_time"]}')
 
-                print("\n=== Executing second query ===")
-                print(f"SQL: {sql}")
-                print(f"Params: {params}")
+                logging.warning(f'TransactionResource2 second query: {sql}')
                 result = self.session.execute(sql, params)
 
                 for row in result:
-                    row = list(row)
-                    module_id = row[2]
-                    event_id = row[3]
-                    index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
-                    print(f"\nProcessing event: {module_id}.{event_id} (index_type_id: {index_type_id})")
-                    if index_type_id == settings.SEARCH_INDEX_STAKING_REWARD:
-                        json_data = json.loads(row[4])
-                        _from = None
-                        try:
-                            _to = json_data[0]['value']
-                            amount = json_data[1]['value']
-                        except:
+                    try:
+                        row = list(row)
+                        module_id = row[2]
+                        event_id = row[3]
+                        index_type_id = event_map.get('%s_%s' % (module_id.lower(), event_id.lower()))
+                        logging.warning(f'TransactionResource2 processing event: Block {row[0]}-{row[1]} {module_id}.{event_id} (index_type_id: {index_type_id})')
+                        logging.warning(f'TransactionResource2 raw attributes: {row[4]}')
+                        
+                        if index_type_id == settings.SEARCH_INDEX_STAKING_REWARD:
+                            json_data = json.loads(row[4])
+                            _from = None
+                            try:
+                                _to = json_data[0]['value']
+                                amount = json_data[1]['value']
+                            except:
+                                _to = json_data[0]
+                                amount = json_data[1]
+
+                        elif index_type_id == settings.SEARCH_INDEX_BALANCETRANSFER:
+                            json_data = json.loads(row[4])
+                            try:
+                                _from = json_data[0]['value']
+                                _to = json_data[1]['value']
+                                amount = json_data[2]['value']
+                            except:
+                                _from = json_data[0]
+                                _to = json_data[1]
+                                amount = json_data[2]
+
+                        elif index_type_id == settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
+                            json_data = json.loads(row[4])
+                            try:
+                                _from = json_data[0]['value']
+                                _to = json_data[1]['value']
+                                amount = json_data[2]['value']
+                            except:
+                                _from = json_data[0]
+                                _to = json_data[1]
+                                amount = json_data[2]
+
+                        elif index_type_id == settings.SEARCH_INDEX_RELEASE_REWARD:
+                            json_data = json.loads(row[4])
+                            _from = None
                             _to = json_data[0]
                             amount = json_data[1]
 
-                    elif index_type_id == settings.SEARCH_INDEX_BALANCETRANSFER:
-                        json_data = json.loads(row[4])
-                        try:
-                            _from = json_data[0]['value']
-                            _to = json_data[1]['value']
-                            amount = json_data[2]['value']
-                        except:
-                            _from = json_data[0]
-                            _to = json_data[1]
-                            amount = json_data[2]
+                        elif index_type_id == settings.SEARCH_INDEX_UNIQUES_TRANSFERRED:
+                            json_data = json.loads(row[4])
+                            _from = json_data[2]
+                            _to = json_data[3]
+                            amount = '{},{}'.format(json_data[0], json_data[1]) # class, instance
+                        elif index_type_id == settings.SEARCH_INDEX_NPOW_MINT:
+                            json_data = json.loads(row[4])
+                            _from = None
+                            _to = json_data[0]
+                            amount = json_data[1]
+                        else:
+                            continue
 
-                    elif index_type_id == settings.SEARCH_INDEX_MICROPAYMENT_CLAIMPAYMENT:
-                        json_data = json.loads(row[4])
-                        try:
-                            _from = json_data[0]['value']
-                            _to = json_data[1]['value']
-                            amount = json_data[2]['value']
-                        except:
-                            _from = json_data[0]
-                            _to = json_data[1]
-                            amount = json_data[2]
+                        if row[5] is None:
+                            logging.warning("ERROR: FIXME: row[5] is None")
+                            logging.warning(str(row))
+                        row_dict = {
+                            'block_id': row[0],
+                            'event_idx': row[1],
+                            'module_id': module_id,
+                            'event_id': event_id,
+                            '_from': _from,
+                            '_to': _to,
+                            'amount': str(amount),
+                            'timestamp': 0 if row[5] is None else int(row[5].timestamp()),
+                        }
 
-                    elif index_type_id == settings.SEARCH_INDEX_RELEASE_REWARD:
-                        json_data = json.loads(row[4])
-                        _from = None
-                        _to = json_data[0]
-                        amount = json_data[1]
-
-                    elif index_type_id == settings.SEARCH_INDEX_UNIQUES_TRANSFERRED:
-                        json_data = json.loads(row[4])
-                        _from = json_data[2]
-                        _to = json_data[3]
-                        amount = '{},{}'.format(json_data[0], json_data[1]) # class, instance
-                    elif index_type_id == settings.SEARCH_INDEX_NPOW_MINT:
-                        json_data = json.loads(row[4])
-                        _from = None
-                        _to = json_data[0]
-                        amount = json_data[1]
-                    else:
-                        continue
-
-                    if row[5] is None:
-                        print("ERROR: FIXME: row[5] is None")
-                        print(row)
-                    row_dict = {
-                        'block_id': row[0],
-                        'event_idx': row[1],
-                        'module_id': module_id,
-                        'event_id': event_id,
-                        '_from': _from,
-                        '_to': _to,
-                        'amount': str(amount),
-                        'timestamp': 0 if row[5] is None else int(row[5].timestamp()),
-                    }
-
-                    data.append(row_dict)
-                    sum_amount += int(amount)
-                    print(f"Added row to data: block_id={row[0]}, event_idx={row[1]}")
+                        data.append(row_dict)
+                        sum_amount += int(amount)
+                        logging.warning(f'TransactionResource2 added row to data: block_id={row[0]}, event_idx={row[1]}')
+                    except Exception as e:
+                        logging.warning(f'TransactionResource2 error processing row: {str(e)}')
             else:
                 empty_flag = True
-                print("\n=== No matching conditions found ===")
+                logging.warning('TransactionResource2 no matching conditions found')
 
+        # 最终响应
         if sum_option:
-            print(f"\n=== Returning sum: {sum_amount} ===")
+            logging.warning(f'TransactionResource2 returning sum: {sum_amount}')
             resp.media = {'count': sum_amount}
         elif limit_option:
-            print("\n=== Returning limit info ===")
+            logging.warning('TransactionResource2 returning limit info')
             resp.media = {'limit': 600}
         elif empty_flag:
-            print("\n=== Returning empty flag ===")
+            logging.warning('TransactionResource2 returning empty flag')
             resp.media = {'empty': 0}
         else:
-            print(f"\n=== Returning {len(data)} transactions ===")
+            logging.warning(f'TransactionResource2 returning {len(data)} transactions')
             resp.media = {'data': data}
 
 '''
