@@ -2429,3 +2429,23 @@ class OtherToDeeperBlockchainResource(BaseResource):
 
         # 设置响应数据
         resp.media = data
+
+class PingResource(BaseResource):
+    def on_get(self, req, resp):
+        try:
+            logging.warning('PingResource: received ping request')
+            resp.status = falcon.HTTP_200
+            resp.media = {
+                'message': 'pong',
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'status': 'success'
+            }
+            logging.warning('PingResource: responded with pong')
+        except Exception as e:
+            logging.warning(f'PingResource error: {str(e)}')
+            resp.status = falcon.HTTP_500
+            resp.media = {
+                'message': 'error',
+                'error': str(e),
+                'status': 'failed'
+            }
