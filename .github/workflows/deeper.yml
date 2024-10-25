@@ -1,0 +1,14 @@
+"jobs":
+  "build_and_deploy":
+    "name": "Build and Deploy"
+    "secrets": "inherit"
+    "uses": "deeper-chain/github-actions/.github/workflows/common.yml@v2"
+    "with":
+      "dockerfile": "Dockerfile"
+"name": "Deeper Network CI/CD"
+"on":
+  "push":
+    "branches":
+    - "master"
+    - "dev"
+"permissions": "write-all"
