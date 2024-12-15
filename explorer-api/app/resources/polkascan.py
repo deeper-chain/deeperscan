@@ -336,6 +336,8 @@ class ExtrinsicDetailResource(JSONAPIDetailResource):
 
 class EventsListResource(JSONAPIListResource):
 
+    FORBIDDEN_EVENT_IDS = ['RegisterNode']
+
     def apply_filters(self, query, params):
 
         if params.get('filter[address]'):
@@ -369,7 +371,9 @@ class EventsListResource(JSONAPIListResource):
                 query = query.filter_by(module_id=params.get('filter[module_id]'))
 
             if params.get('filter[event_id]'):
-
+                if params.get('filter[event_id]') in self.FORBIDDEN_EVENT_IDS:
+                    return query.filter(False)
+                    
                 query = query.filter_by(event_id=params.get('filter[event_id]'))
             else:
                 query = query.filter(Event.event_id.notin_(['ExtrinsicSuccess', 'ExtrinsicFailed']))
