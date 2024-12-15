@@ -219,7 +219,9 @@ class ExtrinsicListResource(JSONAPIListResource):
                 query = query.filter_by(module_id=params.get('filter[module_id]'))
 
             if params.get('filter[call_id]'):
-
+                if params.get('filter[call_id]') == 'register_device':
+                    return query.filter(False)
+                    
                 query = query.filter_by(call_id=params.get('filter[call_id]'))
 
             if params.get('filter[address]'):
